@@ -134,7 +134,9 @@ public class SearchActivity extends ActionBarActivity {
             InputStream stream = null;
             ArrayList<String> result = null;
             try {
-                stream = doGet("http://jibiki.fr/jibiki/api/Cesselin/jpn/cdm-headword|cdm-reading|cdm-writing/" + params[0] + "/");
+                String word = URLEncoder.encode(params[0], "UTF-8");
+//                stream = doGet("http://jibiki.fr/jibiki/api/Cesselin/jpn/cdm-headword|cdm-reading|cdm-writing/" + word + "/entries");
+                stream = doGet("http://jibiki.fr/jibiki/api/Cesselin/jpn/cdm-headword|cdm-reading|cdm-writing/" + word + "/");
                 result = XMLUtils.parseEntryList(stream);
                 Log.v(TAG, "index=" + result);
 
