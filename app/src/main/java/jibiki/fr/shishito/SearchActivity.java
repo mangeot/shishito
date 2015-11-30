@@ -32,6 +32,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import javax.xml.xpath.XPathExpressionException;
+
 import jibiki.fr.shishito.Util.HTTPResult;
 import jibiki.fr.shishito.Util.HTTPUtils;
 import jibiki.fr.shishito.Util.XMLUtils;
@@ -44,7 +46,8 @@ public class SearchActivity extends ActionBarActivity {
     private static final String TAG = "SearchActivity";
 
     ListView listView;
-    final ArrayList<String> list = new ArrayList<>();
+
+    private Dictionary dictionary;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,12 +56,17 @@ public class SearchActivity extends ActionBarActivity {
 
         listView = (ListView) findViewById(R.id.listView);
 
-        final StableArrayAdapter adapter = new StableArrayAdapter(this,
-                android.R.layout.simple_list_item_1, list);
-        listView.setAdapter(adapter);
-
         SearchView searchView = (SearchView) findViewById(R.id.action_search);
         //searchView.setSubmitButtonEnabled(true);
+        ConnectivityManager connMgr = (ConnectivityManager)
+                getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
+        if (networkInfo != null && networkInfo.isConnected()) {
+            new InitDictionaryTask().execute();
+        } else {
+            Toast.makeText(getApplicationContext(), "No Network",
+                    Toast.LENGTH_SHORT).show();
+        }
 
         handleIntent(getIntent());
     }
@@ -122,7 +130,7 @@ public class SearchActivity extends ActionBarActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    private class SearchTask extends AsyncTask<String, Void, ArrayList<String>> {
+    private class SearchTask extends AsyncTask<String, Void, ArrayList<ListEntry>> {
 
 
         public SearchTask() {
@@ -130,47 +138,69 @@ public class SearchActivity extends ActionBarActivity {
         }
 
         @Override
-        protected ArrayList<String> doInBackground(String... params) {
+        protected ArrayList<ListEntry> doInBackground(String... params) {
             InputStream stream = null;
-            ArrayList<String> result = null;
+            ArrayList<ListEntry> result = null;
             try {
                 String word = URLEncoder.encode(params[0], "UTF-8");
-//                stream = doGet("http://jibiki.fr/jibiki/api/Cesselin/jpn/cdm-headword|cdm-reading|cdm-writing/" + word + "/entries");
-                stream = doGet("http://jibiki.fr/jibiki/api/Cesselin/jpn/cdm-headword|cdm-reading|cdm-writing/" + word + "/");
-                result = XMLUtils.parseEntryList(stream);
+                stream = doGet("http://jibiki.fr/jibiki/api/Cesselin/jpn/cdm-headword|cdm-reading|cdm-writing/" + word + "/entries");
+                result = XMLUtils.parseEntryList(stream, dictionary);
                 Log.v(TAG, "index=" + result);
 
-            } catch (XmlPullParserException e) {
-                e.printStackTrace();
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
+            } catch (XmlPullParserException | XPathExpressionException | IOException e) {
                 e.printStackTrace();
             }
             return result;
         }
 
         @Override
-        protected void onPostExecute(ArrayList<String> result) {
+        protected void onPostExecute(ArrayList<ListEntry> result) {
 
             if (result == null) {
                 Toast.makeText(getApplicationContext(), "There was an error!",
                         Toast.LENGTH_SHORT).show();
-                return;
-            }else{
-                ArrayAdapter<String> adapter = (ArrayAdapter<String>) listView.getAdapter();
-                adapter.clear();
-                adapter.addAll(result);
-                adapter.notifyDataSetChanged();
+            } else {
+
+                EntryListAdapter adapter = (EntryListAdapter) listView.getAdapter();
+                if(adapter == null){
+                    adapter = new EntryListAdapter(SearchActivity.this, result.toArray(
+                            new ListEntry[result.size()]));
+                    listView.setAdapter(adapter);
+                }else {
+                    adapter.clear();
+                    adapter.addAll(result);
+                    adapter.notifyDataSetChanged();
+                }
             }
         }
     }
 
-    private class StableArrayAdapter extends ArrayAdapter<String> {
+    private class InitDictionaryTask extends AsyncTask<String, Void, Dictionary> {
 
-        public StableArrayAdapter(Context context, int textViewResourceId,
-                                  List<String> objects) {
-            super(context, textViewResourceId, objects);
+
+        public InitDictionaryTask() {
+
+        }
+
+        @Override
+        protected Dictionary doInBackground(String... params) {
+            InputStream stream = null;
+            Dictionary dict = null;
+            try {
+                stream = doGet("http://jibiki.fr/jibiki/api/Cesselin/jpn/");
+                dict = XMLUtils.createDictionary(stream);
+
+                Log.v(TAG, "index=" + dict);
+
+            } catch (XmlPullParserException | IOException e) {
+                e.printStackTrace();
+            }
+            return dict;
+        }
+
+        @Override
+        protected void onPostExecute(Dictionary dict) {
+            SearchActivity.this.dictionary = dict;
         }
     }
 }
