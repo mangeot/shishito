@@ -11,34 +11,24 @@ import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.widget.ArrayAdapter;
-import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.SearchView;
 import android.widget.Toast;
 
+import org.xml.sax.SAXException;
 import org.xmlpull.v1.XmlPullParserException;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
-import java.net.HttpURLConnection;
 import java.net.URLEncoder;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathExpressionException;
 
-import jibiki.fr.shishito.Util.HTTPResult;
-import jibiki.fr.shishito.Util.HTTPUtils;
 import jibiki.fr.shishito.Util.XMLUtils;
 
-import static jibiki.fr.shishito.Util.HTTPUtils.*;
+import static jibiki.fr.shishito.Util.HTTPUtils.doGet;
 
 
 public class SearchActivity extends ActionBarActivity {
@@ -147,7 +137,7 @@ public class SearchActivity extends ActionBarActivity {
                 result = XMLUtils.parseEntryList(stream, dictionary);
                 Log.v(TAG, "index=" + result);
 
-            } catch (XmlPullParserException | XPathExpressionException | IOException e) {
+            } catch (XmlPullParserException | ParserConfigurationException | SAXException | XPathExpressionException | IOException e) {
                 e.printStackTrace();
             }
             return result;
