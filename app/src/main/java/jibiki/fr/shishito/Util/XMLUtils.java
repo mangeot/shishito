@@ -41,6 +41,11 @@ public final class XMLUtils {
     private static final String ns = null;
     private static final String TAG = XMLUtils.class.getSimpleName();
 
+    protected static java.util.regex.Pattern regexXpath = 	java.util.regex.Pattern.compile("/([^\\/\\s\\[:]+:)?([^\\[\\/\\s:]+)", java.util.regex.Pattern.DOTALL);
+    protected static java.util.regex.Pattern regexTags = 	java.util.regex.Pattern.compile("<([^\\/\\s\\\\?>:]+:)?([^\\/\\s\\?:>]+)", java.util.regex.Pattern.DOTALL);
+
+
+
     protected static HashMap<String, String> newoldTagMap = new java.util.HashMap<>();
     protected static HashMap<String, String> oldnewTagMap = new java.util.HashMap<>();
 
@@ -69,8 +74,8 @@ public final class XMLUtils {
         StringWriter writer = new StringWriter();
         IOUtils.copy(stream, writer);
         String string = writer.toString();
-        string = replaceTags(string, newoldTagMap, oldnewTagMap);
-        //Log.d(TAG, source);
+        string = replaceTags(string, oldnewTagMap, newoldTagMap);
+        //Log.d(TAG, "replacedString:"+string);
 
         NamespaceContext context = new NamespaceContextMap(
                 "d", "http://www-clips.imag.fr/geta/services/dml",
@@ -123,7 +128,7 @@ public final class XMLUtils {
                 continue;
             } else {
                 String name = parser.getName();
-                Log.d(TAG, parser.getName());
+                //Log.d(TAG, parser.getName());
                 // Starts by looking for the entry tag
                 if (name.equals("authors")) {
                     dict.setAuthors(parser.getText());
@@ -146,11 +151,10 @@ public final class XMLUtils {
         return dict;
     }
 
-    protected static String replaceTags(String oldXml,  java.util.HashMap<String, String> newTagMap,  java.util.HashMap<String, String> oldTagMap) {
+    protected static String replaceTags(String oldXml,  java.util.HashMap<String, String> theOldNewTagMap,  java.util.HashMap<String, String> theNewOldTagMap) {
         String newXml = oldXml;
 
-        java.util.regex.Pattern regex = 	java.util.regex.Pattern.compile("<([^\\/\\s\\\\?>:]+:)?([^\\/\\s\\?:>]+)", java.util.regex.Pattern.DOTALL);
-        java.util.regex.Matcher m = regex.matcher(newXml);
+        java.util.regex.Matcher m = regexTags.matcher(newXml);
 
         int numtags = 1;
         while(m.find()) {
@@ -159,10 +163,16 @@ public final class XMLUtils {
             if(prefix == null) {
                 prefix = "";
             }
-            String newTagname = "a" + numtags++;
-            newoldTagMap.put(newTagname,oldTagname);
-            oldTagMap.put(oldTagname,newTagname);
-            //System.out.println("old:" + oldTagname + " new:"  +newTagname + " pref:" + prefix);
+            String newTagname = theOldNewTagMap.get(oldTagname);
+            if (newTagname == null) {
+                newTagname = "a" + numtags++;
+                theOldNewTagMap.put(oldTagname,newTagname);
+                theNewOldTagMap.put(newTagname, oldTagname);
+                //Log.d(TAG, "old:" + oldTagname + " new new:" + newTagname + " pref:" + prefix);
+            }
+            else {
+                //Log.d(TAG, "old:" + oldTagname + " new found:" + newTagname + " pref:" + prefix);
+            }
             newXml = newXml.replaceAll("<" + prefix + oldTagname + "\\s", "<" + prefix + newTagname + " ");
             newXml = newXml.replaceAll("<" + prefix + oldTagname + ">", "<" + prefix + newTagname + ">");
             newXml = newXml.replaceAll("</" + prefix + oldTagname + ">", "</" + prefix + newTagname+ ">");
@@ -173,13 +183,13 @@ public final class XMLUtils {
 
     protected static String replaceXpathstring(String xpathString, java.util.HashMap<String, String> theTagMap) {
         java.util.regex.Pattern regexXpath = 	java.util.regex.Pattern.compile("/([^\\/\\s\\[:]+:)?([^\\[\\/\\s:]+)", java.util.regex.Pattern.DOTALL);
-        java.util.regex.Matcher mXpath = regexXpath.matcher(xpathString);
         String newXpathString = xpathString;
-
+        //Log.d(TAG, "XpathString:" + newXpathString);
         if(newXpathString.contains("/volume")){
             newXpathString = newXpathString.replace("/volume", " /d:entry-list/d:entry/volume/d:contribution/d:data");
         }
-
+        //Log.d(TAG, "newXpathString:" + newXpathString);
+        java.util.regex.Matcher mXpath = regexXpath.matcher(newXpathString);
         while(mXpath.find()) {
             String oldTagname = mXpath.group(2);
             String prefix = mXpath.group(1);
@@ -187,12 +197,13 @@ public final class XMLUtils {
                 prefix = "";
             }
             String newTagname = theTagMap.get(oldTagname);
-            //System.out.println("old:" + oldTagname + " new:"  +newTagname + " pref:" + prefix);
+            //Log.d(TAG, "old:" + oldTagname + " new:" + newTagname + " pref:" + prefix);
             newXpathString = newXpathString.replaceAll("/" + prefix + oldTagname + "$", "/" + prefix + newTagname);
             newXpathString = newXpathString.replaceAll("/" + prefix + oldTagname + "/", "/" + prefix + newTagname + "/");
             newXpathString = newXpathString.replaceAll("/" + prefix + oldTagname + "\\[", "/" + prefix + newTagname + "\\[");
         }
 
+        //Log.d(TAG, "modifiedXpathString:" + newXpathString);
         return newXpathString;
     }
 
