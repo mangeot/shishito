@@ -95,20 +95,23 @@ public final class XMLUtils {
         ArrayList<ListEntry> entries = new ArrayList<ListEntry>();
         String xpath = ((String) dict.getElements().get("cdm-entry"));
         xpath = replaceXpathstring(xpath, oldnewTagMap);
+        String root = xpath;
         NodeList shows = (NodeList) xPath.evaluate(xpath, document, XPathConstants.NODESET);
         for (int i = 0; i < shows.getLength(); i++) {
             Element show = (Element) shows.item(i);
             ListEntry entry = new ListEntry();
             xpath = ((String) dict.getElements().get("cdm-headword"));
             xpath = replaceXpathstring(xpath, oldnewTagMap);
-            entry.setKanji(xPath.evaluate(xpath, show));
+            entry.setKanji(xPath.evaluate(xpath.replace(root + "/", ""), show));
             xpath =  ((String) dict.getElements().get("cdm-writing"));
             xpath = replaceXpathstring(xpath, oldnewTagMap);
-            entry.setHiragana(xPath.evaluate(xpath, show));
+            entry.setHiragana(xPath.evaluate(xpath.replace(root + "/", ""), show));
             xpath = ((String) dict.getElements().get("cdm-reading"));
             xpath = replaceXpathstring(xpath, oldnewTagMap);
-            entry.setRomanji(xPath.evaluate(xpath, show));
+            entry.setRomanji(xPath.evaluate(xpath.replace(root + "/", ""), show));
             entries.add(entry);
+            Log.d(TAG, xpath);
+            Log.d(TAG, entry.getRomanji());
         }
 
         return entries;

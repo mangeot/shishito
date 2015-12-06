@@ -153,8 +153,7 @@ public class SearchActivity extends ActionBarActivity {
 
                 EntryListAdapter adapter = (EntryListAdapter) listView.getAdapter();
                 if(adapter == null){
-                    adapter = new EntryListAdapter(SearchActivity.this, result.toArray(
-                            new ListEntry[result.size()]));
+                    adapter = new EntryListAdapter(SearchActivity.this, result);
                     listView.setAdapter(adapter);
                 }else {
                     adapter.clear();
