@@ -93,22 +93,17 @@ public final class XMLUtils {
         XPath xPath = factory.newXPath();
         xPath.setNamespaceContext(context);
         ArrayList<ListEntry> entries = new ArrayList<ListEntry>();
-        String xpath = ((String) dict.getElements().get("cdm-entry"));
-        xpath = replaceXpathstring(xpath, oldnewTagMap);
-        String root = xpath;
+        String xpath = adjustXpath("cdm-entry-api", dict, oldnewTagMap);
         NodeList shows = (NodeList) xPath.evaluate(xpath, document, XPathConstants.NODESET);
         for (int i = 0; i < shows.getLength(); i++) {
             Element show = (Element) shows.item(i);
             ListEntry entry = new ListEntry();
-            xpath = ((String) dict.getElements().get("cdm-headword"));
-            xpath = replaceXpathstring(xpath, oldnewTagMap);
-            entry.setKanji(xPath.evaluate(xpath.replace(root + "/", ""), show));
-            xpath =  ((String) dict.getElements().get("cdm-writing"));
-            xpath = replaceXpathstring(xpath, oldnewTagMap);
-            entry.setHiragana(xPath.evaluate(xpath.replace(root + "/", ""), show));
-            xpath = ((String) dict.getElements().get("cdm-reading"));
-            xpath = replaceXpathstring(xpath, oldnewTagMap);
-            entry.setRomanji(xPath.evaluate(xpath.replace(root + "/", ""), show));
+            xpath = adjustXpath("cdm-headword", dict, oldnewTagMap);
+            entry.setKanji(xPath.evaluate(xpath, show));
+            xpath = adjustXpath("cdm-writing", dict, oldnewTagMap);
+            entry.setHiragana(xPath.evaluate(xpath, show));
+            xpath = adjustXpath("cdm-reading", dict, oldnewTagMap);
+            entry.setRomanji(xPath.evaluate(xpath, show));
             entries.add(entry);
             Log.d(TAG, xpath);
             Log.d(TAG, entry.getRomanji());
@@ -141,7 +136,7 @@ public final class XMLUtils {
                         String xPath = "";
                         if ((xPath = parser.getAttributeValue(null, "xpath")) != null) {
                             dict.getElements().put(parser.getName(), xPath);
-                            Log.d(TAG, (String) dict.getElements().get(parser.getName()));
+                            Log.d(TAG, parser.getName() + ": "+ (String) dict.getElements().get(parser.getName()));
                             parser.next();
                         }
                     }
@@ -151,6 +146,7 @@ public final class XMLUtils {
                 }
             }
         }
+        dict.getElements().put("cdm-entry-api", "/d:entry-list/d:entry");
         return dict;
     }
 
@@ -178,6 +174,7 @@ public final class XMLUtils {
             }
             newXml = newXml.replaceAll("<" + prefix + oldTagname + "\\s", "<" + prefix + newTagname + " ");
             newXml = newXml.replaceAll("<" + prefix + oldTagname + ">", "<" + prefix + newTagname + ">");
+            newXml = newXml.replaceAll("<" + prefix + oldTagname + "\\s?/>", "<" + prefix + newTagname+ "/>");
             newXml = newXml.replaceAll("</" + prefix + oldTagname + ">", "</" + prefix + newTagname+ ">");
         }
 
@@ -187,10 +184,6 @@ public final class XMLUtils {
     protected static String replaceXpathstring(String xpathString, java.util.HashMap<String, String> theTagMap) {
         java.util.regex.Pattern regexXpath = 	java.util.regex.Pattern.compile("/([^\\/\\s\\[:]+:)?([^\\[\\/\\s:]+)", java.util.regex.Pattern.DOTALL);
         String newXpathString = xpathString;
-        //Log.d(TAG, "XpathString:" + newXpathString);
-        if(newXpathString.contains("/volume")){
-            newXpathString = newXpathString.replace("/volume", " /d:entry-list/d:entry/volume/d:contribution/d:data");
-        }
         //Log.d(TAG, "newXpathString:" + newXpathString);
         java.util.regex.Matcher mXpath = regexXpath.matcher(newXpathString);
         while(mXpath.find()) {
@@ -208,6 +201,20 @@ public final class XMLUtils {
 
         //Log.d(TAG, "modifiedXpathString:" + newXpathString);
         return newXpathString;
+    }
+
+    protected static String adjustXpath(String cdmElement, Dictionary theDict, HashMap theOldNewTagMap) {
+        String xpath = ((String) theDict.getElements().get(cdmElement));
+        String cdmVolumePath = (String) theDict.getElements().get("cdm-volume");
+        if(xpath.contains(cdmVolumePath)){
+            xpath = xpath.replace(cdmVolumePath, "." + cdmVolumePath + "/d:contribution/d:data");
+        }
+        // à tester !
+        xpath.replaceAll("\\s//"," .//");
+        xpath.replaceAll("^//", ".//");
+        //Log.d(TAG, "adjustedXpathString:" + xpath);
+        xpath = replaceXpathstring(xpath, theOldNewTagMap);
+        return xpath;
     }
 
 }
