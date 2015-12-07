@@ -38,6 +38,7 @@ public class SearchActivity extends ActionBarActivity {
     ListView listView;
 
     private Dictionary dictionary;
+    private Volume volume;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,7 +53,7 @@ public class SearchActivity extends ActionBarActivity {
                 getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
         if (networkInfo != null && networkInfo.isConnected()) {
-            new InitDictionaryTask().execute();
+            new InitVolumeTask().execute();
         } else {
             Toast.makeText(getApplicationContext(), "No Network",
                     Toast.LENGTH_SHORT).show();
@@ -134,7 +135,7 @@ public class SearchActivity extends ActionBarActivity {
             try {
                 String word = URLEncoder.encode(params[0], "UTF-8");
                 stream = doGet("http://jibiki.fr/jibiki/api/Cesselin/jpn/cdm-headword|cdm-reading|cdm-writing/" + word + "/entries");
-                result = XMLUtils.parseEntryList(stream, dictionary);
+                result = XMLUtils.parseEntryList(stream, volume);
                 Log.v(TAG, "index=" + result);
 
             } catch (XmlPullParserException | ParserConfigurationException | SAXException | XPathExpressionException | IOException e) {
@@ -164,32 +165,32 @@ public class SearchActivity extends ActionBarActivity {
         }
     }
 
-    private class InitDictionaryTask extends AsyncTask<String, Void, Dictionary> {
+    private class InitVolumeTask extends AsyncTask<String, Void, Volume> {
 
 
-        public InitDictionaryTask() {
+        public InitVolumeTask() {
 
         }
 
         @Override
-        protected Dictionary doInBackground(String... params) {
+        protected Volume doInBackground(String... params) {
             InputStream stream = null;
-            Dictionary dict = null;
+            Volume volume = null;
             try {
                 stream = doGet("http://jibiki.fr/jibiki/api/Cesselin/jpn/");
-                dict = XMLUtils.createDictionary(stream);
+                volume = XMLUtils.createVolume(stream);
 
-                Log.v(TAG, "index=" + dict);
+                Log.v(TAG, "index=" + volume);
 
             } catch (XmlPullParserException | IOException e) {
                 e.printStackTrace();
             }
-            return dict;
+            return volume;
         }
 
         @Override
-        protected void onPostExecute(Dictionary dict) {
-            SearchActivity.this.dictionary = dict;
+        protected void onPostExecute(Volume volume) {
+            SearchActivity.this.volume = volume;
         }
     }
 }

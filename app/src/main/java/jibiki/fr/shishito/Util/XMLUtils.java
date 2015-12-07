@@ -30,6 +30,7 @@ import javax.xml.xpath.XPathFactory;
 
 import jibiki.fr.shishito.Dictionary;
 import jibiki.fr.shishito.ListEntry;
+import jibiki.fr.shishito.Volume;
 
 import org.apache.commons.io.IOUtils;
 
@@ -43,11 +44,6 @@ public final class XMLUtils {
 
     protected static java.util.regex.Pattern regexXpath = 	java.util.regex.Pattern.compile("/([^\\/\\s\\[:]+:)?([^\\[\\/\\s:]+)", java.util.regex.Pattern.DOTALL);
     protected static java.util.regex.Pattern regexTags = 	java.util.regex.Pattern.compile("<([^\\/\\s\\\\?>:]+:)?([^\\/\\s\\?:>]+)", java.util.regex.Pattern.DOTALL);
-
-
-
-    protected static HashMap<String, String> newoldTagMap = new java.util.HashMap<>();
-    protected static HashMap<String, String> oldnewTagMap = new java.util.HashMap<>();
 
 
     private XMLUtils() {
@@ -70,11 +66,11 @@ public final class XMLUtils {
         }
     }
 
-    public static ArrayList<ListEntry> parseEntryList(InputStream stream, Dictionary dict) throws IOException, XmlPullParserException, XPathExpressionException, SAXException, ParserConfigurationException {
+    public static ArrayList<ListEntry> parseEntryList(InputStream stream, Volume volume) throws IOException, XmlPullParserException, XPathExpressionException, SAXException, ParserConfigurationException {
         StringWriter writer = new StringWriter();
         IOUtils.copy(stream, writer);
         String string = writer.toString();
-        string = replaceTags(string, oldnewTagMap, newoldTagMap);
+        string = replaceTags(string, volume.getOldNewTagMap(), volume.getNewOldTagMap());
         //Log.d(TAG, "replacedString:"+string);
 
         NamespaceContext context = new NamespaceContextMap(
@@ -93,16 +89,16 @@ public final class XMLUtils {
         XPath xPath = factory.newXPath();
         xPath.setNamespaceContext(context);
         ArrayList<ListEntry> entries = new ArrayList<ListEntry>();
-        String xpath = adjustXpath("cdm-entry-api", dict, oldnewTagMap);
+        String xpath = adjustXpath("cdm-entry-api", volume);
         NodeList shows = (NodeList) xPath.evaluate(xpath, document, XPathConstants.NODESET);
         for (int i = 0; i < shows.getLength(); i++) {
             Element show = (Element) shows.item(i);
             ListEntry entry = new ListEntry();
-            xpath = adjustXpath("cdm-headword", dict, oldnewTagMap);
+            xpath = adjustXpath("cdm-headword", volume);
             entry.setKanji(xPath.evaluate(xpath, show));
-            xpath = adjustXpath("cdm-writing", dict, oldnewTagMap);
+            xpath = adjustXpath("cdm-writing", volume);
             entry.setHiragana(xPath.evaluate(xpath, show));
-            xpath = adjustXpath("cdm-reading", dict, oldnewTagMap);
+            xpath = adjustXpath("cdm-reading", volume);
             entry.setRomanji(xPath.evaluate(xpath, show));
             entries.add(entry);
             Log.d(TAG, xpath);
@@ -112,10 +108,10 @@ public final class XMLUtils {
         return entries;
     }
 
-    public static Dictionary createDictionary(InputStream stream) throws XmlPullParserException, IOException {
+    public static Volume createVolume(InputStream stream) throws XmlPullParserException, IOException {
         XmlPullParser parser = Xml.newPullParser();
         parser.setInput(stream, "UTF-8");
-        Dictionary dict = new Dictionary();
+        Volume volume = new Volume();
 
         //Skip the start of document
         parser.next();
@@ -129,14 +125,14 @@ public final class XMLUtils {
                 //Log.d(TAG, parser.getName());
                 // Starts by looking for the entry tag
                 if (name.equals("authors")) {
-                    dict.setAuthors(parser.getText());
+                    volume.setAuthors(parser.getText());
                     skip(parser);
                 } else if (name.equals(("cdm-elements"))) {
                     while (parser.next() != XmlPullParser.END_TAG) {
                         String xPath = "";
                         if ((xPath = parser.getAttributeValue(null, "xpath")) != null) {
-                            dict.getElements().put(parser.getName(), xPath);
-                            Log.d(TAG, parser.getName() + ": "+ (String) dict.getElements().get(parser.getName()));
+                            volume.getElements().put(parser.getName(), xPath);
+                            Log.d(TAG, parser.getName() + ": "+ (String) volume.getElements().get(parser.getName()));
                             parser.next();
                         }
                     }
@@ -146,8 +142,8 @@ public final class XMLUtils {
                 }
             }
         }
-        dict.getElements().put("cdm-entry-api", "/d:entry-list/d:entry");
-        return dict;
+        volume.getElements().put("cdm-entry-api", "/d:entry-list/d:entry");
+        return volume;
     }
 
     protected static String replaceTags(String oldXml,  java.util.HashMap<String, String> theOldNewTagMap,  java.util.HashMap<String, String> theNewOldTagMap) {
@@ -203,9 +199,9 @@ public final class XMLUtils {
         return newXpathString;
     }
 
-    protected static String adjustXpath(String cdmElement, Dictionary theDict, HashMap theOldNewTagMap) {
-        String xpath = ((String) theDict.getElements().get(cdmElement));
-        String cdmVolumePath = (String) theDict.getElements().get("cdm-volume");
+    protected static String adjustXpath(String cdmElement, Volume theVolume) {
+        String xpath = ((String) theVolume.getElements().get(cdmElement));
+        String cdmVolumePath = (String) theVolume.getElements().get("cdm-volume");
         if(xpath.contains(cdmVolumePath)){
             xpath = xpath.replace(cdmVolumePath, "." + cdmVolumePath + "/d:contribution/d:data");
         }
@@ -213,7 +209,7 @@ public final class XMLUtils {
         xpath.replaceAll("\\s//"," .//");
         xpath.replaceAll("^//", ".//");
         //Log.d(TAG, "adjustedXpathString:" + xpath);
-        xpath = replaceXpathstring(xpath, theOldNewTagMap);
+        xpath = replaceXpathstring(xpath, theVolume.getOldNewTagMap());
         return xpath;
     }
 
