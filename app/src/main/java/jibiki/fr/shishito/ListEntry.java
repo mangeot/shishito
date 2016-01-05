@@ -9,7 +9,10 @@ public class ListEntry {
     private String hiragana;
     private String romanji;
 
-    public ListEntry(){}
+    private String definition;
+
+    public ListEntry() {
+    }
 
     public String getKanji() {
         return kanji;
@@ -34,4 +37,14 @@ public class ListEntry {
     public void setRomanji(String romanji) {
         this.romanji = romanji;
     }
+
+
+    public String getDefinition() {
+        return definition;
+    }
+
+    public void setDefinition(String definition) {
+        this.definition = definition;
+    }
+
 }

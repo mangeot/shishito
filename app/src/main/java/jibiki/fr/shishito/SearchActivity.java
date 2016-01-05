@@ -1,8 +1,11 @@
 package jibiki.fr.shishito;
 
+import android.app.ActionBar;
 import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
@@ -102,6 +105,10 @@ public class SearchActivity extends ActionBarActivity {
                 searchManager.getSearchableInfo(getComponentName()));
         searchView.setIconifiedByDefault(false);
 
+        ActionBar actionBar = getActionBar();
+        if(actionBar != null) {
+            actionBar.setBackgroundDrawable(new ColorDrawable(Color.parseColor("#79E479")));
+        }
 
         return true;
     }

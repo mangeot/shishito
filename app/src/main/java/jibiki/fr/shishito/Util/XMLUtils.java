@@ -97,9 +97,12 @@ public final class XMLUtils {
             xpath = adjustXpath("cdm-headword", volume);
             entry.setKanji(xPath.evaluate(xpath, show));
             xpath = adjustXpath("cdm-writing", volume);
-            entry.setHiragana(xPath.evaluate(xpath, show));
-            xpath = adjustXpath("cdm-reading", volume);
             entry.setRomanji(xPath.evaluate(xpath, show));
+            xpath = adjustXpath("cdm-reading", volume);
+            entry.setHiragana(xPath.evaluate(xpath, show));
+            xpath = adjustXpath("cdm-definition", volume);
+            entry.setDefinition(xPath.evaluate(xpath, show));
+
             entries.add(entry);
             Log.d(TAG, xpath);
             Log.d(TAG, entry.getRomanji());

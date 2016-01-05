@@ -2,6 +2,7 @@ package jibiki.fr.shishito;
 
 
 import android.content.Context;
+import android.text.Html;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,14 +25,26 @@ public class EntryListAdapter extends ArrayAdapter<ListEntry> {
     public View getView(int position, View convertView, ViewGroup parent) {
         LayoutInflater inflater = (LayoutInflater) context
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        View rowView = inflater.inflate(R.layout.word_list_element, parent, false);
-        TextView kanji = (TextView) rowView.findViewById(R.id.kanji);
-        TextView hiragana = (TextView) rowView.findViewById(R.id.hiragana);
-        TextView romanji = (TextView) rowView.findViewById(R.id.romanji);
+        View rowView = convertView;
+        if(rowView == null){
+            rowView = inflater.inflate(R.layout.word_list_element, parent, false);
+        }
+        TextView vedette = (TextView) rowView.findViewById(R.id.vedette);
+        String vText = values.get(position).getKanji() +
+                "   [<font color=#cc0000>" + values.get(position).getHiragana() + "</font>]   " +
+                "   [<font color=#cc0000>" + values.get(position).getRomanji() + "</font>]";
+        vedette.setText(Html.fromHtml(vText));
+        TextView definition = (TextView) rowView.findViewById(R.id.definition);
+        definition.setText(values.get(position).getDefinition());
 
-        kanji.setText(values.get(position).getKanji());
-        hiragana.setText(values.get(position).getHiragana());
-        romanji.setText(values.get(position).getRomanji());
+        //romanji.setText(values.get(position).getRomanji());
+
+        if (position % 2 == 1) {
+            rowView.setBackgroundColor(rowView.getResources().getColor(R.color.green));
+        } else {
+            rowView.setBackgroundColor(rowView.getResources().getColor(R.color.light_green));
+        }
+
         return rowView;
     }
 }
