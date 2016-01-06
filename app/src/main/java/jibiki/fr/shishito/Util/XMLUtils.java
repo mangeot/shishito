@@ -16,6 +16,7 @@ import java.io.InputStream;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Queue;
 
@@ -41,10 +42,10 @@ public final class XMLUtils {
 
     private static final String ns = null;
     private static final String TAG = XMLUtils.class.getSimpleName();
+    private static RomajiComparator myRomajiComparator = new RomajiComparator();
 
     protected static java.util.regex.Pattern regexXpath = 	java.util.regex.Pattern.compile("/([^\\/\\s\\[:]+:)?([^\\[\\/\\s:]+)", java.util.regex.Pattern.DOTALL);
     protected static java.util.regex.Pattern regexTags = 	java.util.regex.Pattern.compile("<([^\\/\\s\\\\?>:]+:)?([^\\/\\s\\?:>]+)", java.util.regex.Pattern.DOTALL);
-
 
     private XMLUtils() {
     }
@@ -96,8 +97,14 @@ public final class XMLUtils {
             ListEntry entry = new ListEntry();
             xpath = adjustXpath("cdm-headword", volume);
             entry.setKanji(xPath.evaluate(xpath, show));
-            xpath = adjustXpath("cdm-writing", volume);
-            entry.setRomanji(xPath.evaluate(xpath, show));
+            xpath = adjustXpath("cesselin-writing-display", volume);
+            String writing = xPath.evaluate(xpath, show);
+            //Log.d(TAG, "writing: "+xpath+ " res:" +writing);
+            if (writing == null || writing.equals("")) {
+                xpath = adjustXpath("cdm-writing", volume);
+                writing = xPath.evaluate(xpath, show);
+            }
+            entry.setRomanji(writing);
             xpath = adjustXpath("cdm-reading", volume);
             entry.setHiragana(xPath.evaluate(xpath, show));
             xpath = adjustXpath("cdm-definition", volume);
@@ -107,7 +114,7 @@ public final class XMLUtils {
             Log.d(TAG, xpath);
             Log.d(TAG, entry.getRomanji());
         }
-
+        java.util.Collections.sort(entries, myRomajiComparator);
         return entries;
     }
 
@@ -192,10 +199,12 @@ public final class XMLUtils {
                 prefix = "";
             }
             String newTagname = theTagMap.get(oldTagname);
-            //Log.d(TAG, "old:" + oldTagname + " new:" + newTagname + " pref:" + prefix);
-            newXpathString = newXpathString.replaceAll("/" + prefix + oldTagname + "$", "/" + prefix + newTagname);
-            newXpathString = newXpathString.replaceAll("/" + prefix + oldTagname + "/", "/" + prefix + newTagname + "/");
-            newXpathString = newXpathString.replaceAll("/" + prefix + oldTagname + "\\[", "/" + prefix + newTagname + "\\[");
+            Log.d(TAG, "old:" + oldTagname + " new:" + newTagname + " pref:" + prefix);
+            if (newTagname!=null) {
+                newXpathString = newXpathString.replaceAll("/" + prefix + oldTagname + "$", "/" + prefix + newTagname);
+                newXpathString = newXpathString.replaceAll("/" + prefix + oldTagname + "/", "/" + prefix + newTagname + "/");
+                newXpathString = newXpathString.replaceAll("/" + prefix + oldTagname + "\\[", "/" + prefix + newTagname + "\\[");
+            }
         }
 
         //Log.d(TAG, "modifiedXpathString:" + newXpathString);
@@ -205,6 +214,7 @@ public final class XMLUtils {
     protected static String adjustXpath(String cdmElement, Volume theVolume) {
         String xpath = ((String) theVolume.getElements().get(cdmElement));
         String cdmVolumePath = (String) theVolume.getElements().get("cdm-volume");
+        //Log.d(TAG, "notadjustedXpathString:" + xpath);
         if(xpath.contains(cdmVolumePath)){
             xpath = xpath.replace(cdmVolumePath, "." + cdmVolumePath + "/d:contribution/d:data");
         }
@@ -213,7 +223,7 @@ public final class XMLUtils {
         xpath.replaceAll("^//", ".//");
         //Log.d(TAG, "adjustedXpathString:" + xpath);
         xpath = replaceXpathstring(xpath, theVolume.getOldNewTagMap());
+        //Log.d(TAG, "replacedXpathstring:" + xpath);
         return xpath;
     }
-
 }
