@@ -5,6 +5,7 @@ import android.util.Xml;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -19,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Queue;
+import java.util.Stack;
 
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.parsers.DocumentBuilder;
@@ -97,9 +99,14 @@ public final class XMLUtils {
             ListEntry entry = new ListEntry();
             xpath = adjustXpath("cdm-headword", volume);
             entry.setKanji(xPath.evaluate(xpath, show));
+            xpath = xpath.replace("/text()","");
+            NodeList nodes = (NodeList) xPath.evaluate(xpath, show, XPathConstants.NODESET);
+            Element hwjpn = (Element) nodes.item(0);
+            if (hwjpn != null) {
+                Log.d(TAG, "hwjpn xpath:" + getXpathForElement(hwjpn, volume));
+            }
             xpath = adjustXpath("cesselin-writing-display", volume);
             String writing = xPath.evaluate(xpath, show);
-            //Log.d(TAG, "writing: "+xpath+ " res:" +writing);
             if (writing == null || writing.equals("")) {
                 xpath = adjustXpath("cdm-writing", volume);
                 writing = xPath.evaluate(xpath, show);
@@ -111,8 +118,8 @@ public final class XMLUtils {
             entry.setDefinition(xPath.evaluate(xpath, show));
 
             entries.add(entry);
-            Log.d(TAG, xpath);
             Log.d(TAG, entry.getRomanji());
+
         }
         java.util.Collections.sort(entries, myRomajiComparator);
         return entries;
@@ -199,7 +206,7 @@ public final class XMLUtils {
                 prefix = "";
             }
             String newTagname = theTagMap.get(oldTagname);
-            Log.d(TAG, "old:" + oldTagname + " new:" + newTagname + " pref:" + prefix);
+            //Log.d(TAG, "old:" + oldTagname + " new:" + newTagname + " pref:" + prefix);
             if (newTagname!=null) {
                 newXpathString = newXpathString.replaceAll("/" + prefix + oldTagname + "$", "/" + prefix + newTagname);
                 newXpathString = newXpathString.replaceAll("/" + prefix + oldTagname + "/", "/" + prefix + newTagname + "/");
@@ -225,5 +232,104 @@ public final class XMLUtils {
         xpath = replaceXpathstring(xpath, theVolume.getOldNewTagMap());
         //Log.d(TAG, "replacedXpathstring:" + xpath);
         return xpath;
+    }
+
+    private static String getXpathForElement(Element el, Volume aVolume) {
+        String resXpath = "/"+getFullXPath(el);
+        resXpath = replaceXpathstring(resXpath, aVolume.getNewOldTagMap());
+        resXpath = resXpath.replaceFirst("/d:entry-list/d:entry\\[[0-9]+\\]", "");
+        return resXpath;
+    }
+
+    protected static String getFullXPath(Node n) {
+// abort early
+        if (null == n)
+            return null;
+
+// declarations
+        Node parent = null;
+        Stack<Node> hierarchy = new Stack<Node>();
+        StringBuffer buffer = new StringBuffer();
+
+// push element on stack
+        hierarchy.push(n);
+
+        switch (n.getNodeType()) {
+            case Node.ATTRIBUTE_NODE:
+                parent = ((org.w3c.dom.Attr) n).getOwnerElement();
+                break;
+            case Node.ELEMENT_NODE:
+                parent = n.getParentNode();
+                break;
+            case Node.DOCUMENT_NODE:
+                parent = n.getParentNode();
+                break;
+            default:
+                throw new IllegalStateException("Unexpected Node type" + n.getNodeType());
+        }
+
+        while (null != parent && parent.getNodeType() != Node.DOCUMENT_NODE) {
+            // push on stack
+            hierarchy.push(parent);
+
+            // get parent of parent
+            parent = parent.getParentNode();
+        }
+
+// construct xpath
+        Object obj = null;
+        while (!hierarchy.isEmpty() && null != (obj = hierarchy.pop())) {
+            Node node = (Node) obj;
+            boolean handled = false;
+
+            if (node.getNodeType() == Node.ELEMENT_NODE) {
+                Element e = (Element) node;
+
+                // is this the root element?
+                if (buffer.length() == 0) {
+                    // root element - simply append element name
+                    buffer.append(node.getNodeName());
+                } else {
+                    // child element - append slash and element name
+                    buffer.append("/");
+                    buffer.append(node.getNodeName());
+
+                    /*
+                    if (node.hasAttributes()) {
+                        // see if the element has a name or id attribute
+                        if (e.hasAttribute("id")) {
+                            // id attribute found - use that
+                            buffer.append("[@id='" + e.getAttribute("id") + "']");
+                            handled = true;
+                        } else if (e.hasAttribute("name")) {
+                            // name attribute found - use that
+                            buffer.append("[@name='" + e.getAttribute("name") + "']");
+                            handled = true;
+                        }
+                    } */
+
+                    if (!handled) {
+                        // no known attribute we could use - get sibling index
+                        int prev_siblings = 1;
+                        Node prev_sibling = node.getPreviousSibling();
+                        while (null != prev_sibling) {
+                            if (prev_sibling.getNodeType() == node.getNodeType()) {
+                                if (prev_sibling.getNodeName().equalsIgnoreCase(
+                                        node.getNodeName())) {
+                                    prev_siblings++;
+                                }
+                            }
+                            prev_sibling = prev_sibling.getPreviousSibling();
+                        }
+                        buffer.append("[" + prev_siblings + "]");
+                    }
+                }
+            } else if (node.getNodeType() == Node.ATTRIBUTE_NODE) {
+                buffer.append("/@");
+                buffer.append(node.getNodeName());
+            }
+        }
+// return buffer
+        return buffer.toString();
     }
 }
