@@ -1,4 +1,4 @@
-package jibiki.fr.shishito;
+package jibiki.fr.shishito.Models;
 
 import java.util.HashMap;
 import java.util.Map;

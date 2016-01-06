@@ -3,22 +3,18 @@ package jibiki.fr.shishito.Util;
 import android.util.Log;
 import android.util.Xml;
 
+import org.apache.commons.io.IOUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
-import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Queue;
 
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.parsers.DocumentBuilder;
@@ -29,11 +25,9 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
-import jibiki.fr.shishito.Dictionary;
-import jibiki.fr.shishito.ListEntry;
-import jibiki.fr.shishito.Volume;
-
-import org.apache.commons.io.IOUtils;
+import jibiki.fr.shishito.Models.Example;
+import jibiki.fr.shishito.Models.ListEntry;
+import jibiki.fr.shishito.Models.Volume;
 
 /**
  * Created by tibo on 17/09/15.
@@ -44,8 +38,8 @@ public final class XMLUtils {
     private static final String TAG = XMLUtils.class.getSimpleName();
     private static RomajiComparator myRomajiComparator = new RomajiComparator();
 
-    protected static java.util.regex.Pattern regexXpath = 	java.util.regex.Pattern.compile("/([^\\/\\s\\[:]+:)?([^\\[\\/\\s:]+)", java.util.regex.Pattern.DOTALL);
-    protected static java.util.regex.Pattern regexTags = 	java.util.regex.Pattern.compile("<([^\\/\\s\\\\?>:]+:)?([^\\/\\s\\?:>]+)", java.util.regex.Pattern.DOTALL);
+    protected static java.util.regex.Pattern regexXpath = java.util.regex.Pattern.compile("/([^\\/\\s\\[:]+:)?([^\\[\\/\\s:]+)", java.util.regex.Pattern.DOTALL);
+    protected static java.util.regex.Pattern regexTags = java.util.regex.Pattern.compile("<([^\\/\\s\\\\?>:]+:)?([^\\/\\s\\?:>]+)", java.util.regex.Pattern.DOTALL);
 
     private XMLUtils() {
     }
@@ -65,6 +59,22 @@ public final class XMLUtils {
                     break;
             }
         }
+    }
+
+    public static ArrayList<Example> parseExamples(NodeList exList, XPath xPath, Volume volume) throws XPathExpressionException {
+        ArrayList<Example> examples = new ArrayList<Example>();
+        for (int i = 0; i < exList.getLength(); i++) {
+            Element element = (Element) exList.item(i);
+            String xpath = adjustXpath("cesselin-example-hiragana", volume);
+            Example example = new Example();
+            example.setHiragana(xPath.evaluate(xpath, element));
+            xpath = adjustXpath("cesselin-example-romaji", volume);
+            example.setRomanji(xPath.evaluate(xpath, element));
+            xpath = adjustXpath("cesselin-vedette-jpn-match", volume);
+            example.setRomanji(xPath.evaluate(xpath, element));
+        }
+
+        return examples;
     }
 
     public static ArrayList<ListEntry> parseEntryList(InputStream stream, Volume volume) throws IOException, XmlPullParserException, XPathExpressionException, SAXException, ParserConfigurationException {
@@ -109,6 +119,12 @@ public final class XMLUtils {
             entry.setHiragana(xPath.evaluate(xpath, show));
             xpath = adjustXpath("cdm-definition", volume);
             entry.setDefinition(xPath.evaluate(xpath, show));
+            xpath = adjustXpath("cdm-pos", volume);
+            entry.setGram(xPath.evaluate(xpath, show));
+
+            //xpath = adjustXpath("cdm-example", volume);
+            //NodeList exNodes = (NodeList) xPath.evaluate(xpath, show, XPathConstants.NODESET);
+            //entry.setExamples(parseExamples(exNodes, xPath, volume));
 
             entries.add(entry);
             Log.d(TAG, xpath);
@@ -142,65 +158,64 @@ public final class XMLUtils {
                         String xPath = "";
                         if ((xPath = parser.getAttributeValue(null, "xpath")) != null) {
                             volume.getElements().put(parser.getName(), xPath);
-                            Log.d(TAG, parser.getName() + ": "+ (String) volume.getElements().get(parser.getName()));
+                            Log.d(TAG, parser.getName() + ": " + (String) volume.getElements().get(parser.getName()));
                             parser.next();
                         }
                     }
                 } else {
-                    Log.d(TAG, "HEYHEYEHHH");
                     skip(parser);
                 }
             }
         }
+
         volume.getElements().put("cdm-entry-api", "/d:entry-list/d:entry");
         return volume;
     }
 
-    protected static String replaceTags(String oldXml,  java.util.HashMap<String, String> theOldNewTagMap,  java.util.HashMap<String, String> theNewOldTagMap) {
+    protected static String replaceTags(String oldXml, java.util.HashMap<String, String> theOldNewTagMap, java.util.HashMap<String, String> theNewOldTagMap) {
         String newXml = oldXml;
 
         java.util.regex.Matcher m = regexTags.matcher(newXml);
 
         int numtags = 1;
-        while(m.find()) {
+        while (m.find()) {
             String oldTagname = m.group(2);
             String prefix = m.group(1);
-            if(prefix == null) {
+            if (prefix == null) {
                 prefix = "";
             }
             String newTagname = theOldNewTagMap.get(oldTagname);
             if (newTagname == null) {
                 newTagname = "a" + numtags++;
-                theOldNewTagMap.put(oldTagname,newTagname);
+                theOldNewTagMap.put(oldTagname, newTagname);
                 theNewOldTagMap.put(newTagname, oldTagname);
                 //Log.d(TAG, "old:" + oldTagname + " new new:" + newTagname + " pref:" + prefix);
-            }
-            else {
+            } else {
                 //Log.d(TAG, "old:" + oldTagname + " new found:" + newTagname + " pref:" + prefix);
             }
             newXml = newXml.replaceAll("<" + prefix + oldTagname + "\\s", "<" + prefix + newTagname + " ");
             newXml = newXml.replaceAll("<" + prefix + oldTagname + ">", "<" + prefix + newTagname + ">");
-            newXml = newXml.replaceAll("<" + prefix + oldTagname + "\\s?/>", "<" + prefix + newTagname+ "/>");
-            newXml = newXml.replaceAll("</" + prefix + oldTagname + ">", "</" + prefix + newTagname+ ">");
+            newXml = newXml.replaceAll("<" + prefix + oldTagname + "\\s?/>", "<" + prefix + newTagname + "/>");
+            newXml = newXml.replaceAll("</" + prefix + oldTagname + ">", "</" + prefix + newTagname + ">");
         }
 
         return newXml;
     }
 
     protected static String replaceXpathstring(String xpathString, java.util.HashMap<String, String> theTagMap) {
-        java.util.regex.Pattern regexXpath = 	java.util.regex.Pattern.compile("/([^\\/\\s\\[:]+:)?([^\\[\\/\\s:]+)", java.util.regex.Pattern.DOTALL);
+        java.util.regex.Pattern regexXpath = java.util.regex.Pattern.compile("/([^\\/\\s\\[:]+:)?([^\\[\\/\\s:]+)", java.util.regex.Pattern.DOTALL);
         String newXpathString = xpathString;
         //Log.d(TAG, "newXpathString:" + newXpathString);
         java.util.regex.Matcher mXpath = regexXpath.matcher(newXpathString);
-        while(mXpath.find()) {
+        while (mXpath.find()) {
             String oldTagname = mXpath.group(2);
             String prefix = mXpath.group(1);
-            if(prefix == null) {
+            if (prefix == null) {
                 prefix = "";
             }
             String newTagname = theTagMap.get(oldTagname);
             Log.d(TAG, "old:" + oldTagname + " new:" + newTagname + " pref:" + prefix);
-            if (newTagname!=null) {
+            if (newTagname != null) {
                 newXpathString = newXpathString.replaceAll("/" + prefix + oldTagname + "$", "/" + prefix + newTagname);
                 newXpathString = newXpathString.replaceAll("/" + prefix + oldTagname + "/", "/" + prefix + newTagname + "/");
                 newXpathString = newXpathString.replaceAll("/" + prefix + oldTagname + "\\[", "/" + prefix + newTagname + "\\[");
@@ -215,11 +230,11 @@ public final class XMLUtils {
         String xpath = ((String) theVolume.getElements().get(cdmElement));
         String cdmVolumePath = (String) theVolume.getElements().get("cdm-volume");
         //Log.d(TAG, "notadjustedXpathString:" + xpath);
-        if(xpath.contains(cdmVolumePath)){
+        if (xpath.contains(cdmVolumePath)) {
             xpath = xpath.replace(cdmVolumePath, "." + cdmVolumePath + "/d:contribution/d:data");
         }
         // à tester !
-        xpath.replaceAll("\\s//"," .//");
+        xpath.replaceAll("\\s//", " .//");
         xpath.replaceAll("^//", ".//");
         //Log.d(TAG, "adjustedXpathString:" + xpath);
         xpath = replaceXpathstring(xpath, theVolume.getOldNewTagMap());

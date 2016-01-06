@@ -8,16 +8,22 @@
         android:id="@+id/vedette"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginRight="6dip"
         android:layout_marginEnd="6dip"
+        android:layout_marginRight="6dip"
         android:ellipsize="marquee"
         android:text="djsaoidajsodijasdjaosijfdosa"
         android:textSize="16sp" />
 
-        <TextView
-            android:id="@+id/definition"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/vedette"
-            android:text ="fdsadjaosidjsoi"/>
+    <TextView
+        android:id="@+id/definition"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/vedette"/>
+
+    <TextView
+        android:id="@+id/gram"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/definition"
+        android:gravity="right"/>
 </RelativeLayout>

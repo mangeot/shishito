@@ -6,6 +6,6 @@
     <string name="search_input" />
     <string name="app_label">Shishito</string>
     <string name="action_search">Search</string>
-    <color name="green">#79E479</color>
-    <color name="light_green">#DDFFDD</color>
+    <color name="green">#dac792</color>
+    <color name="light_green">#ffffff</color>
 </resources>

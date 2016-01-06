@@ -1,6 +1,6 @@
 package jibiki.fr.shishito.Util;
 
-import jibiki.fr.shishito.ListEntry;
+import jibiki.fr.shishito.Models.ListEntry;
 
 /**
  * Created by mangeot on 06/01/16.

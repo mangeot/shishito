@@ -14,6 +14,8 @@ import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.SearchView;
 import android.widget.Toast;
@@ -29,6 +31,9 @@ import java.util.ArrayList;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathExpressionException;
 
+import jibiki.fr.shishito.Models.Dictionary;
+import jibiki.fr.shishito.Models.ListEntry;
+import jibiki.fr.shishito.Models.Volume;
 import jibiki.fr.shishito.Util.XMLUtils;
 
 import static jibiki.fr.shishito.Util.HTTPUtils.doGet;
@@ -37,6 +42,8 @@ import static jibiki.fr.shishito.Util.HTTPUtils.doGet;
 public class SearchActivity extends ActionBarActivity {
 
     private static final String TAG = "SearchActivity";
+    public final static String ENTRY = "jibiki.fr.shishito.ENTRY";
+
 
     ListView listView;
 
@@ -50,7 +57,14 @@ public class SearchActivity extends ActionBarActivity {
 
         listView = (ListView) findViewById(R.id.listView);
 
-        SearchView searchView = (SearchView) findViewById(R.id.action_search);
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            public void onItemClick(AdapterView parent, View v, int position, long id) {
+                Intent intent = new Intent(SearchActivity.this, DisplayEntryActivity.class);
+                intent.putExtra(ENTRY, (ListEntry) listView.getItemAtPosition(position));
+                startActivity(intent);
+            }
+        });
+
         //searchView.setSubmitButtonEnabled(true);
         ConnectivityManager connMgr = (ConnectivityManager)
                 getSystemService(Context.CONNECTIVITY_SERVICE);

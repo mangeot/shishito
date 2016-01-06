@@ -11,6 +11,8 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 
+import jibiki.fr.shishito.Models.ListEntry;
+
 public class EntryListAdapter extends ArrayAdapter<ListEntry> {
     private final Context context;
     private final ArrayList<ListEntry> values;
@@ -36,6 +38,8 @@ public class EntryListAdapter extends ArrayAdapter<ListEntry> {
         vedette.setText(Html.fromHtml(vText));
         TextView definition = (TextView) rowView.findViewById(R.id.definition);
         definition.setText(values.get(position).getDefinition());
+        TextView gram = (TextView) rowView.findViewById(R.id.gram);
+        gram.setText(values.get(position).getGram());
 
         //romanji.setText(values.get(position).getRomanji());
 

@@ -1,18 +1,14 @@
-package jibiki.fr.shishito;
+package jibiki.fr.shishito.Models;
 
 /**
- * Created by tibo on 29/11/15.
+ * Created by tibo on 06/01/16.
  */
-public class ListEntry {
-
+public class Example {
     private String kanji;
     private String hiragana;
     private String romanji;
 
-    private String definition;
-
-    public ListEntry() {
-    }
+    public Example(){}
 
     public String getKanji() {
         return kanji;
@@ -37,14 +33,4 @@ public class ListEntry {
     public void setRomanji(String romanji) {
         this.romanji = romanji;
     }
-
-
-    public String getDefinition() {
-        return definition;
-    }
-
-    public void setDefinition(String definition) {
-        this.definition = definition;
-    }
-
 }
