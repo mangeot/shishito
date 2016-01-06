@@ -99,11 +99,10 @@ public final class XMLUtils {
             ListEntry entry = new ListEntry();
             xpath = adjustXpath("cdm-headword", volume);
             entry.setKanji(xPath.evaluate(xpath, show));
-            xpath = xpath.replace("/text()","");
             NodeList nodes = (NodeList) xPath.evaluate(xpath, show, XPathConstants.NODESET);
-            Element hwjpn = (Element) nodes.item(0);
+            Node hwjpn = (Node) nodes.item(0);
             if (hwjpn != null) {
-                Log.d(TAG, "hwjpn xpath:" + getXpathForElement(hwjpn, volume));
+                Log.d(TAG, "hwjpn xpath:" + getXpathForNode(hwjpn, volume));
             }
             xpath = adjustXpath("cesselin-writing-display", volume);
             String writing = xPath.evaluate(xpath, show);
@@ -234,10 +233,11 @@ public final class XMLUtils {
         return xpath;
     }
 
-    private static String getXpathForElement(Element el, Volume aVolume) {
-        String resXpath = "/"+getFullXPath(el);
+    private static String getXpathForNode(Node theNode, Volume aVolume) {
+        String resXpath = "/"+getFullXPath(theNode);
         resXpath = replaceXpathstring(resXpath, aVolume.getNewOldTagMap());
         resXpath = resXpath.replaceFirst("/d:entry-list/d:entry\\[[0-9]+\\]", "");
+        //resXpath += "/text()";
         return resXpath;
     }
 
@@ -262,6 +262,9 @@ public final class XMLUtils {
                 parent = n.getParentNode();
                 break;
             case Node.DOCUMENT_NODE:
+                parent = n.getParentNode();
+                break;
+            case Node.TEXT_NODE:
                 parent = n.getParentNode();
                 break;
             default:
@@ -327,6 +330,8 @@ public final class XMLUtils {
             } else if (node.getNodeType() == Node.ATTRIBUTE_NODE) {
                 buffer.append("/@");
                 buffer.append(node.getNodeName());
+            } else if (node.getNodeType() == Node.TEXT_NODE) {
+                buffer.append("/text()");
             }
         }
 // return buffer
