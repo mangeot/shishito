@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import jibiki.fr.shishito.Models.Example;
 import jibiki.fr.shishito.Models.ListEntry;
 
-public class DisplayEntryActivity extends ActionBarActivity {
+public class DisplayEntryActivity extends BaseActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

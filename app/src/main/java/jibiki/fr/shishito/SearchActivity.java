@@ -39,11 +39,10 @@ import jibiki.fr.shishito.Util.XMLUtils;
 import static jibiki.fr.shishito.Util.HTTPUtils.doGet;
 
 
-public class SearchActivity extends ActionBarActivity {
+public class SearchActivity extends BaseActivity {
 
     private static final String TAG = "SearchActivity";
     public final static String ENTRY = "jibiki.fr.shishito.ENTRY";
-
 
     ListView listView;
 
@@ -77,6 +76,17 @@ public class SearchActivity extends ActionBarActivity {
         }
 
         handleIntent(getIntent());
+
+        // Associate searchable configuration with the SearchView
+        SearchManager searchManager =
+                (SearchManager) getSystemService(Context.SEARCH_SERVICE);
+        SearchView searchView =
+                (SearchView) findViewById(R.id.action_search);
+        searchView.setSearchableInfo(
+                searchManager.getSearchableInfo(getComponentName()));
+        searchView.setIconifiedByDefault(false);
+
+
     }
 
     @Override
@@ -104,43 +114,6 @@ public class SearchActivity extends ActionBarActivity {
         }
     }
 
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_search, menu);
-
-        // Associate searchable configuration with the SearchView
-        SearchManager searchManager =
-                (SearchManager) getSystemService(Context.SEARCH_SERVICE);
-        SearchView searchView =
-                (SearchView) menu.findItem(R.id.action_search).getActionView();
-        searchView.setSearchableInfo(
-                searchManager.getSearchableInfo(getComponentName()));
-        searchView.setIconifiedByDefault(false);
-
-        ActionBar actionBar = getActionBar();
-        if(actionBar != null) {
-            actionBar.setBackgroundDrawable(new ColorDrawable(Color.parseColor("#79E479")));
-        }
-
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
 
     private class SearchTask extends AsyncTask<String, Void, ArrayList<ListEntry>> {
 
