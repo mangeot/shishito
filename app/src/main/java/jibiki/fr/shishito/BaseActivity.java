@@ -54,7 +54,7 @@ public class BaseActivity extends ActionBarActivity {
 
         Intent intent = getIntent();
         username = intent.getStringExtra(USERNAME);
-        if(username != null && !username.isEmpty()){
+        if (username != null && !username.isEmpty()) {
             MenuItem item = menu.findItem(R.id.action_sign_in);
             item.setTitle(username);
         }
@@ -87,7 +87,7 @@ public class BaseActivity extends ActionBarActivity {
             if (resultCode == RESULT_OK && data != null) {
                 username = data.getStringExtra(USERNAME);
                 password = data.getStringExtra(PASSWORD);
-                if(username != null && !username.isEmpty() && password != null && !password.isEmpty()){
+                if (username != null && !username.isEmpty() && password != null && !password.isEmpty()) {
                     MenuItem item = menu.findItem(R.id.action_sign_in);
                     item.setTitle(username);
                     new TestPutTask().execute();
@@ -110,9 +110,9 @@ public class BaseActivity extends ActionBarActivity {
             InputStream stream = null;
             try {
                 stream = doPutTest(username, password);
-                if(stream != null){
-                    Toast.makeText(getApplicationContext(), "It works?",
-                            Toast.LENGTH_SHORT).show();                }
+                if (stream != null) {
+                    
+                }
 
             } catch (Exception e) {
                 e.printStackTrace();
@@ -121,7 +121,10 @@ public class BaseActivity extends ActionBarActivity {
         }
 
         @Override
-        protected void onPostExecute(Volume volume) {}
+        protected void onPostExecute(Volume volume) {
+            Toast.makeText(getApplicationContext(), "It works?",
+                    Toast.LENGTH_SHORT).show();
+        }
     }
 }
 

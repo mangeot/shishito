@@ -4,6 +4,8 @@ import android.content.Intent;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.text.Html;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -15,12 +17,14 @@ import jibiki.fr.shishito.Models.ListEntry;
 
 public class DisplayEntryActivity extends BaseActivity {
 
+    private ListEntry entry;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_display_entry);
         Intent intent = getIntent();
-        ListEntry entry = (ListEntry) intent.getSerializableExtra(SearchActivity.ENTRY);
+        entry = (ListEntry) intent.getSerializableExtra(SearchActivity.ENTRY);
         TextView vedette = (TextView) findViewById(R.id.vedette);
         String vText = entry.getKanji() +
                 "   [<font color=#cc0000>" + entry.getHiragana() + "</font>]   " +
@@ -30,6 +34,7 @@ public class DisplayEntryActivity extends BaseActivity {
         definition.setText(entry.getDefinition());
         TextView gram = (TextView) findViewById(R.id.gram);
         gram.setText(entry.getGram());
+
 
       /*  ListView listView = (ListView) findViewById(R.id.examples);
         ArrayList<String> examples = new ArrayList<String>();
@@ -43,4 +48,25 @@ public class DisplayEntryActivity extends BaseActivity {
                 android.R.layout.simple_list_item_1, examples);
         listView.setAdapter(adapter);*/
     }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        super.onCreateOptionsMenu(menu);
+
+        MenuItem item = menu.add("Edit");
+        item.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        super.onOptionsItemSelected(item);
+        if(item.getTitle().equals("Edit")){
+            Intent intent = new Intent(DisplayEntryActivity.this, EditActivity.class);
+            intent.putExtra(SearchActivity.ENTRY, entry);
+            startActivity(intent);
+        }
+        return true;
+    }
+
 }
