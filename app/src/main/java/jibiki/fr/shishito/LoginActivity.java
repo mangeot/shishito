@@ -4,32 +4,22 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
 import android.content.Intent;
-import android.support.v7.app.ActionBarActivity;
-import android.app.LoaderManager.LoaderCallbacks;
-
-import android.content.CursorLoader;
-import android.content.Loader;
-import android.database.Cursor;
-import android.net.Uri;
 import android.os.AsyncTask;
-
 import android.os.Build;
 import android.os.Bundle;
-import android.provider.ContactsContract;
+import android.support.v7.app.ActionBarActivity;
 import android.text.TextUtils;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.inputmethod.EditorInfo;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
-import java.net.Authenticator;
-import java.net.PasswordAuthentication;
-import java.util.ArrayList;
-import java.util.List;
+import java.io.InputStream;
+
+import static jibiki.fr.shishito.Util.HTTPUtils.doLoginTest;
 
 
 /**
@@ -195,11 +185,20 @@ public class LoginActivity extends ActionBarActivity {
         @Override
         protected Boolean doInBackground(Void... params) {
             // TODO: attempt authentication against a network service.
+            InputStream stream = null;
+            try {
+                stream = doLoginTest(mEmail, mPassword);
+                if (stream != null) {
+                    return true;
+                }
 
-
+            } catch (Exception e) {
+                e.printStackTrace();
+                return false;
+            }
 
             // TODO: register the new account here.
-            return true;
+            return false;
         }
 
         @Override

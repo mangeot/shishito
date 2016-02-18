@@ -2,26 +2,18 @@ package jibiki.fr.shishito;
 
 import android.app.ActionBar;
 import android.content.Intent;
-import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
-import org.xmlpull.v1.XmlPullParserException;
-
-import java.io.IOException;
 import java.io.InputStream;
 
 import jibiki.fr.shishito.Models.Volume;
-import jibiki.fr.shishito.Util.XMLUtils;
 
-import static jibiki.fr.shishito.Util.HTTPUtils.doGet;
-import static jibiki.fr.shishito.Util.HTTPUtils.doPutTest;
+import static jibiki.fr.shishito.Util.HTTPUtils.doLoginTest;
 
 /**
  * Created by tibo on 08/01/16.
@@ -44,6 +36,15 @@ public class BaseActivity extends ActionBarActivity {
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
+    }
+
+    @Override
+    protected void onStop(){
+        Intent intent = new Intent();
+        intent.putExtra(SearchActivity.USERNAME, username);
+        intent.putExtra(SearchActivity.PASSWORD, password);
+        setResult(RESULT_OK, intent);
+        super.onStop();
     }
 
     @Override
@@ -90,41 +91,13 @@ public class BaseActivity extends ActionBarActivity {
                 if (username != null && !username.isEmpty() && password != null && !password.isEmpty()) {
                     MenuItem item = menu.findItem(R.id.action_sign_in);
                     item.setTitle(username);
-                    new TestPutTask().execute();
+//                    new TestPutTask().execute();
                 }
-
             }
         }
     }
 
 
-    private class TestPutTask extends AsyncTask<String, Void, Volume> {
 
-
-        public TestPutTask() {
-
-        }
-
-        @Override
-        protected Volume doInBackground(String... params) {
-            InputStream stream = null;
-            try {
-                stream = doPutTest(username, password);
-                if (stream != null) {
-                    
-                }
-
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(Volume volume) {
-            Toast.makeText(getApplicationContext(), "It works?",
-                    Toast.LENGTH_SHORT).show();
-        }
-    }
 }
 
