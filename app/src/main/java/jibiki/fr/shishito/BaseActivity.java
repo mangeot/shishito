@@ -22,7 +22,10 @@ public class BaseActivity extends ActionBarActivity {
 
     public final static String USERNAME = "jibiki.fr.shishito.USERNAME";
     public final static String PASSWORD = "jibiki.fr.shishito.PASSWORD";
-
+    public final static String SERVER_URL = "http://jibiki.fr/jibiki/";
+    // pour tester avec Jibiki installé en local
+    //public final static String SERVER_URL = "http://10.0.2.2:8999/jibiki/";
+    public final static String SERVER_API_URL = SERVER_URL + "api/";
 
     public final static int USERNAME_RESULT = 1;
 

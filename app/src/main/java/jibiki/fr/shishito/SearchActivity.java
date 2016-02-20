@@ -128,8 +128,8 @@ public class SearchActivity extends BaseActivity {
             ArrayList<ListEntry> result = null;
             try {
                 String word = URLEncoder.encode(params[0], "UTF-8");
-                //stream = doGet("http://jibiki.fr/jibiki/api/Cesselin/jpn/cdm-headword|cdm-reading|cdm-writing/" + word + "/entries/?strategy=CASE_INSENSITIVE_STARTS_WITH");
-                stream = doGet("http://jibiki.fr/jibiki/api/Cesselin/jpn/cdm-headword|cdm-reading|cdm-writing/" + word + "/entries/?strategy=CASE_INSENSITIVE_EQUAL");
+                //stream = doGet(SEREVR_API_URL + "Cesselin/jpn/cdm-headword|cdm-reading|cdm-writing/" + word + "/entries/?strategy=CASE_INSENSITIVE_STARTS_WITH");
+                stream = doGet(SERVER_API_URL + "Cesselin/jpn/cdm-headword|cdm-reading|cdm-writing/" + word + "/entries/?strategy=CASE_INSENSITIVE_EQUAL");
                 result = XMLUtils.parseEntryList(stream, volume);
                 Log.v(TAG, "index=" + result);
 
@@ -172,7 +172,7 @@ public class SearchActivity extends BaseActivity {
             InputStream stream = null;
             Volume volume = null;
             try {
-                stream = doGet("http://jibiki.fr/jibiki/api/Cesselin/jpn/");
+                stream = doGet(SERVER_API_URL + "Cesselin/jpn/");
                 volume = XMLUtils.createVolume(stream);
 
                 Log.v(TAG, "index=" + volume);

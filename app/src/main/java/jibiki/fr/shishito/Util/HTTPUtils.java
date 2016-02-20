@@ -1,17 +1,24 @@
 package jibiki.fr.shishito.Util;
 
+import android.net.Uri;
 import android.util.Base64;
 import android.util.Log;
+import android.net.Uri.Builder;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
+
+import jibiki.fr.shishito.SearchActivity;
 
 /**
  * Created by tibo on 01/04/15.
@@ -64,18 +71,31 @@ public final class HTTPUtils {
         HttpURLConnection urlConnection = null;
         InputStream stream = null;
         try {
-            URL url = new URL("http://jibiki.fr/jibiki/LoginUser.po'");
+            URL url = new URL(SearchActivity.SERVER_URL + "LoginUser.po");
             urlConnection = (HttpURLConnection) url.openConnection();
-            urlConnection.setDoOutput(true);
+            urlConnection.setReadTimeout(10000);
+            urlConnection.setConnectTimeout(15000);
             urlConnection.setRequestMethod("POST");
-            urlConnection.setRequestProperty("Accept", "*/*");
-            urlConnection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-            String data = "Login=" + username + "&Password=" + password + "&RememberLogin=on&Submit=Login";
-            String encoded  = URLEncoder.encode(data,"UTF-8");
-            urlConnection.setRequestProperty("Content-Length", Integer.toString(encoded.length()));
-            DataOutputStream wr = new DataOutputStream(urlConnection.getOutputStream());
-            wr.write(encoded.getBytes("UTF-8"));
-            stream = new DataInputStream(urlConnection.getInputStream());
+            urlConnection.setDoInput(true);
+            urlConnection.setDoOutput(true);
+
+            Uri.Builder builder = new Uri.Builder()
+                    .appendQueryParameter("Login", username)
+                    .appendQueryParameter("Password", password)
+                    .appendQueryParameter("RememberLogin", "on")
+                    .appendQueryParameter("NoRedirection", "on")
+                    .appendQueryParameter("Submit", "Login");
+            String query = builder.build().getEncodedQuery();
+
+            OutputStream os = urlConnection.getOutputStream();
+            BufferedWriter writer = new BufferedWriter(
+                    new OutputStreamWriter(os, "UTF-8"));
+            writer.write(query);
+            writer.flush();
+            writer.close();
+            os.close();
+
+            urlConnection.connect();
             Log.d(TAG, "Code:  " + Integer.toString(urlConnection.getResponseCode()));
         } catch (IOException e) {
             Log.d(TAG, "Error:", e);
