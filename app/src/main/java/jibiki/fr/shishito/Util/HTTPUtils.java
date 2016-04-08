@@ -1,9 +1,13 @@
 package jibiki.fr.shishito.Util;
 
+import android.content.Context;
 import android.net.Uri;
 import android.util.Base64;
 import android.util.Log;
-import android.net.Uri.Builder;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.xml.sax.SAXException;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -14,9 +18,18 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.net.CookieHandler;
+import java.net.CookieManager;
+import java.net.CookiePolicy;
+import java.net.CookieStore;
+import java.net.HttpCookie;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.net.URLEncoder;
+import java.util.List;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 
 import jibiki.fr.shishito.SearchActivity;
 
@@ -67,7 +80,7 @@ public final class HTTPUtils {
 
     }
 
-    public static InputStream doLoginTest(final String username, final String password) {
+    public static boolean doLoginTest(final String username, final String password, Context context) {
         HttpURLConnection urlConnection = null;
         InputStream stream = null;
         try {
@@ -106,8 +119,33 @@ public final class HTTPUtils {
                     Log.d(TAG, "Error:", e1);
                 }
             }
+            return false;
         }
-        return stream;
+
+        return true;
+    }
+
+    public static String checkLoggedIn() {
+        HttpURLConnection urlConnection;
+        InputStream stream;
+        String username;
+        try {
+            URL url = new URL(SearchActivity.SERVER_URL + "UserProfile.po");
+            urlConnection = (HttpURLConnection) url.openConnection();
+            urlConnection.setRequestMethod("GET");
+            stream = urlConnection.getInputStream();
+            DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+            DocumentBuilder db = dbf.newDocumentBuilder();
+            Document doc = db.parse(stream);
+            Element el = doc.getElementById("CPLogin");
+            username = el.getTextContent();
+
+        } catch (IOException | ParserConfigurationException | SAXException e) {
+            Log.d(TAG, "Error:", e);
+            return null;
+        }
+
+        return username;
     }
 
     public static InputStream doLoginTest2(final String username, final String password) {

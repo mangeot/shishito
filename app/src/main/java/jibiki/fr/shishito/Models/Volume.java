@@ -1,12 +1,13 @@
 package jibiki.fr.shishito.Models;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
  * Created by mangeot on 07/12/15.
  */
-public class Volume {
+public class Volume implements Serializable{
 
         private String contents;
         private String domain;

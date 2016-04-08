@@ -185,20 +185,15 @@ public class LoginActivity extends ActionBarActivity {
         @Override
         protected Boolean doInBackground(Void... params) {
             // TODO: attempt authentication against a network service.
-            InputStream stream = null;
+            boolean success = false;
             try {
-                stream = doLoginTest(mEmail, mPassword);
-                if (stream != null) {
-                    return true;
-                }
-
+                success = doLoginTest(mEmail, mPassword, LoginActivity.this);
             } catch (Exception e) {
                 e.printStackTrace();
                 return false;
             }
 
-            // TODO: register the new account here.
-            return false;
+            return success;
         }
 
         @Override
@@ -209,7 +204,6 @@ public class LoginActivity extends ActionBarActivity {
             if (success) {
                 Intent intent = new Intent();
                 intent.putExtra(SearchActivity.USERNAME, mEmail);
-                intent.putExtra(SearchActivity.PASSWORD, mPassword);
                 setResult(RESULT_OK, intent);
                 finish();
             } else {

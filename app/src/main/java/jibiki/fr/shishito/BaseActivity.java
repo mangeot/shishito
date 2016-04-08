@@ -44,8 +44,8 @@ public class BaseActivity extends ActionBarActivity {
     @Override
     protected void onStop(){
         Intent intent = new Intent();
-        intent.putExtra(SearchActivity.USERNAME, username);
-        intent.putExtra(SearchActivity.PASSWORD, password);
+        intent.putExtra(USERNAME, username);
+        intent.putExtra(PASSWORD, password);
         setResult(RESULT_OK, intent);
         super.onStop();
     }
