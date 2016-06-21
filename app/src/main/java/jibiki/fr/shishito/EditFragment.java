@@ -90,7 +90,7 @@ public class EditFragment extends Fragment {
                     xpath = getXPath("cdm-headword");
                     update = ((EditText) v.findViewById(R.id.kanji)).getText().toString();
                 } else if (!entry.getHiragana().equals(((EditText) v.findViewById(R.id.hiragana)).getText().toString())) {
-                    xpath = getXPath("cdm-readinf");
+                    xpath = getXPath("cdm-reading");
                     update = ((EditText) v.findViewById(R.id.hiragana)).getText().toString();
                 } else if (!entry.getRomanji().equals(((EditText) v.findViewById(R.id.romaji)).getText().toString())) {
                     xpath = getXPath("cdm-writing");
@@ -105,7 +105,11 @@ public class EditFragment extends Fragment {
                     t.show();
                     return;
                 }
-                //Pas le bon xpath?? Tu peux recuperer le bon du coup?
+                //Le xpath n'est pas bon?
+                String cdmVolumePath = (String) ((SearchActivity)getActivity()).getVolume().getElements().get("cdm-volume");
+                if (xpath.contains(cdmVolumePath)) {
+                    xpath = xpath.replace(cdmVolumePath, cdmVolumePath + "/d:contribution/d:data");
+                }
                 Log.d(TAG, "XPATH: "  + xpath);
                 String[] params = {entry.getContribId(), update, xpath};
                 new UpdateContribution().execute(params);
