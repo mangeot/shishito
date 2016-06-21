@@ -62,5 +62,26 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/gram" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:text="Definition"
+            android:id="@+id/textView" />
+
+        <EditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/definition" />
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Save"
+            android:id="@+id/button"
+            android:layout_gravity="center"
+            android:clickable="false"
+            android:enabled="false" />
     </LinearLayout>
 </RelativeLayout>

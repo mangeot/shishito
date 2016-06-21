@@ -17,9 +17,6 @@ import java.io.InputStream;
 import java.io.StringWriter;
 import java.util.ArrayList;
 
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Queue;
 import java.util.Stack;
 
 import javax.xml.namespace.NamespaceContext;
@@ -131,6 +128,10 @@ public final class XMLUtils {
             entry.setDefinition(xPath.evaluate(xpath, show));
             xpath = adjustXpath("cdm-pos", volume);
             entry.setGram(xPath.evaluate(xpath, show));
+            xpath = adjustXpath("cdm-entry-id", volume);
+            entry.setEntryId(xPath.evaluate(xpath, show));
+            xpath = testXpath("/volume/d:contribution/@d:contribid", volume);
+            entry.setContribId(xPath.evaluate(xpath, show));
 
             //xpath = adjustXpath("cdm-example", volume);
             //NodeList exNodes = (NodeList) xPath.evaluate(xpath, show, XPathConstants.NODESET);
@@ -168,7 +169,7 @@ public final class XMLUtils {
                         String xPath = "";
                         if ((xPath = parser.getAttributeValue(null, "xpath")) != null) {
                             volume.getElements().put(parser.getName(), xPath);
-                            Log.d(TAG, parser.getName() + ": " + (String) volume.getElements().get(parser.getName()));
+                            Log.d(TAG, parser.getName() + ": " + volume.getElements().get(parser.getName()));
                             parser.next();
                         }
                     }
@@ -195,6 +196,7 @@ public final class XMLUtils {
                 prefix = "";
             }
             String newTagname = theOldNewTagMap.get(oldTagname);
+            Log.d(TAG, "Old: " + oldTagname + " New: " + newTagname);
             if (newTagname == null) {
                 newTagname = "a" + numtags++;
                 theOldNewTagMap.put(oldTagname, newTagname);
@@ -242,6 +244,21 @@ public final class XMLUtils {
         //Log.d(TAG, "notadjustedXpathString:" + xpath);
         if (xpath.contains(cdmVolumePath)) {
             xpath = xpath.replace(cdmVolumePath, "." + cdmVolumePath + "/d:contribution/d:data");
+        }
+        // à tester !
+        xpath.replaceAll("\\s//", " .//");
+        xpath.replaceAll("^//", ".//");
+        //Log.d(TAG, "adjustedXpathString:" + xpath);
+        xpath = replaceXpathstring(xpath, theVolume.getOldNewTagMap());
+        //Log.d(TAG, "replacedXpathstring:" + xpath);
+        return xpath;
+    }
+
+    protected static String testXpath(String xpath, Volume theVolume) {
+        String cdmVolumePath = (String) theVolume.getElements().get("cdm-volume");
+        //Log.d(TAG, "notadjustedXpathString:" + xpath);
+        if (xpath.contains(cdmVolumePath)) {
+            xpath = xpath.replace(cdmVolumePath, "." + cdmVolumePath);
         }
         // à tester !
         xpath.replaceAll("\\s//", " .//");

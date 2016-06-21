@@ -46,7 +46,6 @@ public final class HTTPUtils {
     public static InputStream doGet(String urlStr) {
         HttpURLConnection urlConnection;
         InputStream stream = null;
-        StringBuilder total = new StringBuilder();
         try {
             URL url = new URL(urlStr);
             urlConnection = (HttpURLConnection) url.openConnection();
@@ -57,6 +56,30 @@ public final class HTTPUtils {
         }
         return stream;
 
+    }
+
+    public static boolean updateContribField(String contribId, String update, String xpath) {
+        HttpURLConnection urlConnection;
+        try {
+            URL url = new URL(SearchActivity.SERVER_API_URL + "Cesselin/jpn/" + contribId + "/" + update);
+            Log.d(TAG, url.toString());
+            urlConnection = (HttpURLConnection) url.openConnection();
+            urlConnection.setRequestMethod("PUT");
+            urlConnection.setDoOutput(true);
+            OutputStream os = urlConnection.getOutputStream();
+            BufferedWriter writer = new BufferedWriter(
+                    new OutputStreamWriter(os, "UTF-8"));
+            writer.write(xpath);
+            writer.flush();
+            writer.close();
+            os.close();
+            urlConnection.connect();
+            Log.d(TAG, "Code:  " + Integer.toString(urlConnection.getResponseCode()));
+        } catch (IOException e) {
+            Log.d(TAG, "Error:", e);
+            return false;
+        }
+        return true;
     }
 
     public static String doGetString(String urlStr) {

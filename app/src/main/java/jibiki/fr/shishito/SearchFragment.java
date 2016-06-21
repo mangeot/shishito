@@ -54,7 +54,6 @@ public class SearchFragment extends Fragment {
     private static final String QUERY = "query";
     private static final String VOLUME = "volume";
 
-    private Volume volume;
     private String query;
     ListView listView;
     ArrayList<ListEntry> curList;
@@ -70,15 +69,13 @@ public class SearchFragment extends Fragment {
      * Use this factory method to create a new instance of
      * this fragment using the provided parameters.
      *
-     * @param volume Parameter 1.
      * @param query Parameter 2.
      * @return A new instance of fragment SearchFragment.
      */
     // TODO: Rename and change types and number of parameters
-    public static SearchFragment newInstance(Volume volume, String query) {
+    public static SearchFragment newInstance(String query) {
         SearchFragment fragment = new SearchFragment();
         Bundle args = new Bundle();
-        args.putSerializable(VOLUME, volume);
         args.putString(QUERY, query);
         fragment.setArguments(args);
         return fragment;
@@ -88,7 +85,6 @@ public class SearchFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-            volume = (Volume) getArguments().getSerializable(VOLUME);
             query = getArguments().getString(QUERY);
         }
     }
@@ -210,7 +206,7 @@ public class SearchFragment extends Fragment {
                 String word = URLEncoder.encode(params[0], "UTF-8");
                 //stream = doGet(SEREVR_API_URL + "Cesselin/jpn/cdm-headword|cdm-reading|cdm-writing/" + word + "/entries/?strategy=CASE_INSENSITIVE_STARTS_WITH");
                 stream = doGet(BaseActivity.SERVER_API_URL + "Cesselin/jpn/cdm-headword|cdm-reading|cdm-writing/" + word + "/entries/?strategy=CASE_INSENSITIVE_EQUAL");
-                result = XMLUtils.parseEntryList(stream, volume);
+                result = XMLUtils.parseEntryList(stream, ((SearchActivity)getActivity()).getVolume());
                 Log.v(TAG, "index=" + result);
 
             } catch (XmlPullParserException | ParserConfigurationException | SAXException | XPathExpressionException | IOException e) {

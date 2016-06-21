@@ -148,11 +148,13 @@ public class SearchActivity extends AppCompatActivity implements SearchFragment.
             } else {
                 putSearchFragment(query);
             }
+        } else {
+            putSearchFragment(null);
         }
     }
 
     private void putSearchFragment(String query) {
-        SearchFragment sf = SearchFragment.newInstance(volume, query);
+        SearchFragment sf = SearchFragment.newInstance(query);
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
 
         // Replace whatever is in the fragment_container view with this fragment,
@@ -166,6 +168,7 @@ public class SearchActivity extends AppCompatActivity implements SearchFragment.
 
     private void putDisplayEntryFragment(ListEntry entry) {
         DisplayEntryFragment def = DisplayEntryFragment.newInstance(entry);
+
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
 
         // Replace whatever is in the fragment_container view with this fragment,
@@ -209,6 +212,10 @@ public class SearchActivity extends AppCompatActivity implements SearchFragment.
         item.setVisible(false);
     }
 
+    public Volume getVolume(){
+        return this.volume;
+    }
+
     @Override
     public void onWordSelected(ListEntry entry) {
         putDisplayEntryFragment(entry);
@@ -245,7 +252,6 @@ public class SearchActivity extends AppCompatActivity implements SearchFragment.
         @Override
         protected void onPostExecute(Volume volume) {
             SearchActivity.this.volume = volume;
-            putSearchFragment(null);
         }
     }
 

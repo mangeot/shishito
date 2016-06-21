@@ -14,6 +14,10 @@ public class ListEntry implements Serializable {
     private String gram;
     private String definition;
 
+    private String entryId;
+
+    private String contribId;
+
     private ArrayList<Example> examples;
 
     public ListEntry() {
@@ -68,5 +72,22 @@ public class ListEntry implements Serializable {
     public void setExamples(ArrayList<Example> examples) {
         this.examples = examples;
     }
+
+    public String getEntryId() {
+        return entryId;
+    }
+
+    public void setEntryId(String entryId) {
+        this.entryId = entryId;
+    }
+
+    public String getContribId() {
+        return contribId;
+    }
+
+    public void setContribId(String contribId) {
+        this.contribId = contribId;
+    }
+
 
 }

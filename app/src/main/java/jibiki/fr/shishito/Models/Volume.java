@@ -16,7 +16,7 @@ public class Volume implements Serializable{
         private String legal;
         private String access;
 
-        private Map elements = new HashMap<String, String>();
+        private Map<String, String> elements = new HashMap<String, String>();
 
         protected HashMap<String, String> newoldTagMap = new java.util.HashMap<>();
         protected HashMap<String, String> oldnewTagMap = new java.util.HashMap<>();
@@ -72,7 +72,7 @@ public class Volume implements Serializable{
             this.access = access;
         }
 
-        public Map getElements() {
+        public Map<String, String> getElements() {
             return elements;
         }
 
