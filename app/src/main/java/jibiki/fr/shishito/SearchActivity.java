@@ -37,7 +37,7 @@ import static jibiki.fr.shishito.Util.HTTPUtils.checkLoggedIn;
 import static jibiki.fr.shishito.Util.HTTPUtils.doGet;
 
 
-public class SearchActivity extends AppCompatActivity implements SearchFragment.OnWordSelectedListener, DisplayEntryFragment.OnEditClickListener {
+public class SearchActivity extends AppCompatActivity implements SearchFragment.OnWordSelectedListener, DisplayEntryFragment.OnEditClickListener, EditFragment.OnEntryUpdatedListener {
 
     private static final String TAG = "SearchActivity";
     public final static String ENTRY = "jibiki.fr.shishito.ENTRY";
@@ -224,6 +224,11 @@ public class SearchActivity extends AppCompatActivity implements SearchFragment.
     @Override
     public void onEditClick(ListEntry entry) {
         putEditFragment(entry);
+    }
+
+    @Override
+    public void onEntryUpdatedListener(ListEntry entry) {
+        putDisplayEntryFragment(entry);
     }
 
     private class InitVolumeTask extends AsyncTask<String, Void, Volume> {

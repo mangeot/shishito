@@ -127,7 +127,9 @@ public class SearchFragment extends Fragment {
             public boolean onQueryTextChange(String s) {
                 if (TextUtils.isEmpty(s)) {
                     EntryListAdapter adapter = (EntryListAdapter) listView.getAdapter();
-                    adapter.clear();
+                    if (adapter != null) {
+                        adapter.clear();
+                    }
                     curList = null;
                 }
                 return false;

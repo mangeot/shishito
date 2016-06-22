@@ -58,49 +58,37 @@ public final class HTTPUtils {
 
     }
 
-    public static boolean updateContribField(String contribId, String update, String xpath) {
-        HttpURLConnection urlConnection;
+    public static InputStream doPut(String sUrl, String data) {
+        HttpURLConnection urlConnection = null;
+        InputStream is;
         try {
-            URL url = new URL(SearchActivity.SERVER_API_URL + "Cesselin/jpn/" + contribId + "/" + update);
-            Log.d(TAG, url.toString());
+            URL url = new URL(sUrl);
             urlConnection = (HttpURLConnection) url.openConnection();
             urlConnection.setRequestMethod("PUT");
             urlConnection.setDoOutput(true);
             OutputStream os = urlConnection.getOutputStream();
             BufferedWriter writer = new BufferedWriter(
                     new OutputStreamWriter(os, "UTF-8"));
-            writer.write(xpath);
+            writer.write(data);
             writer.flush();
             writer.close();
             os.close();
             urlConnection.connect();
+            is = urlConnection.getInputStream();
             Log.d(TAG, "Code:  " + Integer.toString(urlConnection.getResponseCode()));
-        } catch (IOException e) {
-            Log.d(TAG, "Error:", e);
-            return false;
-        }
-        return true;
-    }
-
-    public static String doGetString(String urlStr) {
-        HttpURLConnection urlConnection;
-        InputStream stream = null;
-        StringBuilder total = new StringBuilder();
-        try {
-            URL url = new URL(urlStr);
-            urlConnection = (HttpURLConnection) url.openConnection();
-            urlConnection.setRequestMethod("GET");
-            stream = urlConnection.getInputStream();
-            BufferedReader r = new BufferedReader(new InputStreamReader(stream));
-            String line;
-            while ((line = r.readLine()) != null) {
-                total.append(line);
+            if (urlConnection.getResponseCode() != 201) {
+                return null;
             }
         } catch (IOException e) {
             Log.d(TAG, "Error:", e);
+            try {
+                Log.d(TAG, "ERROR: " + urlConnection.getResponseCode());
+            } catch (IOException e1) {
+                e1.printStackTrace();
+            }
+            return null;
         }
-        return total.toString();
-
+        return is;
     }
 
     public static boolean doLoginTest(final String username, final String password, Context context) {
@@ -169,46 +157,6 @@ public final class HTTPUtils {
         }
 
         return username;
-    }
-
-    public static InputStream doLoginTest2(final String username, final String password) {
-        HttpURLConnection urlConnection = null;
-        InputStream stream = null;
-        StringBuilder total = new StringBuilder();
-        String data = "/volume/d:contribution/d:data/article/forme/vedette";
-        try {
-            URL url = new URL("http://totoro.imag.fr/lexinnova/api/Lexinnovathibaut/esp/esp.toto.1005389.c/tata");
-
-//            Authenticator.setDefault(new Authenticator(){
-//                protected PasswordAuthentication getPasswordAuthentication() {
-//                    return new PasswordAuthentication(username,password.toCharArray());
-//                }});
-            urlConnection = (HttpURLConnection) url.openConnection();
-            urlConnection.setDoOutput(true);
-            urlConnection.setRequestMethod("GET");
-            String encoded = "Basic " + Base64.encodeToString((username + ":" + password).getBytes(), Base64.NO_WRAP);
-            Log.d(TAG, encoded);
-
-            urlConnection.setRequestProperty("Authorization", encoded);
-            urlConnection.setRequestProperty("Content-Type", "application/xml");
-            urlConnection.setRequestProperty("Accept", "application/xml;charset=UTF-8");
-//            urlConnection.setRequestProperty("charset", "utf-8");
-            urlConnection.setRequestProperty("Content-Length", Integer.toString(data.length()));
-            urlConnection.setUseCaches(false);
-            DataOutputStream wr = new DataOutputStream(urlConnection.getOutputStream());
-            wr.write(data.getBytes("UTF-8"));
-            stream = new DataInputStream(urlConnection.getInputStream());
-        } catch (IOException e) {
-            Log.d(TAG, "Error:", e);
-            if (urlConnection != null) {
-                try {
-                    Log.d(TAG, "Code:  " + Integer.toString(urlConnection.getResponseCode()));
-                } catch (IOException e1) {
-                    Log.d(TAG, "Error:", e1);
-                }
-            }
-        }
-        return stream;
     }
 
 }

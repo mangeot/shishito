@@ -1,6 +1,7 @@
 package jibiki.fr.shishito.Util;
 
 import android.util.Log;
+import android.util.Pair;
 import android.util.Xml;
 
 import org.apache.commons.io.IOUtils;
@@ -19,10 +20,16 @@ import java.util.ArrayList;
 
 import java.util.Stack;
 
+import javax.xml.XMLConstants;
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
@@ -80,63 +87,85 @@ public final class XMLUtils {
         return examples;
     }
 
-    public static ArrayList<ListEntry> parseEntryList(InputStream stream, Volume volume) throws IOException, XmlPullParserException, XPathExpressionException, SAXException, ParserConfigurationException {
+    public static ListEntry parseEntryStream(InputStream stream, Volume volume) throws IOException, ParserConfigurationException, SAXException, XPathExpressionException {
+        Document document = prepareDocumentFromStream(stream, volume);
+        XPath xPath = getNewXPath();
+        return parseListEntry(xPath, document, volume);
+    }
+
+    private static ListEntry parseListEntry(XPath xPath, Node el, Volume volume) throws XPathExpressionException {
+
+        String xpath = "";
+        ListEntry entry = new ListEntry();
+        xpath = adjustXpath("cdm-headword", volume);
+        entry.setKanji(xPath.evaluate(xpath, el));
+        NodeList nodes = (NodeList) xPath.evaluate(xpath, el, XPathConstants.NODESET);
+        Node hwjpn = (Node) nodes.item(0);
+        if (hwjpn != null) {
+            Log.d(TAG, "hwjpn xpath:" + getXpathForNode(hwjpn, volume));
+        }
+        xpath = adjustXpath("cesselin-writing-display", volume);
+        String writing = xPath.evaluate(xpath, el);
+        if (writing == null || writing.equals("")) {
+            xpath = adjustXpath("cdm-writing", volume);
+            writing = xPath.evaluate(xpath, el);
+        }
+        entry.setRomanji(writing);
+        xpath = adjustXpath("cdm-reading", volume);
+        entry.setHiragana(xPath.evaluate(xpath, el));
+        xpath = adjustXpath("cdm-definition", volume);
+        entry.setDefinition(xPath.evaluate(xpath, el));
+        xpath = adjustXpath("cdm-pos", volume);
+        entry.setGram(xPath.evaluate(xpath, el));
+        xpath = adjustXpath("cdm-entry-id", volume);
+        entry.setEntryId(xPath.evaluate(xpath, el));
+        xpath = testXpath("/volume/d:contribution/@d:contribid", volume);
+        entry.setContribId(xPath.evaluate(xpath, el));
+        //xpath = adjustXpath("cdm-example", volume);
+        //NodeList exNodes = (NodeList) xPath.evaluate(xpath, show, XPathConstants.NODESET);
+        //entry.setExamples(parseExamples(exNodes, xPath, volume));
+        return entry;
+    }
+
+    private static Document prepareDocumentFromStream(InputStream stream, Volume volume) throws IOException, ParserConfigurationException, SAXException {
         StringWriter writer = new StringWriter();
         IOUtils.copy(stream, writer);
         String string = writer.toString();
         string = replaceTags(string, volume.getOldNewTagMap(), volume.getNewOldTagMap());
         //Log.d(TAG, "replacedString:"+string);
 
-        NamespaceContext context = new NamespaceContextMap(
-                "d", "http://www-clips.imag.fr/geta/services/dml",
-                "xslt", "http://bar",
-                "def", "http://def");
-
         org.xml.sax.InputSource source = new org.xml.sax.InputSource(new java.io.StringReader(string));
 
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
         dbf.setNamespaceAware(true);
         DocumentBuilder db = dbf.newDocumentBuilder();
-        Document document = db.parse(source);
+        return db.parse(source);
+    }
+
+    private static XPath getNewXPath() {
+        NamespaceContext context = new NamespaceContextMap(
+                "d", "http://www-clips.imag.fr/geta/services/dml",
+                "xslt", "http://bar",
+                "def", "http://def");
 
         XPathFactory factory = XPathFactory.newInstance();
         XPath xPath = factory.newXPath();
         xPath.setNamespaceContext(context);
-        ArrayList<ListEntry> entries = new ArrayList<ListEntry>();
+        return xPath;
+    }
+
+    public static ArrayList<ListEntry> parseEntryList(InputStream stream, Volume volume) throws IOException, XmlPullParserException, XPathExpressionException, SAXException, ParserConfigurationException {
+
+        Document document = prepareDocumentFromStream(stream, volume);
+
+        XPath xPath = getNewXPath();
+
+        ArrayList<ListEntry> entries = new ArrayList<>();
         String xpath = adjustXpath("cdm-entry-api", volume);
         NodeList shows = (NodeList) xPath.evaluate(xpath, document, XPathConstants.NODESET);
         for (int i = 0; i < shows.getLength(); i++) {
             Element show = (Element) shows.item(i);
-            ListEntry entry = new ListEntry();
-            xpath = adjustXpath("cdm-headword", volume);
-            entry.setKanji(xPath.evaluate(xpath, show));
-            NodeList nodes = (NodeList) xPath.evaluate(xpath, show, XPathConstants.NODESET);
-            Node hwjpn = (Node) nodes.item(0);
-            if (hwjpn != null) {
-                Log.d(TAG, "hwjpn xpath:" + getXpathForNode(hwjpn, volume));
-            }
-            xpath = adjustXpath("cesselin-writing-display", volume);
-            String writing = xPath.evaluate(xpath, show);
-            if (writing == null || writing.equals("")) {
-                xpath = adjustXpath("cdm-writing", volume);
-                writing = xPath.evaluate(xpath, show);
-            }
-            entry.setRomanji(writing);
-            xpath = adjustXpath("cdm-reading", volume);
-            entry.setHiragana(xPath.evaluate(xpath, show));
-            xpath = adjustXpath("cdm-definition", volume);
-            entry.setDefinition(xPath.evaluate(xpath, show));
-            xpath = adjustXpath("cdm-pos", volume);
-            entry.setGram(xPath.evaluate(xpath, show));
-            xpath = adjustXpath("cdm-entry-id", volume);
-            entry.setEntryId(xPath.evaluate(xpath, show));
-            xpath = testXpath("/volume/d:contribution/@d:contribid", volume);
-            entry.setContribId(xPath.evaluate(xpath, show));
-
-            //xpath = adjustXpath("cdm-example", volume);
-            //NodeList exNodes = (NodeList) xPath.evaluate(xpath, show, XPathConstants.NODESET);
-            //entry.setExamples(parseExamples(exNodes, xPath, volume));
-
+            ListEntry entry = parseListEntry(xPath, show, volume);
             entries.add(entry);
             Log.d(TAG, entry.getRomanji());
 
@@ -372,5 +401,41 @@ public final class XMLUtils {
         }
 // return buffer
         return buffer.toString();
+    }
+
+    public static String updateEntryXmlFromStream(InputStream stream, ArrayList<Pair<String, String>> updates, Volume volume) throws ParserConfigurationException, SAXException, IOException, XPathExpressionException {
+        Document document = prepareDocumentFromStream(stream, volume);
+        XPath xPath = getNewXPath();
+        for (Pair<String, String> p: updates) {
+            String cdmElement = p.first;
+            String update = p.second;
+            String xpath = adjustXpath(cdmElement, volume);
+            Node n = (Node) xPath.evaluate(xpath, document, XPathConstants.NODE);
+            n.setNodeValue(update);
+        }
+
+        String string = getStringFromDocument(document);
+        string = replaceTags(string, volume.getNewOldTagMap(), volume.getOldNewTagMap());
+        Log.d(TAG, string);
+        return string;
+    }
+
+    private static String getStringFromDocument(Document doc)
+    {
+        try
+        {
+            DOMSource domSource = new DOMSource(doc);
+            StringWriter writer = new StringWriter();
+            StreamResult result = new StreamResult(writer);
+            TransformerFactory tf = TransformerFactory.newInstance();
+            Transformer transformer = tf.newTransformer();
+            transformer.transform(domSource, result);
+            return writer.toString();
+        }
+        catch(TransformerException ex)
+        {
+            Log.e(TAG, "Error converting document to string: " + ex.getMessage());
+            return null;
+        }
     }
 }
