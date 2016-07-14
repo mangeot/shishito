@@ -48,11 +48,7 @@ public class SearchActivity extends AppCompatActivity implements SearchFragment.
 
     public final static int USERNAME_RESULT = 1;
 
-
-    ListView listView;
     Menu menu;
-    ListEntry curEntry;
-
     String username = "";
 
     private Dictionary dictionary;
@@ -100,8 +96,8 @@ public class SearchActivity extends AppCompatActivity implements SearchFragment.
         // as you specify a parent activity in AndroidManifest.xml.
         switch(item.getItemId()) {
 
-            case R.id.action_settings:
-                return true;
+//            case R.id.action_settings:
+//                return true;
             case R.id.action_sign_in:
                 if(TextUtils.isEmpty(username)) {
                     Intent intent = new Intent(this, LoginActivity.class);
@@ -158,9 +154,8 @@ public class SearchActivity extends AppCompatActivity implements SearchFragment.
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
 
         // Replace whatever is in the fragment_container view with this fragment,
-        // and add the transaction to the back stack so the user can navigate back
-        transaction.replace(R.id.fragment_container, sf);
-        transaction.addToBackStack(null);
+        // don't add to back stack to avoid empty fragment container
+        transaction.replace(R.id.fragment_container, sf, "search");
 
         // Commit the transaction
         transaction.commit();
@@ -173,7 +168,7 @@ public class SearchActivity extends AppCompatActivity implements SearchFragment.
 
         // Replace whatever is in the fragment_container view with this fragment,
         // and add the transaction to the back stack so the user can navigate back
-        transaction.replace(R.id.fragment_container, def);
+        transaction.replace(R.id.fragment_container, def, "display");
         transaction.addToBackStack(null);
 
         // Commit the transaction
@@ -228,7 +223,19 @@ public class SearchActivity extends AppCompatActivity implements SearchFragment.
 
     @Override
     public void onEntryUpdatedListener(ListEntry entry) {
-        putDisplayEntryFragment(entry);
+//        putDisplayEntryFragment(entry);
+        getSupportFragmentManager().popBackStack();
+        Fragment frag = getSupportFragmentManager().findFragmentByTag("display");
+        if (frag != null && frag instanceof DisplayEntryFragment) {
+            DisplayEntryFragment def = (DisplayEntryFragment)frag;
+            def.setListEntry(entry);
+        }
+
+        frag = getSupportFragmentManager().findFragmentByTag("search");
+        if (frag != null && frag instanceof SearchFragment) {
+            SearchFragment sf = (SearchFragment)frag;
+            sf.updateEntry(entry);
+        }
     }
 
     private class InitVolumeTask extends AsyncTask<String, Void, Volume> {

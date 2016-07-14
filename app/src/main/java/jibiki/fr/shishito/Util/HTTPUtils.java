@@ -25,6 +25,7 @@ import java.net.CookieStore;
 import java.net.HttpCookie;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.util.List;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -61,8 +62,9 @@ public final class HTTPUtils {
     public static InputStream doPut(String sUrl, String data) {
         HttpURLConnection urlConnection = null;
         InputStream is;
+        Log.d(TAG, data);
         try {
-            URL url = new URL(sUrl);
+            URL url = new URL(sUrl.replace(" ", "%20"));
             urlConnection = (HttpURLConnection) url.openConnection();
             urlConnection.setRequestMethod("PUT");
             urlConnection.setDoOutput(true);

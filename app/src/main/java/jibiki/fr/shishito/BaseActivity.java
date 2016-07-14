@@ -74,9 +74,9 @@ public class BaseActivity extends ActionBarActivity {
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
+//        if (id == R.id.action_settings) {
+//            return true;
+//        }
         if (id == R.id.action_sign_in) {
             Intent intent = new Intent(this, LoginActivity.class);
             this.startActivityForResult(intent, USERNAME_RESULT);

@@ -8,7 +8,9 @@ import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -18,6 +20,7 @@ import android.widget.AdapterView;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.SearchView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import org.xml.sax.SAXException;
@@ -58,7 +61,7 @@ public class SearchFragment extends Fragment {
     ListView listView;
     ArrayList<ListEntry> curList;
     SearchView searchView;
-
+    TextView noResult;
     private OnWordSelectedListener mListener;
 
     public SearchFragment() {
@@ -89,12 +92,25 @@ public class SearchFragment extends Fragment {
         }
     }
 
+    public void updateEntry(ListEntry entry) {
+        for (int i = 0; i < curList.size(); i++) {
+            ListEntry le = curList.get(i);
+            if (le.getEntryId().equals(entry.getEntryId())) {
+                EntryListAdapter ela = (EntryListAdapter)listView.getAdapter();
+                ela.remove(le);
+                ela.insert(entry, i);
+                return;
+            }
+        }
+    }
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View v = inflater.inflate(R.layout.fragment_search, container, false);
         listView = (ListView) v.findViewById(R.id.listView);
+        noResult = (TextView) v.findViewById(R.id.noResult);
 
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView parent, View v, int position, long id) {
@@ -165,6 +181,16 @@ public class SearchFragment extends Fragment {
                 getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
         if (networkInfo != null && networkInfo.isConnected()) {
+            FragmentTransaction ft = getFragmentManager().beginTransaction();
+            Fragment prev = getFragmentManager().findFragmentByTag("dialog");
+            if (prev != null) {
+                ft.remove(prev);
+            }
+            ft.addToBackStack(null);
+
+            // Create and show the dialog.
+            DialogFragment newFragment = new ShishitoProgressDialog();
+            newFragment.show(ft, "dialog");
             new SearchTask().execute(query);
         } else {
             Toast.makeText(getActivity().getApplicationContext(), "No Network",
@@ -221,20 +247,30 @@ public class SearchFragment extends Fragment {
         @Override
         protected void onPostExecute(ArrayList<ListEntry> result) {
 
+            Fragment prev = getFragmentManager().findFragmentByTag("dialog");
+            if (prev != null && prev instanceof ShishitoProgressDialog) {
+                ShishitoProgressDialog pd = (ShishitoProgressDialog) prev;
+                pd.dismiss();
+            }
             if (result == null) {
                 Toast.makeText(getActivity().getApplicationContext(), "There was an error!",
                         Toast.LENGTH_SHORT).show();
             } else {
                 ListView listView = (ListView) getActivity().findViewById(R.id.listView);
-
-                EntryListAdapter adapter = (EntryListAdapter) listView.getAdapter();
-                if (adapter == null) {
-                    adapter = new EntryListAdapter(getActivity(), result);
-                    listView.setAdapter(adapter);
+                if (result.size() == 0) {
+                    noResult.setVisibility(View.VISIBLE);
                 } else {
-                    adapter.clear();
-                    adapter.addAll(result);
-                    adapter.notifyDataSetChanged();
+                    noResult.setVisibility(View.GONE);
+
+                    EntryListAdapter adapter = (EntryListAdapter) listView.getAdapter();
+                    if (adapter == null) {
+                        adapter = new EntryListAdapter(getActivity(), result);
+                        listView.setAdapter(adapter);
+                    } else {
+                        adapter.clear();
+                        adapter.addAll(result);
+                        adapter.notifyDataSetChanged();
+                    }
                 }
             }
         }

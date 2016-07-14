@@ -41,6 +41,8 @@ public class EditFragment extends Fragment {
 
     private OnEntryUpdatedListener mListener;
 
+    private ArrayList<Pair<String, String>> modifWaitList;
+
     public EditFragment() {
     }
 
@@ -121,37 +123,48 @@ public class EditFragment extends Fragment {
         saveButton = (Button) v.findViewById(R.id.button);
         saveButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View but) {
-                String cdmElement;
-                String update;
                 ArrayList<Pair<String, String>> xpaths = new ArrayList<>(4);
                 saveButton.setEnabled(false);
                 checkAddPairToArrayList(xpaths, entry.getKanji(), "cdm-headword", R.id.kanji, v);
                 checkAddPairToArrayList(xpaths, entry.getHiragana(), "cdm-reading", R.id.hiragana, v);
                 checkAddPairToArrayList(xpaths, entry.getRomanji(), "cdm-writing", R.id.romaji, v);
                 checkAddPairToArrayList(xpaths, entry.getDefinition(), "cdm-definition", R.id.definition, v);
+                checkAddPairToArrayList(xpaths, entry.getGram(), "cdm-pos", R.id.gram, v);
+
 
                 Log.d(TAG, "XPATHS SIZE: " + xpaths.size());
                 if (xpaths.size() == 0) {
                     makeToast("Pas de changement détecté.");
-                } else if (xpaths.size() == 1) {
-                    Pair<String, String> p = xpaths.get(0);
-                    cdmElement = p.first;
-                    update = p.second;
-                    String xpath = ((SearchActivity) getActivity()).getVolume().getElements().get(cdmElement);
-                    String cdmVolumePath = ((SearchActivity) getActivity()).getVolume().getElements().get("cdm-volume");
-                    if (cdmElement.contains(cdmVolumePath)) {
-                        xpath = xpath.replace(cdmVolumePath, cdmVolumePath + "/d:contribution/d:data");
-                    }
-                    String[] params = {entry.getContribId(), update, xpath};
-                    new UpdateContribution().execute(params);
-                } else {
-                    new PrepareUpdateEntry().execute(xpaths);
+                } else{ //if (xpaths.size() == 1) {
+                    EditFragment.this.modifWaitList = xpaths;
+                    EditFragment.this.doNextModif();
                 }
+//                else {
+//                    new PrepareUpdateEntry().execute(xpaths);
+//                }
 
             }
         });
 
         return v;
+    }
+
+    private void doNextModif() {
+        Pair<String, String> p = this.modifWaitList.get(0);
+        this.modifWaitList.remove(0);
+        String cdmElement;
+        String update;
+        cdmElement = p.first;
+        update = p.second;
+        String xpath = ((SearchActivity) getActivity()).getVolume().getElements().get(cdmElement);
+        String cdmVolumePath = ((SearchActivity) getActivity()).getVolume().getElements().get("cdm-volume");
+
+        if (xpath.contains(cdmVolumePath)) {
+            xpath = xpath.replace(cdmVolumePath, cdmVolumePath + "/d:contribution/d:data");
+        }
+
+        String[] params = {entry.getContribId(), update, xpath};
+        new UpdateContribution().execute(params);
     }
 
     private void checkAddPairToArrayList(ArrayList<Pair<String, String>> a, String value, String tag, int id, View v) {
@@ -217,49 +230,55 @@ public class EditFragment extends Fragment {
 
         @Override
         protected void onPostExecute(ListEntry entry) {
-            handleListEntry(entry);
-        }
-    }
-
-    private class PrepareUpdateEntry extends AsyncTask<ArrayList<Pair<String, String>>, Void, String> {
-        @Override
-        protected String doInBackground(ArrayList<Pair<String, String>>... params) {
-            String url = SearchActivity.SERVER_API_URL + "Cesselin/jpn/" + EditFragment.this.entry.getContribId() + "/";
-            InputStream stream = HTTPUtils.doGet(url);
-            String res;
-            try {
-                res = XMLUtils.updateEntryXmlFromStream(stream, params[0], ((SearchActivity) getActivity()).getVolume());
-            } catch (ParserConfigurationException | SAXException | IOException | XPathExpressionException e) {
-                Log.e(TAG, "Error updating entry from stream: " + e.getMessage());
-                return null;
-            }
-
-            return res;
-        }
-
-        @Override
-        protected void onPostExecute(String res) {
-            if (res != null) {
-                new UpdateEntry().execute(res);
+            if (EditFragment.this.modifWaitList.size() == 0) {
+                handleListEntry(entry);
             } else {
-                saveError();
+                EditFragment.this.entry = entry;
+                EditFragment.this.doNextModif();
             }
         }
     }
 
-    private class UpdateEntry extends AsyncTask<String, Void, ListEntry> {
-
-        @Override
-        protected ListEntry doInBackground(String... params) {
-            String url = SearchActivity.SERVER_API_URL + "Cesselin/jpn/" + EditFragment.this.entry.getEntryId() + "/";
-            InputStream stream = HTTPUtils.doPut(url, params[0]);
-            return handleListEntryStream(stream);
-        }
-
-        @Override
-        protected void onPostExecute(ListEntry entry) {
-            handleListEntry(entry);
-        }
-    }
+/**Keep this part in case want to change back to update entire entry**/
+//    private class PrepareUpdateEntry extends AsyncTask<ArrayList<Pair<String, String>>, Void, String> {
+//        @Override
+//        protected String doInBackground(ArrayList<Pair<String, String>>... params) {
+//            String url = SearchActivity.SERVER_API_URL + "Cesselin/jpn/" + EditFragment.this.entry.getContribId() + "/";
+//            InputStream stream = HTTPUtils.doGet(url);
+//            String res;
+//            try {
+//                res = XMLUtils.updateEntryXmlFromStream(stream, params[0], ((SearchActivity) getActivity()).getVolume());
+//            } catch (ParserConfigurationException | SAXException | IOException | XPathExpressionException e) {
+//                Log.e(TAG, "Error updating entry from stream: " + e.getMessage());
+//                return null;
+//            }
+//
+//            return res;
+//        }
+//
+//        @Override
+//        protected void onPostExecute(String res) {
+//            if (res != null) {
+//                new UpdateEntry().execute(res);
+//            } else {
+//                saveError();
+//            }
+//        }
+//    }
+//
+//    private class UpdateEntry extends AsyncTask<String, Void, ListEntry> {
+//
+//        @Override
+//        protected ListEntry doInBackground(String... params) {
+//            String url = SearchActivity.SERVER_API_URL + "Cesselin/jpn/" + EditFragment.this.entry.getEntryId() + "/";
+//            InputStream stream = HTTPUtils.doPut(url, params[0]);
+//            return handleListEntryStream(stream);
+//        }
+//
+//        @Override
+//        protected void onPostExecute(ListEntry entry) {
+//            handleListEntry(entry);
+//        }
+//    }
 
 }

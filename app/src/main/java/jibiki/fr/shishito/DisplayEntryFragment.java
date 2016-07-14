@@ -29,6 +29,10 @@ public class DisplayEntryFragment extends Fragment {
 
     private OnEditClickListener mListener;
 
+    TextView vedette;
+    TextView definition;
+    TextView gram;
+
     public DisplayEntryFragment() {
     }
 
@@ -40,6 +44,11 @@ public class DisplayEntryFragment extends Fragment {
         return fragment;
     }
 
+    public void setListEntry(ListEntry listEntry) {
+        this.entry = listEntry;
+        updateText();
+    }
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -49,20 +58,24 @@ public class DisplayEntryFragment extends Fragment {
         setHasOptionsMenu(true);
     }
 
+    private void updateText(){
+        String vText = entry.getKanji() +
+                "   [<font color=#cc0000>" + entry.getHiragana() + "</font>]   " +
+                "   [<font color=#cc0000>" + entry.getRomanji() + "</font>]";
+        vedette.setText(Html.fromHtml(vText));
+        definition.setText(entry.getDefinition());
+        gram.setText(entry.getGram());
+    }
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                       Bundle savedInstanceState) {
 
         View v = inflater.inflate(R.layout.activity_display_entry, container, false);
-        TextView vedette = (TextView) v.findViewById(R.id.vedette);
-        String vText = entry.getKanji() +
-                "   [<font color=#cc0000>" + entry.getHiragana() + "</font>]   " +
-                "   [<font color=#cc0000>" + entry.getRomanji() + "</font>]";
-        vedette.setText(Html.fromHtml(vText));
-        TextView definition = (TextView) v.findViewById(R.id.definition);
-        definition.setText(entry.getDefinition());
-        TextView gram = (TextView) v.findViewById(R.id.gram);
-        gram.setText(entry.getGram());
+        vedette = (TextView) v.findViewById(R.id.vedette);
+        definition = (TextView) v.findViewById(R.id.definition);
+        gram = (TextView) v.findViewById(R.id.gram);
+        updateText();
 
 
       /*  ListView listView = (ListView) findViewById(R.id.examples);

@@ -15,6 +15,17 @@
             android:title="@string/action_search"
             android:id="@+id/action_search"/>
 
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:text="Pas de résultat pour cette recherche"
+            android:id="@+id/noResult"
+            android:layout_gravity="center_horizontal"
+            android:visibility="gone"
+            android:textStyle="italic"
+            android:gravity="center_horizontal" />
+
         <ListView
             android:id="@+id/listView"
             android:layout_width="fill_parent"
