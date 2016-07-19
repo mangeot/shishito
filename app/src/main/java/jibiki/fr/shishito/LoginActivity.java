@@ -17,8 +17,6 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
-import java.io.InputStream;
-
 import static jibiki.fr.shishito.Util.HTTPUtils.doLoginTest;
 
 
@@ -172,7 +170,7 @@ public class LoginActivity extends ActionBarActivity {
      * Represents an asynchronous login/registration task used to authenticate
      * the user.
      */
-    public class UserLoginTask extends AsyncTask<Void, Void, Boolean> {
+    public class UserLoginTask extends AsyncTask<Void, Void, Integer> {
 
         private final String mEmail;
         private final String mPassword;
@@ -183,31 +181,31 @@ public class LoginActivity extends ActionBarActivity {
         }
 
         @Override
-        protected Boolean doInBackground(Void... params) {
+        protected Integer doInBackground(Void... params) {
             // TODO: attempt authentication against a network service.
-            boolean success = false;
+            int code;
             try {
-                success = doLoginTest(mEmail, mPassword, LoginActivity.this);
+                code = doLoginTest(mEmail, mPassword, LoginActivity.this);
             } catch (Exception e) {
                 e.printStackTrace();
-                return false;
+                return -1;
             }
 
-            return success;
+            return code;
         }
 
         @Override
-        protected void onPostExecute(final Boolean success) {
+        protected void onPostExecute(final Integer code) {
             mAuthTask = null;
             showProgress(false);
 
-            if (success) {
+            if (code == 200) {
                 Intent intent = new Intent();
                 intent.putExtra(SearchActivity.USERNAME, mEmail);
                 setResult(RESULT_OK, intent);
                 finish();
-            } else {
-                mPasswordView.setError(getString(R.string.error_incorrect_password));
+            } else if (code == 401) {
+                mPasswordView.setError(getString(R.string.error_incorrect_login));
                 mPasswordView.requestFocus();
             }
         }

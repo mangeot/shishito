@@ -22,8 +22,8 @@ public class DisplayEntryFragment extends Fragment {
 
 
     private static final String TAG = "DisplayEntryFragment";
-
     private static final String ENTRY = "entry";
+    private static final int EDIT_MENU_ID = 10;
 
     private ListEntry entry;
 
@@ -107,9 +107,10 @@ public class DisplayEntryFragment extends Fragment {
 
     @Override
     public void onPrepareOptionsMenu(Menu menu) {
+        Log.d(TAG, "Prepare!!");
         MenuItem login = menu.findItem(R.id.action_sign_in);
-        if(!login.getTitle().equals(getString(R.string.action_sign_in_short))) {
-            MenuItem item = menu.add("Edit");
+        if(!login.getTitle().equals(getString(R.string.action_sign_in_short)) && menu.findItem(EDIT_MENU_ID) == null) {
+            MenuItem item = menu.add(Menu.NONE, EDIT_MENU_ID, Menu.NONE, R.string.edit_menu_item);
             item.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
         }
     }
@@ -117,7 +118,7 @@ public class DisplayEntryFragment extends Fragment {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         super.onOptionsItemSelected(item);
-        if(item.getTitle().equals("Edit")){
+        if(item.getItemId() == EDIT_MENU_ID){
             mListener.onEditClick(entry);
         }
         return true;

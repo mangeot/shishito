@@ -2,10 +2,8 @@ package jibiki.fr.shishito;
 
 import android.app.SearchManager;
 import android.content.Context;
-import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
@@ -17,7 +15,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.SearchView;
 import android.widget.TextView;
@@ -35,7 +32,6 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathExpressionException;
 
 import jibiki.fr.shishito.Models.ListEntry;
-import jibiki.fr.shishito.Models.Volume;
 import jibiki.fr.shishito.Util.XMLUtils;
 
 import static jibiki.fr.shishito.Util.HTTPUtils.doGet;
@@ -90,13 +86,14 @@ public class SearchFragment extends Fragment {
         if (getArguments() != null) {
             query = getArguments().getString(QUERY);
         }
+        setRetainInstance(true);
     }
 
     public void updateEntry(ListEntry entry) {
         for (int i = 0; i < curList.size(); i++) {
             ListEntry le = curList.get(i);
             if (le.getEntryId().equals(entry.getEntryId())) {
-                EntryListAdapter ela = (EntryListAdapter)listView.getAdapter();
+                EntryListAdapter ela = (EntryListAdapter) listView.getAdapter();
                 ela.remove(le);
                 ela.insert(entry, i);
                 return;
@@ -108,6 +105,7 @@ public class SearchFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
+
         View v = inflater.inflate(R.layout.fragment_search, container, false);
         listView = (ListView) v.findViewById(R.id.listView);
         noResult = (TextView) v.findViewById(R.id.noResult);
@@ -156,7 +154,6 @@ public class SearchFragment extends Fragment {
                 return false;
             }
         });
-
         return v;
     }
 
@@ -234,7 +231,7 @@ public class SearchFragment extends Fragment {
                 String word = URLEncoder.encode(params[0], "UTF-8");
                 //stream = doGet(SEREVR_API_URL + "Cesselin/jpn/cdm-headword|cdm-reading|cdm-writing/" + word + "/entries/?strategy=CASE_INSENSITIVE_STARTS_WITH");
                 stream = doGet(BaseActivity.SERVER_API_URL + "Cesselin/jpn/cdm-headword|cdm-reading|cdm-writing/" + word + "/entries/?strategy=CASE_INSENSITIVE_EQUAL");
-                result = XMLUtils.parseEntryList(stream, ((SearchActivity)getActivity()).getVolume());
+                result = XMLUtils.parseEntryList(stream, ((SearchActivity) getActivity()).getVolume());
                 Log.v(TAG, "index=" + result);
 
             } catch (XmlPullParserException | ParserConfigurationException | SAXException | XPathExpressionException | IOException e) {

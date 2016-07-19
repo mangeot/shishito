@@ -93,9 +93,8 @@ public final class HTTPUtils {
         return is;
     }
 
-    public static boolean doLoginTest(final String username, final String password, Context context) {
+    public static int doLoginTest(final String username, final String password, Context context) {
         HttpURLConnection urlConnection = null;
-        InputStream stream = null;
         try {
             URL url = new URL(SearchActivity.SERVER_URL + "LoginUser.po");
             urlConnection = (HttpURLConnection) url.openConnection();
@@ -123,19 +122,11 @@ public final class HTTPUtils {
 
             urlConnection.connect();
             Log.d(TAG, "Code:  " + Integer.toString(urlConnection.getResponseCode()));
+            return urlConnection.getResponseCode();
         } catch (IOException e) {
             Log.d(TAG, "Error:", e);
-            if (urlConnection != null) {
-                try {
-                    Log.d(TAG, "Code:  " + Integer.toString(urlConnection.getResponseCode()));
-                } catch (IOException e1) {
-                    Log.d(TAG, "Error:", e1);
-                }
-            }
-            return false;
+            return -1;
         }
-
-        return true;
     }
 
     public static String checkLoggedIn() {

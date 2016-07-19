@@ -45,6 +45,7 @@ public class SearchActivity extends AppCompatActivity implements SearchFragment.
     public final static String SERVER_API_URL = SERVER_URL + "api/";
 
     public final static String USERNAME = "jibiki.fr.shishito.USERNAME";
+    public final static String VOLUME = "jibiki.fr.shishito.VOLUME";
 
     public final static int USERNAME_RESULT = 1;
 
@@ -58,24 +59,41 @@ public class SearchActivity extends AppCompatActivity implements SearchFragment.
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_search);
+        if (savedInstanceState == null) {
 
-        //searchView.setSubmitButtonEnabled(true);
-        ConnectivityManager connMgr = (ConnectivityManager)
-                getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
-        if (networkInfo != null && networkInfo.isConnected()) {
-            PersistentCookieStore pcs = new PersistentCookieStore(this);
-            CookieManager cm = new CookieManager(pcs, CookiePolicy.ACCEPT_ALL);
-            CookieHandler.setDefault(cm);
-            new InitVolumeTask().execute();
-            new CheckLoggedIn().execute();
-        } else {
-            Toast.makeText(getApplicationContext(), "No Network",
-                    Toast.LENGTH_SHORT).show();
+            //searchView.setSubmitButtonEnabled(true);
+            ConnectivityManager connMgr = (ConnectivityManager)
+                    getSystemService(Context.CONNECTIVITY_SERVICE);
+            NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
+            if (networkInfo != null && networkInfo.isConnected()) {
+                PersistentCookieStore pcs = new PersistentCookieStore(this);
+                CookieManager cm = new CookieManager(pcs, CookiePolicy.ACCEPT_ALL);
+                CookieHandler.setDefault(cm);
+                new InitVolumeTask().execute();
+                new CheckLoggedIn().execute();
+            } else {
+                Toast.makeText(getApplicationContext(), "No Network",
+                        Toast.LENGTH_SHORT).show();
+            }
+
+            handleIntent(getIntent());
         }
+    }
 
+    @Override
+    protected void onSaveInstanceState(Bundle savedInstanceState) {
+        savedInstanceState.putString(USERNAME, username);
+        savedInstanceState.putSerializable(VOLUME, volume);
 
-        handleIntent(getIntent());
+        super.onSaveInstanceState(savedInstanceState);
+    }
+
+    @Override
+    public void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+
+        username = savedInstanceState.getString(USERNAME);
+        volume = (Volume)savedInstanceState.getSerializable(VOLUME);
 
     }
 
@@ -94,12 +112,12 @@ public class SearchActivity extends AppCompatActivity implements SearchFragment.
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
-        switch(item.getItemId()) {
+        switch (item.getItemId()) {
 
 //            case R.id.action_settings:
 //                return true;
             case R.id.action_sign_in:
-                if(TextUtils.isEmpty(username)) {
+                if (TextUtils.isEmpty(username)) {
                     Intent intent = new Intent(this, LoginActivity.class);
                     this.startActivityForResult(intent, USERNAME_RESULT);
                 }
@@ -138,7 +156,7 @@ public class SearchActivity extends AppCompatActivity implements SearchFragment.
             String query = intent.getStringExtra(SearchManager.QUERY);
             Fragment frag = getSupportFragmentManager().findFragmentById(R.id.fragment_container);
 
-            if (frag != null && frag instanceof  SearchFragment) {
+            if (frag != null && frag instanceof SearchFragment) {
                 SearchFragment sf = (SearchFragment) frag;
                 sf.search(query);
             } else {
@@ -207,7 +225,7 @@ public class SearchActivity extends AppCompatActivity implements SearchFragment.
         item.setVisible(false);
     }
 
-    public Volume getVolume(){
+    public Volume getVolume() {
         return this.volume;
     }
 
@@ -227,13 +245,13 @@ public class SearchActivity extends AppCompatActivity implements SearchFragment.
         getSupportFragmentManager().popBackStack();
         Fragment frag = getSupportFragmentManager().findFragmentByTag("display");
         if (frag != null && frag instanceof DisplayEntryFragment) {
-            DisplayEntryFragment def = (DisplayEntryFragment)frag;
+            DisplayEntryFragment def = (DisplayEntryFragment) frag;
             def.setListEntry(entry);
         }
 
         frag = getSupportFragmentManager().findFragmentByTag("search");
         if (frag != null && frag instanceof SearchFragment) {
-            SearchFragment sf = (SearchFragment)frag;
+            SearchFragment sf = (SearchFragment) frag;
             sf.updateEntry(entry);
         }
     }
