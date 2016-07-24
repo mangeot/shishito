@@ -19,7 +19,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceMedium"
-            android:text="Kanji"
+            android:text="Japonais (kanji/kana)"
             android:id="@+id/kanjiView" />
 
         <EditText
@@ -43,7 +43,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceMedium"
-            android:text="Romaji"
+            android:text="Rōmaji (hepburn)"
             android:id="@+id/romajiView" />
 
         <EditText
@@ -55,7 +55,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceMedium"
-            android:text="Catégorie gramaticale"
+            android:text="Catégorie grammaticale"
             android:id="@+id/gramView" />
 
         <EditText
@@ -67,7 +67,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceMedium"
-            android:text="Definition"
+            android:text="Traductions en français"
             android:id="@+id/textView" />
 
         <EditText
