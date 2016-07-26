@@ -10,6 +10,16 @@
     <color name="light_green">#ffffff</color>
     <string name="title_activity_login">Connexion</string>
     <string name="edit_menu_item">Edition</string>
+    <string name="save">Sauvegarde</string>
+    <string name="translation">"Traductions en français"</string>
+    <string name="romaji">"Rōmaji (hepburn)"</string>
+    <string name="hiragana">"Hiragana"</string>
+    <string name="kanji">"Japonais (kanji/kana)"</string>
+    <string name="example">"Exemples:"</string>
+
+
+
+
 
 
     <!-- Strings related to login -->

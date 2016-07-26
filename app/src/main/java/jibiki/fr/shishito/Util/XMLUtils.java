@@ -1,5 +1,6 @@
 package jibiki.fr.shishito.Util;
 
+import android.text.TextUtils;
 import android.util.Log;
 import android.util.Pair;
 import android.util.Xml;
@@ -20,7 +21,6 @@ import java.util.ArrayList;
 
 import java.util.Stack;
 
-import javax.xml.XMLConstants;
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -36,6 +36,7 @@ import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
 import jibiki.fr.shishito.Models.Example;
+import jibiki.fr.shishito.Models.GramBlock;
 import jibiki.fr.shishito.Models.ListEntry;
 import jibiki.fr.shishito.Models.Volume;
 
@@ -71,22 +72,6 @@ public final class XMLUtils {
         }
     }
 
-    public static ArrayList<Example> parseExamples(NodeList exList, XPath xPath, Volume volume) throws XPathExpressionException {
-        ArrayList<Example> examples = new ArrayList<Example>();
-        for (int i = 0; i < exList.getLength(); i++) {
-            Element element = (Element) exList.item(i);
-            String xpath = adjustXpath("cesselin-example-hiragana", volume);
-            Example example = new Example();
-            example.setHiragana(xPath.evaluate(xpath, element));
-            xpath = adjustXpath("cesselin-example-romaji", volume);
-            example.setRomanji(xPath.evaluate(xpath, element));
-            xpath = adjustXpath("cesselin-vedette-jpn-match", volume);
-            example.setRomanji(xPath.evaluate(xpath, element));
-        }
-
-        return examples;
-    }
-
     public static ListEntry parseEntryStream(InputStream stream, Volume volume) throws IOException, ParserConfigurationException, SAXException, XPathExpressionException {
         Document document = prepareDocumentFromStream(stream, volume);
         XPath xPath = getNewXPath();
@@ -113,10 +98,47 @@ public final class XMLUtils {
         entry.setRomanji(writing);
         xpath = adjustXpath("cdm-reading", volume);
         entry.setHiragana(xPath.evaluate(xpath, el));
-        xpath = adjustXpath("cdm-definition", volume);
-        entry.setDefinition(xPath.evaluate(xpath, el));
-        xpath = adjustXpath("cdm-pos", volume);
-        entry.setGram(xPath.evaluate(xpath, el));
+        xpath = adjustXpath("cdm-gram-block", volume);
+        String posPath = adjustXpath("cdm-pos", volume).split("\\|")[0].substring(xpath.length());
+        String sens = adjustXpath("cdm-sense", volume).substring(xpath.length());
+        String[] defs = adjustXpath("cdm-definition", volume).split("\\|");
+        defs[0] = defs[0].substring(xpath.length() + sens.length());
+        defs[1] = defs[1].substring(xpath.length() + sens.length());
+
+
+        NodeList gramBlocks = (NodeList) xPath.evaluate(xpath, el, XPathConstants.NODESET);
+        for (int i = 0; i < gramBlocks.getLength(); i++) {
+            Element block = (Element) gramBlocks.item(i);
+            GramBlock gb = new GramBlock();
+            gb.setGram(xPath.evaluate("." + posPath, block));
+            NodeList sensList = (NodeList) xPath.evaluate("." + sens, block, XPathConstants.NODESET);
+            for (int j = 0; j < sensList.getLength(); j++) {
+                Element sensEl = (Element) sensList.item(j);
+                String s = xPath.evaluate("." + defs[0], sensEl);
+                if (s == null) {
+                    s = "<font color=#ffff66>" + xPath.evaluate("." + defs[1], sensEl) + "</font>";
+                }
+                gb.addSens(s);
+            }
+            entry.addGramBlock(gb);
+        }
+
+        xpath = adjustXpath("cdm-example-block", volume);
+        String french = adjustXpath("cdm-example", volume).substring(xpath.length());
+        String hiragana = adjustXpath("cesselin-example-hiragana", volume).substring(xpath.length());
+        String romaji = adjustXpath("cesselin-example-romaji", volume).substring(xpath.length()).replace("/text()", "");
+
+        NodeList examples = (NodeList) xPath.evaluate(xpath, el, XPathConstants.NODESET);
+        for (int i = 0; i < examples.getLength(); i++) {
+            Element exEl = (Element) examples.item(i);
+            Example example = new Example();
+            example.setFrench(xPath.evaluate("." + french, exEl));
+            example.setHiragana(xPath.evaluate("." + hiragana, exEl));
+            Log.d(TAG, "TEST " + xPath.evaluate("." + romaji.replace("/text()", ""), exEl, XPathConstants.STRING));
+            example.setRomaji(xPath.evaluate("string(." + romaji + ")", exEl));
+            entry.addExample(example);
+        }
+
         xpath = adjustXpath("cdm-entry-id", volume);
         entry.setEntryId(xPath.evaluate(xpath, el));
         xpath = testXpath("/volume/d:contribution/@d:contribid", volume);
@@ -225,7 +247,7 @@ public final class XMLUtils {
                 prefix = "";
             }
             String newTagname = theOldNewTagMap.get(oldTagname);
-            Log.d(TAG, "Old: " + oldTagname + " New: " + newTagname);
+//            Log.d(TAG, "Old: " + oldTagname + " New: " + newTagname);
             if (newTagname == null) {
                 newTagname = "a" + numtags++;
                 theOldNewTagMap.put(oldTagname, newTagname);
@@ -255,7 +277,7 @@ public final class XMLUtils {
                 prefix = "";
             }
             String newTagname = theTagMap.get(oldTagname);
-            Log.d(TAG, "old:" + oldTagname + " new:" + newTagname + " pref:" + prefix);
+//            Log.d(TAG, "old:" + oldTagname + " new:" + newTagname + " pref:" + prefix);
             if (newTagname != null) {
                 newXpathString = newXpathString.replaceAll("/" + prefix + oldTagname + "$", "/" + prefix + newTagname);
                 newXpathString = newXpathString.replaceAll("/" + prefix + oldTagname + "/", "/" + prefix + newTagname + "/");
@@ -299,7 +321,7 @@ public final class XMLUtils {
     }
 
     private static String getXpathForNode(Node theNode, Volume aVolume) {
-        String resXpath = "/"+getFullXPath(theNode);
+        String resXpath = "/" + getFullXPath(theNode);
         resXpath = replaceXpathstring(resXpath, aVolume.getNewOldTagMap());
         resXpath = resXpath.replaceFirst("/d:entry-list/d:entry\\[[0-9]+\\]", "");
         //resXpath += "/text()";
@@ -406,7 +428,7 @@ public final class XMLUtils {
     public static String updateEntryXmlFromStream(InputStream stream, ArrayList<Pair<String, String>> updates, Volume volume) throws ParserConfigurationException, SAXException, IOException, XPathExpressionException {
         Document document = prepareDocumentFromStream(stream, volume);
         XPath xPath = getNewXPath();
-        for (Pair<String, String> p: updates) {
+        for (Pair<String, String> p : updates) {
             String cdmElement = p.first;
             String update = p.second;
             String xpath = adjustXpath(cdmElement, volume);
@@ -420,10 +442,8 @@ public final class XMLUtils {
         return string;
     }
 
-    private static String getStringFromDocument(Document doc)
-    {
-        try
-        {
+    private static String getStringFromDocument(Document doc) {
+        try {
             DOMSource domSource = new DOMSource(doc);
             StringWriter writer = new StringWriter();
             StreamResult result = new StreamResult(writer);
@@ -431,9 +451,7 @@ public final class XMLUtils {
             Transformer transformer = tf.newTransformer();
             transformer.transform(domSource, result);
             return writer.toString();
-        }
-        catch(TransformerException ex)
-        {
+        } catch (TransformerException ex) {
             Log.e(TAG, "Error converting document to string: " + ex.getMessage());
             return null;
         }

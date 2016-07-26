@@ -1,12 +1,16 @@
 package jibiki.fr.shishito.Models;
 
+import java.io.Serializable;
+
 /**
  * Created by tibo on 06/01/16.
  */
-public class Example {
+public class Example implements Serializable{
     private String kanji;
     private String hiragana;
-    private String romanji;
+    private String romaji;
+
+    private String french;
 
     public Example(){}
 
@@ -26,11 +30,19 @@ public class Example {
         this.hiragana = hiragana;
     }
 
-    public String getRomanji() {
-        return romanji;
+    public String getRomaji() {
+        return romaji;
     }
 
-    public void setRomanji(String romanji) {
-        this.romanji = romanji;
+    public void setRomaji(String romaji) {
+        this.romaji = romaji;
+    }
+
+    public String getFrench() {
+        return french;
+    }
+
+    public void setFrench(String french) {
+        this.french = french;
     }
 }

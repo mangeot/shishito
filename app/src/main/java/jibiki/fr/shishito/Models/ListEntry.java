@@ -11,8 +11,6 @@ public class ListEntry implements Serializable {
     private String kanji;
     private String hiragana;
     private String romanji;
-    private String gram;
-    private String definition;
 
     private String entryId;
 
@@ -20,7 +18,11 @@ public class ListEntry implements Serializable {
 
     private ArrayList<Example> examples;
 
+    private ArrayList<GramBlock> gramBlocks;
+
     public ListEntry() {
+        gramBlocks = new ArrayList<>();
+        examples = new ArrayList<>();
     }
 
     public String getKanji() {
@@ -47,30 +49,12 @@ public class ListEntry implements Serializable {
         this.romanji = romanji;
     }
 
-
-    public String getDefinition() {
-        return definition;
-    }
-
-    public void setDefinition(String definition) {
-        this.definition = definition;
-    }
-
-
-    public String getGram() {
-        return gram;
-    }
-
-    public void setGram(String gram) {
-        this.gram = gram;
-    }
-
     public ArrayList<Example> getExamples() {
         return examples;
     }
 
-    public void setExamples(ArrayList<Example> examples) {
-        this.examples = examples;
+    public void addExample(Example example) {
+        this.examples.add(example);
     }
 
     public String getEntryId() {
@@ -89,5 +73,11 @@ public class ListEntry implements Serializable {
         this.contribId = contribId;
     }
 
+    public ArrayList<GramBlock> getGramBlocks() {
+        return gramBlocks;
+    }
 
+    public void addGramBlock(GramBlock gb) {
+        gramBlocks.add(gb);
+    }
 }

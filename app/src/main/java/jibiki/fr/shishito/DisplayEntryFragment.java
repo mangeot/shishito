@@ -12,16 +12,18 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import java.util.List;
 
 import jibiki.fr.shishito.Models.ListEntry;
+import jibiki.fr.shishito.Util.ViewUtil;
 
 public class DisplayEntryFragment extends Fragment {
 
 
-    private static final String TAG = "DisplayEntryFragment";
+    private static final String TAG = DisplayEntryFragment.class.getSimpleName();
     private static final String ENTRY = "entry";
     private static final int EDIT_MENU_ID = 10;
 
@@ -30,8 +32,8 @@ public class DisplayEntryFragment extends Fragment {
     private OnEditClickListener mListener;
 
     TextView vedette;
-    TextView definition;
-    TextView gram;
+    View v;
+
 
     public DisplayEntryFragment() {
     }
@@ -63,18 +65,17 @@ public class DisplayEntryFragment extends Fragment {
                 "   [<font color=#cc0000>" + entry.getHiragana() + "</font>]   " +
                 "   [<font color=#cc0000>" + entry.getRomanji() + "</font>]";
         vedette.setText(Html.fromHtml(vText));
-        definition.setText(entry.getDefinition());
-        gram.setText(entry.getGram());
+        ViewUtil.addGramBlocksToView(v, entry.getGramBlocks(), getContext());
+        ViewUtil.addExamplesToView(v, entry.getExamples(), getContext());
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                       Bundle savedInstanceState) {
 
-        View v = inflater.inflate(R.layout.activity_display_entry, container, false);
+        View relative = inflater.inflate(R.layout.activity_display_entry, container, false);
+        v = relative.findViewById(R.id.linearlayout);
         vedette = (TextView) v.findViewById(R.id.vedette);
-        definition = (TextView) v.findViewById(R.id.definition);
-        gram = (TextView) v.findViewById(R.id.gram);
         updateText();
 
 
@@ -84,13 +85,13 @@ public class DisplayEntryFragment extends Fragment {
             Example example = entry.getExamples().get(i);
             examples.add(entry.getExamples().get(i).getKanji() +
                     "   [<font color=#cc0000>" + entry.getExamples().get(i).getHiragana() + "</font>]   " +
-                    "   [<font color=#cc0000>" + entry.getExamples().get(i).getRomanji() + "</font>]");
+                    "   [<font color=#cc0000>" + entry.getExamples().get(i).getRomaji() + "</font>]");
         }
         final ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,
                 android.R.layout.simple_list_item_1, examples);
         listView.setAdapter(adapter);*/
 
-        return v;
+        return relative;
     }
 
 
@@ -107,7 +108,6 @@ public class DisplayEntryFragment extends Fragment {
 
     @Override
     public void onPrepareOptionsMenu(Menu menu) {
-        Log.d(TAG, "Prepare!!");
         MenuItem login = menu.findItem(R.id.action_sign_in);
         if(!login.getTitle().equals(getString(R.string.action_sign_in_short)) && menu.findItem(EDIT_MENU_ID) == null) {
             MenuItem item = menu.add(Menu.NONE, EDIT_MENU_ID, Menu.NONE, R.string.edit_menu_item);
