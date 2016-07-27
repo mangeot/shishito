@@ -10,9 +10,11 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.w3c.dom.Text;
 import org.xml.sax.SAXException;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
+import org.xmlpull.v1.XmlPullParserFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -76,6 +78,23 @@ public final class XMLUtils {
         Document document = prepareDocumentFromStream(stream, volume);
         XPath xPath = getNewXPath();
         return parseListEntry(xPath, document, volume);
+    }
+
+    private static String parseSens(Element ex) {
+        Node node = ex.getFirstChild();
+        //If first child in english then no french, add color
+        if (node instanceof Element && ((Element) node).getTagName().equals("en")) {
+            return "<font color=#00e600>" + node.getTextContent() + "</font>";
+        }
+        StringBuilder content = new StringBuilder();
+        while (node.getNextSibling() != null) {
+            if (node instanceof Text) {
+                content.append(node.getTextContent());
+            } else if (node instanceof Element) {
+
+            }
+        }
+        return null;
     }
 
     private static ListEntry parseListEntry(XPath xPath, Node el, Volume volume) throws XPathExpressionException {
@@ -148,16 +167,17 @@ public final class XMLUtils {
         }
 
         xpath = adjustXpath("cdm-example-block", volume);
-        String french = adjustXpath("cdm-example", volume).substring(xpath.length());
+        String french = adjustXpath("cdm-example-fra", volume).substring(xpath.length());
+        String kanji = adjustXpath("cdm-example-jpn", volume).substring(xpath.length());
         String hiragana = adjustXpath("cesselin-example-hiragana", volume).substring(xpath.length());
         String romaji = adjustXpath("cesselin-example-romaji", volume).substring(xpath.length()).replace("/text()", "");
+        french = "." + french.replace("/text()","");
 
         NodeList examples = (NodeList) xPath.evaluate(xpath, el, XPathConstants.NODESET);
         for (int i = 0; i < examples.getLength(); i++) {
             Element exEl = (Element) examples.item(i);
             Example example = new Example();
-            //          example.setFrench(xPath.evaluate("." + french, exEl));
-            french = "." + french.replace("/text()","");
+            Log.d(TAG, "french xpath: " + french);
             Object result = xPath.evaluate(french, exEl, XPathConstants.NODESET);
             NodeList frenchNodes = (NodeList) result;
             Node frenchNode = frenchNodes.item(0);
@@ -166,13 +186,16 @@ public final class XMLUtils {
             Log.d(TAG, "French pb tag: " + "<"+volume.getOldNewTagMap().get("pb")+">");
             frenchResult = frenchResult.replaceAll("<"+volume.getOldNewTagMap().get("pb")+">","<font color=#ffff00>");
             frenchResult = frenchResult.replaceAll("</"+volume.getOldNewTagMap().get("pb")+">","</font>");
+            // problème des balises font enchâssées. Celle qui est au milieu n'est pas affichée.
             // frenchResult = "<font color=#002395>" + frenchResult + "</font>";
             Log.d(TAG, "Example French XML end:" + frenchResult);
             example.setFrench(frenchResult);
 
+            example.setKanji("<font color=#BC002D>" + xPath.evaluate("." + kanji, exEl) + "</font>");
             example.setHiragana("<font color=#BC002D>" + xPath.evaluate("." + hiragana, exEl) + "</font>");
             example.setRomaji("<font color=#D45455>" + xPath.evaluate("string(." + romaji + ")", exEl)+ "</font>");
             entry.addExample(example);
+            Log.d(TAG, "KANJI: " + example.getKanji());
         }
 
         xpath = adjustXpath("cdm-entry-id", volume);
@@ -228,7 +251,9 @@ public final class XMLUtils {
     }
 
     public static Volume createVolume(InputStream stream) throws XmlPullParserException, IOException {
-        XmlPullParser parser = Xml.newPullParser();
+        XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
+        factory.setNamespaceAware(true);
+        XmlPullParser parser = factory.newPullParser();
         parser.setInput(stream, "UTF-8");
         Volume volume = new Volume();
 
@@ -247,9 +272,14 @@ public final class XMLUtils {
                     skip(parser);
                 } else if (name.equals(("cdm-elements"))) {
                     while (parser.next() != XmlPullParser.END_TAG) {
-                        String xPath = "";
+                        String xPath;
                         if ((xPath = parser.getAttributeValue(null, "xpath")) != null) {
-                            volume.getElements().put(parser.getName(), xPath);
+                            String lang;
+                            if (parser.getName().equals("cdm-example") && (lang = parser.getAttributeValue(null, "lang")) != null) {
+                                volume.getElements().put(parser.getName() + "-" + lang, xPath);
+                            } else {
+                                volume.getElements().put(parser.getName(), xPath);
+                            }
                             parser.next();
                         }
                     }

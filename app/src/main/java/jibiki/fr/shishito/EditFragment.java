@@ -46,7 +46,12 @@ public class EditFragment extends Fragment {
     private static final int HIRAGANA = KANJI + 1;
     private static final int ROMAJI_DISPLAY = HIRAGANA + 1;
     private static final int ROMAJI_SEARCH = ROMAJI_DISPLAY + 1;
-    
+    private static final int SENS = 500;
+    private static final int EXAMPLE_HIRAGANA = 1000;
+    private static final int EXAMPLE_ROMAJI = 1500;
+    private static final int EXAMPLE_FRENCH = 2000;
+
+
     private ListEntry entry;
     private Button saveButton;
 
@@ -126,11 +131,13 @@ public class EditFragment extends Fragment {
         ll.addView(titleView);
     }
 
-    private void addEditView(String content, LinearLayout ll, int num, String cdm) {
+    private void addEditView(String content, LinearLayout ll, TextWatcher tw, int id) {
         LinearLayout.LayoutParams editParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         EditText et = new EditText(getContext());
         et.setLayoutParams(editParams);
         et.setText(content);
+        et.setId(id);
+        et.addTextChangedListener(tw);
         ll.addView(et);
     }
 
@@ -161,23 +168,28 @@ public class EditFragment extends Fragment {
         addFieldVerif(ll, entry.isVerified(), entry.getRomajiDisplay(), getString(R.string.romaji), tw, ROMAJI_DISPLAY);
         addFieldVerif(ll, entry.isVerified(), entry.getRomajiSearch(), getString(R.string.romaji_search), tw, ROMAJI_SEARCH);
 
+        int cnt = 1;
         for (GramBlock gram: entry.getGramBlocks()) {
             addTitleView("[" + gram.getGram() + "]", ll);
             int i = 1;
             for (String sense: gram.getSens()) {
                 addTitleView("Sens " + i + ":", ll);
-                addEditView(sense, ll, i, "cdm-definition");
+                addEditView(sense, ll, tw, SENS + cnt);
                 i++;
+                cnt++;
             }
         }
 
-        int i = 1;
+        cnt = 1;
         for (Example ex : entry.getExamples()) {
-            addTitleView(getString(R.string.editexample, i), ll);
-            addEditView(ex.getHiragana(), ll, i, "cesselin-example-hiragana");
-            addEditView(ex.getRomaji(), ll, i, "cesselin-example-romaji");
-            addEditView(ex.getFrench(), ll, i, "cdm-example");
-            i++;
+            addTitleView(getString(R.string.edit_example, cnt), ll);
+            addTitleView(getString(R.string.edit_example_hiragana), ll);
+            addEditView(ex.getHiragana(), ll, tw, EXAMPLE_HIRAGANA + cnt);
+            addTitleView(getString(R.string.edit_example_romaji), ll);
+            addEditView(ex.getRomaji(), ll, tw, EXAMPLE_ROMAJI + cnt);
+            addTitleView(getString(R.string.edit_example_french), ll);
+            addEditView(ex.getFrench(), ll, tw, EXAMPLE_FRENCH + cnt);
+            cnt++;
         }
 
         saveButton = (Button) v.findViewById(R.id.button);
@@ -186,13 +198,27 @@ public class EditFragment extends Fragment {
                 ArrayList<Pair<String, String>> xpaths = new ArrayList<>(4);
                 saveButton.setEnabled(false);
                 if (!entry.isVerified()) {
-                    checkAddPairToArrayList(xpaths, entry.getKanji(), "cdm-headword", KANJI, v);
-                    checkAddPairToArrayList(xpaths, entry.getHiragana(), "cdm-reading", HIRAGANA, v);
-                    checkAddPairToArrayList(xpaths, entry.getRomajiDisplay(), "cdm-writing", ROMAJI_DISPLAY, v);
-                    checkAddPairToArrayList(xpaths, entry.getRomajiSearch(), "cdm-writing", ROMAJI_SEARCH, v);
+                    checkAddPairToArrayList(xpaths, entry.getKanji(), "cdm-headword", KANJI, v, 0);
+                    checkAddPairToArrayList(xpaths, entry.getHiragana(), "cdm-reading", HIRAGANA, v, 0);
+                    checkAddPairToArrayList(xpaths, entry.getRomajiDisplay(), "cdm-writing", ROMAJI_DISPLAY, v, 0);
+                    checkAddPairToArrayList(xpaths, entry.getRomajiSearch(), "cdm-writing", ROMAJI_SEARCH, v, 0);
                 }
-//                checkAddPairToArrayList(xpaths, entry.getDefinition(), "cdm-definition", R.id.definition, v);
-//                checkAddPairToArrayList(xpaths, entry.getGram(), "cdm-pos", R.id.gram, v);
+
+                int i = 1;
+                for (GramBlock gramBlock : entry.getGramBlocks()) {
+                    for (String sense: gramBlock.getSens()) {
+                        checkAddPairToArrayList(xpaths, sense, "cdm-definition", SENS + i, v, i);
+                        i++;
+                    }
+                }
+
+                i = 1;
+                for (Example ex : entry.getExamples()) {
+                    checkAddPairToArrayList(xpaths, ex.getHiragana(), "cesselin-example-hiragana", EXAMPLE_HIRAGANA + i, v, i);
+                    checkAddPairToArrayList(xpaths, ex.getRomaji(), "cesselin-example-romaji", EXAMPLE_ROMAJI + i, v, i);
+                    checkAddPairToArrayList(xpaths, ex.getFrench(), "cdm-example", EXAMPLE_FRENCH + i, v, i);
+                    i++;
+                }
 
 
                 if (xpaths.size() == 0) {
@@ -214,26 +240,31 @@ public class EditFragment extends Fragment {
     private void doNextModif() {
         Pair<String, String> p = this.modifWaitList.get(0);
         this.modifWaitList.remove(0);
-        String cdmElement;
+        String xpath;
         String update;
-        cdmElement = p.first;
+        xpath = p.first;
         update = p.second;
-        String xpath = ((SearchActivity) getActivity()).getVolume().getElements().get(cdmElement);
-        String cdmVolumePath = ((SearchActivity) getActivity()).getVolume().getElements().get("cdm-volume");
-
-        if (xpath.contains(cdmVolumePath)) {
-            xpath = xpath.replace(cdmVolumePath, cdmVolumePath + "/d:contribution/d:data");
-        }
 
         String[] params = {entry.getContribId(), update, xpath};
         new UpdateContribution().execute(params);
     }
 
-    private void checkAddPairToArrayList(ArrayList<Pair<String, String>> a, String value, String tag, int id, View v) {
+    private void checkAddPairToArrayList(ArrayList<Pair<String, String>> a, String value, String cdmElement, int id, View v, int num) {
 
         if (!value.equals(((EditText) v.findViewById(id)).getText().toString())) {
+            Log.d(TAG, value);
+            Log.d(TAG, ((EditText) v.findViewById(id)).getText().toString());
             String update = ((EditText) v.findViewById(id)).getText().toString();
-            a.add(new Pair<>(tag, update));
+            String xpath = ((SearchActivity) getActivity()).getVolume().getElements().get(cdmElement);
+            String cdmVolumePath = ((SearchActivity) getActivity()).getVolume().getElements().get("cdm-volume");
+
+            if (xpath.contains(cdmVolumePath)) {
+                xpath = xpath.replace(cdmVolumePath, cdmVolumePath + "/d:contribution/d:data");
+            }
+            if (num > 0) {
+                xpath = "(" + xpath + ")[" + num + "]";
+            }
+            a.add(new Pair<>(xpath, update));
         }
     }
 

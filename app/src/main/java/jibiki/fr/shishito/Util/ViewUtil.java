@@ -34,7 +34,9 @@ public final class ViewUtil {
             gram.setId(i);
             TextViewCompat.setTextAppearance(gram, android.R.style.TextAppearance_Small);
             gram.setLayoutParams(params);
-            gram.setText("[" + gb.getGram() + "]");
+            if (gb.getGram() != null) {
+                gram.setText(context.getString(R.string.in_bracket, gb.getGram()));
+            }
             ((LinearLayout) v).addView(gram);
             for (int j = 0; j < gb.getSens().size(); j++) {
                 TextView senseView = new TextView(context);
@@ -59,7 +61,7 @@ public final class ViewUtil {
         for (Example ex: examples) {
             TextView exView = new TextView(context);
             TextViewCompat.setTextAppearance(exView, android.R.style.TextAppearance_Medium);
-            String text = context.getString(R.string.example_content, ex.getHiragana(), ex.getRomaji(), ex.getFrench());
+            String text = context.getString(R.string.example_content, ex.getKanji(), ex.getHiragana(), ex.getRomaji(), ex.getFrench());
             exView.setText(Html.fromHtml(text));
             ((LinearLayout) v).addView(exView);
         }

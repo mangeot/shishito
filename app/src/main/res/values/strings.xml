@@ -18,8 +18,13 @@
     <string name="kanji">"Japonais (kanji/kana)"</string>
     <string name="example">"Exemples:"</string>
     <string name="verif">"Entrée non vérifiée"</string>
-    <string name="editexample">"Exemple %1$d:"</string>
-    <string name="example_content">"\u25CF [<![CDATA[<font color=#cc0000> %1$s </font>] [<font color=#0066ff> %2$s </font>] %3$s]]>"</string>
+    <string name="edit_example">"Exemple %1$d:"</string>
+    <string name="edit_example_hiragana">"Exemple Hiragana:"</string>
+    <string name="edit_example_romaji">"Exemple Romaji:"</string>
+    <string name="edit_example_french">"Exemple Français:"</string>
+    <string name="in_bracket">"[%1$s]"</string>
+
+    <string name="example_content">"\u25CF [<![CDATA[<font color=#cc0000> %1$s </font>] [<font color=#cc0000> %2$s </font>] [<font color=#0066ff> %3$s </font>] %4$s]]>"</string>
     <string name="empty_field">"(vide)"</string>
 
 
