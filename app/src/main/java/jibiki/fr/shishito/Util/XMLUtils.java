@@ -79,7 +79,16 @@ public final class XMLUtils {
     }
 
     private static ListEntry parseListEntry(XPath xPath, Node el, Volume volume) throws XPathExpressionException {
+/*
+    Couleurs sur jibiki.fr :
+    romaji : #D45455
+    jpn : #BC002D
+    français : #002395
+    problème sur le japonais (fond orange) : #ffa500
+    anglais (fond vert) : #BFFF00
+    problème sur le français (fond jaune) : #ffff00
 
+ */
         String xpath = "";
         ListEntry entry = new ListEntry();
         xpath = adjustXpath("cdm-headword", volume);
@@ -111,11 +120,29 @@ public final class XMLUtils {
             NodeList sensList = (NodeList) xPath.evaluate("." + sens, block, XPathConstants.NODESET);
             for (int j = 0; j < sensList.getLength(); j++) {
                 Element sensEl = (Element) sensList.item(j);
+/*
                 String s = xPath.evaluate("string(." + defs[0].replace("/text()", "") + ")", sensEl);
                 if (TextUtils.isEmpty(s)) {
                     s = "<font color=#00e600>" + xPath.evaluate("." + defs[1], sensEl) + "</font>";
                 }
-                gb.addSens(s);
+*/
+                String defxpath = "." + defs[0].replace("/text()","");
+                //                Log.d(TAG, "def text xpath:" + defxpath);
+                Object result = xPath.evaluate(defxpath, sensEl, XPathConstants.NODESET);
+            NodeList defNodes = (NodeList) result;
+            Node defNode = defNodes.item(0);
+            String defResult = getStringFromNode(defNode);
+                //               Log.d(TAG, "Def French XML:" + defResult);
+                //               Log.d(TAG, "en tag:" + volume.getOldNewTagMap().get("en"));
+                if (defResult.contains("<"+volume.getOldNewTagMap().get("en")+">")) {
+                    defResult = defResult.replaceAll("<"+volume.getOldNewTagMap().get("en")+">","<font color=#BFFF00>");
+                    defResult = defResult.replaceAll("</"+volume.getOldNewTagMap().get("en")+">","</font>");
+                }
+                else {
+                    defResult = "<font color=#002395>" + defResult + "</font>";
+                }
+                //               Log.d(TAG, "Def French XML end:" + defResult);
+                gb.addSens(defResult);
             }
             entry.addGramBlock(gb);
         }
@@ -129,9 +156,22 @@ public final class XMLUtils {
         for (int i = 0; i < examples.getLength(); i++) {
             Element exEl = (Element) examples.item(i);
             Example example = new Example();
-            example.setFrench(xPath.evaluate("." + french, exEl));
-            example.setHiragana(xPath.evaluate("." + hiragana, exEl));
-            example.setRomaji(xPath.evaluate("string(." + romaji + ")", exEl));
+            //          example.setFrench(xPath.evaluate("." + french, exEl));
+            french = "." + french.replace("/text()","");
+            Object result = xPath.evaluate(french, exEl, XPathConstants.NODESET);
+            NodeList frenchNodes = (NodeList) result;
+            Node frenchNode = frenchNodes.item(0);
+            String frenchResult = getStringFromNode(frenchNode);
+            Log.d(TAG, "Example French XML:" + frenchResult);
+            Log.d(TAG, "French pb tag: " + "<"+volume.getOldNewTagMap().get("pb")+">");
+            frenchResult = frenchResult.replaceAll("<"+volume.getOldNewTagMap().get("pb")+">","<font color=#ffff00>");
+            frenchResult = frenchResult.replaceAll("</"+volume.getOldNewTagMap().get("pb")+">","</font>");
+            // frenchResult = "<font color=#002395>" + frenchResult + "</font>";
+            Log.d(TAG, "Example French XML end:" + frenchResult);
+            example.setFrench(frenchResult);
+
+            example.setHiragana("<font color=#BC002D>" + xPath.evaluate("." + hiragana, exEl) + "</font>");
+            example.setRomaji("<font color=#D45455>" + xPath.evaluate("string(." + romaji + ")", exEl)+ "</font>");
             entry.addExample(example);
         }
 
@@ -414,13 +454,14 @@ public final class XMLUtils {
         return buffer.toString();
     }
 
-    private static String getStringFromDocument(Document doc) {
+    private static String getStringFromNode(Node theNode) {
         try {
-            DOMSource domSource = new DOMSource(doc);
+            DOMSource domSource = new DOMSource(theNode);
             StringWriter writer = new StringWriter();
             StreamResult result = new StreamResult(writer);
             TransformerFactory tf = TransformerFactory.newInstance();
             Transformer transformer = tf.newTransformer();
+            transformer.setOutputProperty(javax.xml.transform.OutputKeys.OMIT_XML_DECLARATION, "yes");
             transformer.transform(domSource, result);
             return writer.toString();
         } catch (TransformerException ex) {
