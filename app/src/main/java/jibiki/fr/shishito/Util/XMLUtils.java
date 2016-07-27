@@ -1,5 +1,6 @@
 package jibiki.fr.shishito.Util;
 
+import android.content.res.Resources;
 import android.text.TextUtils;
 import android.util.Log;
 import android.util.Pair;
@@ -41,6 +42,7 @@ import jibiki.fr.shishito.Models.Example;
 import jibiki.fr.shishito.Models.GramBlock;
 import jibiki.fr.shishito.Models.ListEntry;
 import jibiki.fr.shishito.Models.Volume;
+import jibiki.fr.shishito.R;
 
 /**
  * Created by tibo on 17/09/15.
@@ -53,6 +55,12 @@ public final class XMLUtils {
 
     protected static java.util.regex.Pattern regexXpath = java.util.regex.Pattern.compile("/([^\\/\\s\\[:]+:)?([^\\[\\/\\s:]+)", java.util.regex.Pattern.DOTALL);
     protected static java.util.regex.Pattern regexTags = java.util.regex.Pattern.compile("<([^\\/\\s\\\\?>:]+:)?([^\\/\\s\\?:>]+)", java.util.regex.Pattern.DOTALL);
+
+    private static final String enColor = "#00e600";
+    private static final String pbFraColor = "#ffff00";
+    private static final String pbJpnColor = "#ff9933";
+
+
 
     private XMLUtils() {
     }
@@ -80,22 +88,34 @@ public final class XMLUtils {
         return parseListEntry(xPath, document, volume);
     }
 
-    private static String parseSens(Element ex) {
+    private static String parseElement(Element ex, boolean lang, Volume volume) {
+        Log.d(TAG, ex.getNodeName());
         Node node = ex.getFirstChild();
+        Log.d(TAG, node.getNodeName());
+        Log.d(TAG, volume.getOldNewTagMap().get("en"));
         //If first child in english then no french, add color
-        if (node instanceof Element && ((Element) node).getTagName().equals("en")) {
-            return "<font color=#00e600>" + node.getTextContent() + "</font>";
+        if (node instanceof Element && ((Element) node).getTagName().equals(volume.getOldNewTagMap().get("en"))) {
+            return Resources.getSystem().getString(R.string.colored_string, enColor, node.getTextContent());
         }
         StringBuilder content = new StringBuilder();
         while (node.getNextSibling() != null) {
             if (node instanceof Text) {
                 content.append(node.getTextContent());
             } else if (node instanceof Element) {
-
+                if (((Element) node).getTagName().equals("pb")) {
+                    if (lang) {
+                        content.append(Resources.getSystem().getString(R.string.colored_string, pbFraColor, node.getTextContent()));
+                    } else {
+                        content.append(Resources.getSystem().getString(R.string.colored_string, pbJpnColor, node.getTextContent()));
+                    }
+                } else if(((Element) node).getTagName().equals("vr") || ((Element) node).getTagName().equals("vj")) {
+                    content.append(Resources.getSystem().getString(R.string.bold_string, node.getTextContent()));
+                }
             }
         }
-        return null;
+        return content.toString();
     }
+
 
     private static ListEntry parseListEntry(XPath xPath, Node el, Volume volume) throws XPathExpressionException {
 
@@ -130,10 +150,7 @@ public final class XMLUtils {
             NodeList sensList = (NodeList) xPath.evaluate("." + sens, block, XPathConstants.NODESET);
             for (int j = 0; j < sensList.getLength(); j++) {
                 Element sensEl = (Element) sensList.item(j);
-                String s = xPath.evaluate("string(." + defs[0].replace("/text()", "") + ")", sensEl);
-                if (TextUtils.isEmpty(s)) {
-                    s = "<font color=#00e600>" + xPath.evaluate("." + defs[1], sensEl) + "</font>";
-                }
+                String s = parseElement((Element)xPath.evaluate("." + defs[0].replace("/text()", ""), sensEl, XPathConstants.NODE), true, volume);
                 gb.addSens(s);
             }
             entry.addGramBlock(gb);
