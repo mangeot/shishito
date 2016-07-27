@@ -1,21 +1,15 @@
 package jibiki.fr.shishito;
 
 import android.content.Context;
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.text.Html;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.LinearLayout;
 import android.widget.TextView;
-
-import java.util.List;
 
 import jibiki.fr.shishito.Models.ListEntry;
 import jibiki.fr.shishito.Util.ViewUtil;
@@ -61,10 +55,8 @@ public class DisplayEntryFragment extends Fragment {
     }
 
     private void updateText(){
-        String vText = entry.getKanji() +
-                "   [<font color=#cc0000>" + entry.getHiragana() + "</font>]   " +
-                "   [<font color=#cc0000>" + entry.getRomanji() + "</font>]";
-        vedette.setText(Html.fromHtml(vText));
+        ViewUtil.addVedette(vedette, entry);
+        ViewUtil.addVerified(v, entry);
         ViewUtil.addGramBlocksToView(v, entry.getGramBlocks(), getContext());
         ViewUtil.addExamplesToView(v, entry.getExamples(), getContext());
     }

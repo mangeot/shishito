@@ -10,7 +10,8 @@ public class ListEntry implements Serializable {
 
     private String kanji;
     private String hiragana;
-    private String romanji;
+    private String romajiDisplay;
+    private String romajiSearch;
 
     private String entryId;
 
@@ -19,6 +20,8 @@ public class ListEntry implements Serializable {
     private ArrayList<Example> examples;
 
     private ArrayList<GramBlock> gramBlocks;
+
+    private boolean verified;
 
     public ListEntry() {
         gramBlocks = new ArrayList<>();
@@ -41,12 +44,12 @@ public class ListEntry implements Serializable {
         this.hiragana = hiragana;
     }
 
-    public String getRomanji() {
-        return romanji;
+    public String getRomajiDisplay() {
+        return romajiDisplay;
     }
 
-    public void setRomanji(String romanji) {
-        this.romanji = romanji;
+    public void setRomajiDisplay(String romajiDisplay) {
+        this.romajiDisplay = romajiDisplay;
     }
 
     public ArrayList<Example> getExamples() {
@@ -55,6 +58,14 @@ public class ListEntry implements Serializable {
 
     public void addExample(Example example) {
         this.examples.add(example);
+    }
+
+    public String getRomajiSearch() {
+        return romajiSearch;
+    }
+
+    public void setRomajiSearch(String romajiSearch) {
+        this.romajiSearch = romajiSearch;
     }
 
     public String getEntryId() {
@@ -79,5 +90,13 @@ public class ListEntry implements Serializable {
 
     public void addGramBlock(GramBlock gb) {
         gramBlocks.add(gb);
+    }
+
+    public boolean isVerified() {
+        return verified;
+    }
+
+    public void setVerified(boolean verified) {
+        this.verified = verified;
     }
 }

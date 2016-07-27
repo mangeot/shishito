@@ -86,25 +86,22 @@ public final class XMLUtils {
         entry.setKanji(xPath.evaluate(xpath, el));
         NodeList nodes = (NodeList) xPath.evaluate(xpath, el, XPathConstants.NODESET);
         Node hwjpn = (Node) nodes.item(0);
-        if (hwjpn != null) {
-            Log.d(TAG, "hwjpn xpath:" + getXpathForNode(hwjpn, volume));
-        }
+//        if (hwjpn != null) {
+//            Log.d(TAG, "hwjpn xpath:" + getXpathForNode(hwjpn, volume));
+//        }
         xpath = adjustXpath("cesselin-writing-display", volume);
-        String writing = xPath.evaluate(xpath, el);
-        if (writing == null || writing.equals("")) {
-            xpath = adjustXpath("cdm-writing", volume);
-            writing = xPath.evaluate(xpath, el);
-        }
-        entry.setRomanji(writing);
+        entry.setRomajiDisplay(xPath.evaluate(xpath, el));
+        xpath = adjustXpath("cdm-writing", volume);
+        entry.setRomajiSearch(xPath.evaluate(xpath, el));
         xpath = adjustXpath("cdm-reading", volume);
         entry.setHiragana(xPath.evaluate(xpath, el));
         xpath = adjustXpath("cdm-gram-block", volume);
         String posPath = adjustXpath("cdm-pos", volume).split("\\|")[0].substring(xpath.length());
         String sens = adjustXpath("cdm-sense", volume).substring(xpath.length());
         String[] defs = adjustXpath("cdm-definition", volume).split("\\|");
-        defs[0] = defs[0].substring(xpath.length() + sens.length());
-        defs[1] = defs[1].substring(xpath.length() + sens.length());
 
+        defs[0] = defs[0].substring(xpath.length() + sens.length());
+        defs[1] = defs[1].replace(" ", "").substring(xpath.length() + sens.length());
 
         NodeList gramBlocks = (NodeList) xPath.evaluate(xpath, el, XPathConstants.NODESET);
         for (int i = 0; i < gramBlocks.getLength(); i++) {
@@ -114,9 +111,9 @@ public final class XMLUtils {
             NodeList sensList = (NodeList) xPath.evaluate("." + sens, block, XPathConstants.NODESET);
             for (int j = 0; j < sensList.getLength(); j++) {
                 Element sensEl = (Element) sensList.item(j);
-                String s = xPath.evaluate("." + defs[0], sensEl);
-                if (s == null) {
-                    s = "<font color=#ffff66>" + xPath.evaluate("." + defs[1], sensEl) + "</font>";
+                String s = xPath.evaluate("string(." + defs[0].replace("/text()", "") + ")", sensEl);
+                if (TextUtils.isEmpty(s)) {
+                    s = "<font color=#00e600>" + xPath.evaluate("." + defs[1], sensEl) + "</font>";
                 }
                 gb.addSens(s);
             }
@@ -134,18 +131,16 @@ public final class XMLUtils {
             Example example = new Example();
             example.setFrench(xPath.evaluate("." + french, exEl));
             example.setHiragana(xPath.evaluate("." + hiragana, exEl));
-            Log.d(TAG, "TEST " + xPath.evaluate("." + romaji.replace("/text()", ""), exEl, XPathConstants.STRING));
             example.setRomaji(xPath.evaluate("string(." + romaji + ")", exEl));
             entry.addExample(example);
         }
 
         xpath = adjustXpath("cdm-entry-id", volume);
         entry.setEntryId(xPath.evaluate(xpath, el));
+        xpath = adjustXpath("cesselin-vedette-jpn-match", volume);
+        entry.setVerified(!TextUtils.isEmpty(xPath.evaluate(xpath, el)));
         xpath = testXpath("/volume/d:contribution/@d:contribid", volume);
         entry.setContribId(xPath.evaluate(xpath, el));
-        //xpath = adjustXpath("cdm-example", volume);
-        //NodeList exNodes = (NodeList) xPath.evaluate(xpath, show, XPathConstants.NODESET);
-        //entry.setExamples(parseExamples(exNodes, xPath, volume));
         return entry;
     }
 
@@ -154,8 +149,6 @@ public final class XMLUtils {
         IOUtils.copy(stream, writer);
         String string = writer.toString();
         string = replaceTags(string, volume.getOldNewTagMap(), volume.getNewOldTagMap());
-        //Log.d(TAG, "replacedString:"+string);
-
         org.xml.sax.InputSource source = new org.xml.sax.InputSource(new java.io.StringReader(string));
 
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
@@ -189,8 +182,6 @@ public final class XMLUtils {
             Element show = (Element) shows.item(i);
             ListEntry entry = parseListEntry(xPath, show, volume);
             entries.add(entry);
-            Log.d(TAG, entry.getRomanji());
-
         }
         java.util.Collections.sort(entries, myRomajiComparator);
         return entries;
@@ -210,7 +201,6 @@ public final class XMLUtils {
                 continue;
             } else {
                 String name = parser.getName();
-                //Log.d(TAG, parser.getName());
                 // Starts by looking for the entry tag
                 if (name.equals("authors")) {
                     volume.setAuthors(parser.getText());
@@ -220,7 +210,6 @@ public final class XMLUtils {
                         String xPath = "";
                         if ((xPath = parser.getAttributeValue(null, "xpath")) != null) {
                             volume.getElements().put(parser.getName(), xPath);
-                            Log.d(TAG, parser.getName() + ": " + volume.getElements().get(parser.getName()));
                             parser.next();
                         }
                     }
@@ -423,23 +412,6 @@ public final class XMLUtils {
         }
 // return buffer
         return buffer.toString();
-    }
-
-    public static String updateEntryXmlFromStream(InputStream stream, ArrayList<Pair<String, String>> updates, Volume volume) throws ParserConfigurationException, SAXException, IOException, XPathExpressionException {
-        Document document = prepareDocumentFromStream(stream, volume);
-        XPath xPath = getNewXPath();
-        for (Pair<String, String> p : updates) {
-            String cdmElement = p.first;
-            String update = p.second;
-            String xpath = adjustXpath(cdmElement, volume);
-            Node n = (Node) xPath.evaluate(xpath, document, XPathConstants.NODE);
-            n.setNodeValue(update);
-        }
-
-        String string = getStringFromDocument(document);
-        string = replaceTags(string, volume.getNewOldTagMap(), volume.getOldNewTagMap());
-        Log.d(TAG, string);
-        return string;
     }
 
     private static String getStringFromDocument(Document doc) {

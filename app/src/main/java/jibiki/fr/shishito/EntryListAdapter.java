@@ -2,15 +2,11 @@ package jibiki.fr.shishito;
 
 
 import android.content.Context;
-import android.support.v4.widget.TextViewCompat;
 import android.text.Html;
-import android.util.Log;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import java.util.ArrayList;
@@ -36,17 +32,16 @@ public class EntryListAdapter extends ArrayAdapter<ListEntry> {
         LayoutInflater inflater = (LayoutInflater) context
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View rowView = convertView;
+        ListEntry entry = values.get(position);
         if (rowView == null) {
             rowView = inflater.inflate(R.layout.word_list_element, parent, false);
         }
         TextView vedette = (TextView) rowView.findViewById(R.id.vedette);
-        String vText = values.get(position).getKanji() +
-                "   [<font color=#cc0000>" + values.get(position).getHiragana() + "</font>]   " +
-                "   [<font color=#cc0000>" + values.get(position).getRomanji() + "</font>]";
-        vedette.setText(Html.fromHtml(vText));
-        ArrayList<GramBlock> gramBlocks = values.get(position).getGramBlocks();
+        ViewUtil.addVedette(vedette, entry);
 
         if (rowView.findViewById(0) == null) {
+            ViewUtil.addVerified(rowView, entry);
+            ArrayList<GramBlock> gramBlocks = entry.getGramBlocks();
             ViewUtil.addGramBlocksToView(rowView, gramBlocks, context);
         }
         //romanji.setText(values.get(position).getRomaji());

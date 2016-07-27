@@ -1,9 +1,11 @@
 package jibiki.fr.shishito;
 
 import android.content.Context;
+import android.graphics.Typeface;
 import android.os.AsyncTask;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
+import android.support.v4.widget.TextViewCompat;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
@@ -15,6 +17,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import org.xml.sax.SAXException;
@@ -26,6 +30,8 @@ import java.util.ArrayList;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathExpressionException;
 
+import jibiki.fr.shishito.Models.Example;
+import jibiki.fr.shishito.Models.GramBlock;
 import jibiki.fr.shishito.Models.ListEntry;
 import jibiki.fr.shishito.Util.HTTPUtils;
 import jibiki.fr.shishito.Util.XMLUtils;
@@ -36,6 +42,11 @@ public class EditFragment extends Fragment {
 
     private static final String ENTRY = "entry";
 
+    private static final int KANJI = 100;
+    private static final int HIRAGANA = KANJI + 1;
+    private static final int ROMAJI_DISPLAY = HIRAGANA + 1;
+    private static final int ROMAJI_SEARCH = ROMAJI_DISPLAY + 1;
+    
     private ListEntry entry;
     private Button saveButton;
 
@@ -84,10 +95,50 @@ public class EditFragment extends Fragment {
         mListener = null;
     }
 
+    private void addFieldVerif(LinearLayout ll, boolean verif, String text, String title, TextWatcher tw, int id) {
+        LinearLayout.LayoutParams params1 = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        TextView tv;
+        if (verif) {
+            tv = new TextView(getContext());
+            TextViewCompat.setTextAppearance(tv, android.R.style.TextAppearance_Medium);
+            params1.setMargins(15, 0, 0, 0);
+            if (TextUtils.isEmpty(text)) {
+                text = getString(R.string.empty_field);
+                tv.setTypeface(null, Typeface.ITALIC);
+            }
+        } else {
+            tv = new EditText(getContext());
+            tv.addTextChangedListener(tw);
+        }
+        tv.setId(id);
+        tv.setText(text);
+        tv.setLayoutParams(params1);
+        addTitleView(title, ll);
+        ll.addView(tv);
+    }
+
+    private void addTitleView(String title, LinearLayout ll) {
+        LinearLayout.LayoutParams titleParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        TextView titleView = new TextView(getContext());
+        titleView.setText(title);
+        titleView.setLayoutParams(titleParams);
+        TextViewCompat.setTextAppearance(titleView, android.R.style.TextAppearance_Medium);
+        ll.addView(titleView);
+    }
+
+    private void addEditView(String content, LinearLayout ll, int num, String cdm) {
+        LinearLayout.LayoutParams editParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        EditText et = new EditText(getContext());
+        et.setLayoutParams(editParams);
+        et.setText(content);
+        ll.addView(et);
+    }
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         final View v = inflater.inflate(R.layout.activity_edit, container, false);
+        LinearLayout ll = (LinearLayout) v.findViewById(R.id.editlinear);
         TextWatcher tw = new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -104,35 +155,46 @@ public class EditFragment extends Fragment {
                 saveButton.setEnabled(true);
             }
         };
-        EditText editText = (EditText) v.findViewById(R.id.kanji);
-        editText.setText(entry.getKanji());
-        editText.addTextChangedListener(tw);
-        editText = (EditText) v.findViewById(R.id.hiragana);
-        editText.setText(entry.getHiragana());
-        editText.addTextChangedListener(tw);
-        editText = (EditText) v.findViewById(R.id.romaji);
-        editText.setText(entry.getRomanji());
-        editText.addTextChangedListener(tw);
-        editText = (EditText) v.findViewById(R.id.gram);
-        editText.setText(entry.getGram());
-        editText.addTextChangedListener(tw);
-        editText = (EditText) v.findViewById(R.id.definition);
-        editText.setText(entry.getDefinition());
-        editText.addTextChangedListener(tw);
+
+        addFieldVerif(ll, entry.isVerified(), entry.getKanji(), getString(R.string.kanji), tw, KANJI);
+        addFieldVerif(ll, entry.isVerified(), entry.getHiragana(), getString(R.string.hiragana), tw, HIRAGANA);
+        addFieldVerif(ll, entry.isVerified(), entry.getRomajiDisplay(), getString(R.string.romaji), tw, ROMAJI_DISPLAY);
+        addFieldVerif(ll, entry.isVerified(), entry.getRomajiSearch(), getString(R.string.romaji_search), tw, ROMAJI_SEARCH);
+
+        for (GramBlock gram: entry.getGramBlocks()) {
+            addTitleView("[" + gram.getGram() + "]", ll);
+            int i = 1;
+            for (String sense: gram.getSens()) {
+                addTitleView("Sens " + i + ":", ll);
+                addEditView(sense, ll, i, "cdm-definition");
+                i++;
+            }
+        }
+
+        int i = 1;
+        for (Example ex : entry.getExamples()) {
+            addTitleView(getString(R.string.editexample, i), ll);
+            addEditView(ex.getHiragana(), ll, i, "cesselin-example-hiragana");
+            addEditView(ex.getRomaji(), ll, i, "cesselin-example-romaji");
+            addEditView(ex.getFrench(), ll, i, "cdm-example");
+            i++;
+        }
 
         saveButton = (Button) v.findViewById(R.id.button);
         saveButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View but) {
                 ArrayList<Pair<String, String>> xpaths = new ArrayList<>(4);
                 saveButton.setEnabled(false);
-                checkAddPairToArrayList(xpaths, entry.getKanji(), "cdm-headword", R.id.kanji, v);
-                checkAddPairToArrayList(xpaths, entry.getHiragana(), "cdm-reading", R.id.hiragana, v);
-                checkAddPairToArrayList(xpaths, entry.getRomanji(), "cdm-writing", R.id.romaji, v);
-                checkAddPairToArrayList(xpaths, entry.getDefinition(), "cdm-definition", R.id.definition, v);
-                checkAddPairToArrayList(xpaths, entry.getGram(), "cdm-pos", R.id.gram, v);
+                if (!entry.isVerified()) {
+                    checkAddPairToArrayList(xpaths, entry.getKanji(), "cdm-headword", KANJI, v);
+                    checkAddPairToArrayList(xpaths, entry.getHiragana(), "cdm-reading", HIRAGANA, v);
+                    checkAddPairToArrayList(xpaths, entry.getRomajiDisplay(), "cdm-writing", ROMAJI_DISPLAY, v);
+                    checkAddPairToArrayList(xpaths, entry.getRomajiSearch(), "cdm-writing", ROMAJI_SEARCH, v);
+                }
+//                checkAddPairToArrayList(xpaths, entry.getDefinition(), "cdm-definition", R.id.definition, v);
+//                checkAddPairToArrayList(xpaths, entry.getGram(), "cdm-pos", R.id.gram, v);
 
 
-                Log.d(TAG, "XPATHS SIZE: " + xpaths.size());
                 if (xpaths.size() == 0) {
                     makeToast("Pas de changement détecté.");
                 } else{ //if (xpaths.size() == 1) {
@@ -168,10 +230,10 @@ public class EditFragment extends Fragment {
     }
 
     private void checkAddPairToArrayList(ArrayList<Pair<String, String>> a, String value, String tag, int id, View v) {
+
         if (!value.equals(((EditText) v.findViewById(id)).getText().toString())) {
-            String cdmElement = tag;
             String update = ((EditText) v.findViewById(id)).getText().toString();
-            a.add(new Pair<>(cdmElement, update));
+            a.add(new Pair<>(tag, update));
         }
     }
 
@@ -189,7 +251,6 @@ public class EditFragment extends Fragment {
         if (stream != null) {
             try {
                 entry = XMLUtils.parseEntryStream(stream, ((SearchActivity) getActivity()).getVolume());
-                Log.d(TAG, "ENTRY IS: " + entry.getDefinition());
             } catch (IOException | ParserConfigurationException | SAXException | XPathExpressionException e) {
                 Log.e(TAG, "Error parsing entry stream: " + e.getMessage());
             }

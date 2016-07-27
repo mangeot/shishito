@@ -3,6 +3,7 @@ package jibiki.fr.shishito.Util;
 import android.content.Context;
 import android.support.v4.widget.TextViewCompat;
 import android.text.Html;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,6 +14,7 @@ import java.util.ArrayList;
 
 import jibiki.fr.shishito.Models.Example;
 import jibiki.fr.shishito.Models.GramBlock;
+import jibiki.fr.shishito.Models.ListEntry;
 import jibiki.fr.shishito.R;
 
 /**
@@ -38,7 +40,7 @@ public final class ViewUtil {
                 TextView senseView = new TextView(context);
                 senseView.setId(50*(i+1)+j);
                 senseView.setLayoutParams(params);
-                senseView.setText((j+1) + ". " + gb.getSens().get(j));
+                senseView.setText(Html.fromHtml((j+1) + ". " + gb.getSens().get(j)));
                 TextViewCompat.setTextAppearance(senseView, android.R.style.TextAppearance_Medium);
                 ((LinearLayout) v).addView(senseView);
             }
@@ -57,9 +59,32 @@ public final class ViewUtil {
         for (Example ex: examples) {
             TextView exView = new TextView(context);
             TextViewCompat.setTextAppearance(exView, android.R.style.TextAppearance_Medium);
-            String text = "\u25CF " + " [<font color=#cc0000>" + ex.getHiragana() + "</font>] [<font color=#0066ff>" + ex.getRomaji() + "</font>] " + ex.getFrench();
+            String text = context.getString(R.string.example_content, ex.getHiragana(), ex.getRomaji(), ex.getFrench());
             exView.setText(Html.fromHtml(text));
             ((LinearLayout) v).addView(exView);
+        }
+    }
+
+    public static void addVedette(TextView v, ListEntry entry) {
+        String romaji = entry.getRomajiDisplay();
+        if (TextUtils.isEmpty(romaji)) {
+            romaji = entry.getRomajiSearch();
+        }
+        String kanji = entry.getKanji();
+        if (kanji.contains("??")) {
+            kanji = "<font color=#ffcc00>" + kanji + "</font>";
+        }
+        String vText = kanji +
+                "   [<font color=#cc0000>" + entry.getHiragana() + "</font>]   " +
+                "   [<font color=#cc0000>" + romaji + "</font>]";
+        v.setText(Html.fromHtml(vText));
+    }
+
+    public static void addVerified(View v, ListEntry entry) {
+        if (!entry.isVerified()) {
+            TextView verif = new TextView(v.getContext());
+            verif.setText(R.string.verif);
+            ((LinearLayout) v).addView(verif);
         }
     }
 }
