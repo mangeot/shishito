@@ -98,16 +98,6 @@ public final class XMLUtils {
     }
 
     private static ListEntry parseListEntry(XPath xPath, Node el, Volume volume) throws XPathExpressionException {
-/*
-    Couleurs sur jibiki.fr :
-    romaji : #D45455
-    jpn : #BC002D
-    français : #002395
-    problème sur le japonais (fond orange) : #ffa500
-    anglais (fond vert) : #BFFF00
-    problème sur le français (fond jaune) : #ffff00
-
- */
         String xpath = "";
         ListEntry entry = new ListEntry();
         xpath = adjustXpath("cdm-headword", volume);
@@ -154,11 +144,10 @@ public final class XMLUtils {
                 //               Log.d(TAG, "Def French XML:" + defResult);
                 //               Log.d(TAG, "en tag:" + volume.getOldNewTagMap().get("en"));
                 if (defResult.contains("<"+volume.getOldNewTagMap().get("en")+">")) {
-                    defResult = defResult.replaceAll("<"+volume.getOldNewTagMap().get("en")+">","<font color=#BFFF00>");
-                    defResult = defResult.replaceAll("</"+volume.getOldNewTagMap().get("en")+">","</font>");
+                    defResult = "<font color="+ViewUtil.colorEnglish+">" + defResult + "</font>";
                 }
                 else {
-                    defResult = "<font color=#002395>" + defResult + "</font>";
+                    defResult = "<font color="+ViewUtil.colorFrench+">" + defResult + "</font>";
                 }
                 //               Log.d(TAG, "Def French XML end:" + defResult);
                 gb.addSens(defResult);
@@ -168,10 +157,11 @@ public final class XMLUtils {
 
         xpath = adjustXpath("cdm-example-block", volume);
         String french = adjustXpath("cdm-example-fra", volume).substring(xpath.length());
-        String kanji = adjustXpath("cdm-example-jpn", volume).substring(xpath.length());
-        String hiragana = adjustXpath("cesselin-example-hiragana", volume).substring(xpath.length());
-        String romaji = adjustXpath("cesselin-example-romaji", volume).substring(xpath.length()).replace("/text()", "");
         french = "." + french.replace("/text()","");
+        String kanji = adjustXpath("cdm-example-jpn", volume).substring(xpath.length());
+        kanji = "." + kanji.replace("/text()","");
+        String romaji = adjustXpath("cesselin-example-romaji", volume).substring(xpath.length()).replace("/text()", "");
+        romaji = "." + romaji;
 
         NodeList examples = (NodeList) xPath.evaluate(xpath, el, XPathConstants.NODESET);
         for (int i = 0; i < examples.getLength(); i++) {
@@ -182,20 +172,38 @@ public final class XMLUtils {
             NodeList frenchNodes = (NodeList) result;
             Node frenchNode = frenchNodes.item(0);
             String frenchResult = getStringFromNode(frenchNode);
-            Log.d(TAG, "Example French XML:" + frenchResult);
-            Log.d(TAG, "French pb tag: " + "<"+volume.getOldNewTagMap().get("pb")+">");
-            frenchResult = frenchResult.replaceAll("<"+volume.getOldNewTagMap().get("pb")+">","<font color=#ffff00>");
-            frenchResult = frenchResult.replaceAll("</"+volume.getOldNewTagMap().get("pb")+">","</font>");
-            // problème des balises font enchâssées. Celle qui est au milieu n'est pas affichée.
-            // frenchResult = "<font color=#002395>" + frenchResult + "</font>";
-            Log.d(TAG, "Example French XML end:" + frenchResult);
+            //  on vire la balise racine
+            frenchResult = frenchResult.replaceFirst("^\\<[^\\>]+\\>", "");
+            frenchResult = frenchResult.replaceFirst("\\<\\/[^\\>]+\\>$", "");
+            //  on remplace la balise pb par une couleur de font spéciale
+            Log.d(TAG, "Pb tag: " + "<"+volume.getOldNewTagMap().get("pb")+">");
+            frenchResult = frenchResult.replaceAll("<"+volume.getOldNewTagMap().get("pb")+">","</font><b><font color="+ViewUtil.colorPbFrench+">");
+            frenchResult = frenchResult.replaceAll("</"+volume.getOldNewTagMap().get("pb")+">","</font></b><font color="+ViewUtil.colorFrench+">");
+            frenchResult = "<font color="+ViewUtil.colorFrench+">" + frenchResult + "</font>";
             example.setFrench(frenchResult);
 
-            example.setKanji("<font color=#BC002D>" + xPath.evaluate("." + kanji, exEl) + "</font>");
-            example.setHiragana("<font color=#BC002D>" + xPath.evaluate("." + hiragana, exEl) + "</font>");
-            example.setRomaji("<font color=#D45455>" + xPath.evaluate("string(." + romaji + ")", exEl)+ "</font>");
+            Object resultKanji = xPath.evaluate(kanji, exEl, XPathConstants.NODESET);
+            NodeList kanjiNodes = (NodeList) resultKanji;
+            Node kanjiNode = kanjiNodes.item(0);
+            String kanjiResult = getStringFromNode(kanjiNode);
+            //  on vire la balise racine
+            kanjiResult = kanjiResult.replaceFirst("^\\<[^\\>]+\\>", "");
+            kanjiResult = kanjiResult.replaceFirst("\\<\\/[^\\>]+\\>$", "");
+            //  en attendant de trouver un moyen d'afficher le furigana, on le vire...
+            String rtRegexp = "<"+volume.getOldNewTagMap().get("rt")+">" + "[^\\<]+" + "</"+volume.getOldNewTagMap().get("rt")+">";
+            kanjiResult = kanjiResult.replaceAll(rtRegexp,"");
+            //  on remplace la balise pb par une couleur de font spéciale
+            kanjiResult = kanjiResult.replaceAll("<"+volume.getOldNewTagMap().get("rt")+">","</font><font color="+ViewUtil.colorPbJapanese+"><b>");
+            kanjiResult = kanjiResult.replaceAll("</"+volume.getOldNewTagMap().get("pb")+">","</b></font><font color="+ViewUtil.colorJapanese+">");
+            // on pourrait mettre les vedettes en gras, comme sur le site Web...
+            //   kanjiResult = kanjiResult.replaceAll("<"+volume.getOldNewTagMap().get("vj")+">","<b>");
+            //   kanjiResult = kanjiResult.replaceAll("</"+volume.getOldNewTagMap().get("vj")+">","</b>");
+            kanjiResult = "<font color="+ViewUtil.colorJapanese+">" + kanjiResult + "</font>";
+            example.setKanji(kanjiResult);
+            example.setRomaji(xPath.evaluate("string(" + romaji + ")", exEl));
             entry.addExample(example);
-            Log.d(TAG, "KANJI: " + example.getKanji());
+            Log.d(TAG, "Example French: " + example.getFrench());
+            Log.d(TAG, "Example KANJI: " + example.getKanji());
         }
 
         xpath = adjustXpath("cdm-entry-id", volume);

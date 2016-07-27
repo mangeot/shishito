@@ -22,6 +22,30 @@ import jibiki.fr.shishito.R;
  */
 public final class ViewUtil {
 
+    /*
+    Couleurs sur jibiki.fr :
+    romaji : #D45455
+    jpn : #BC002D
+    français : #002395
+    problème sur le japonais (fond orange) : #ffa500
+    anglais (fond vert) : #BFFF00
+    problème sur le français (fond jaune) : #ffff00
+
+    Avec Android, c'est compliqué de mettre un fond, donc on va pour l'instant utiliser une autre couleur.
+    anglais (vert foncé) : #009900
+    problème sur le japonais (violet) : #6600ff
+    problème sur le français (jaune foncé) : #FFCC00
+
+ */
+
+    public static final String colorFrench = "#002395";
+    public static final String colorRomaji = "#D45455";
+    public static final String colorJapanese = "#BC002D";
+    public static final String colorEnglish = "#009900";
+    public static final String colorPbFrench = "#FFCC00";
+    public static final String colorPbJapanese = "#6600ff";
+
+
     private static final String TAG = ViewUtil.class.getSimpleName();
 
 
@@ -61,7 +85,7 @@ public final class ViewUtil {
         for (Example ex: examples) {
             TextView exView = new TextView(context);
             TextViewCompat.setTextAppearance(exView, android.R.style.TextAppearance_Medium);
-            String text = context.getString(R.string.example_content, ex.getKanji(), ex.getHiragana(), ex.getRomaji(), ex.getFrench());
+            String text = context.getString(R.string.example_content, ex.getKanji(), "<font color="+colorRomaji+">(" + ex.getRomaji()+")</font>", ex.getFrench());
             exView.setText(Html.fromHtml(text));
             ((LinearLayout) v).addView(exView);
         }
@@ -73,12 +97,15 @@ public final class ViewUtil {
             romaji = entry.getRomajiSearch();
         }
         String kanji = entry.getKanji();
-        if (kanji.contains("??")) {
-            kanji = "<font color=#ffcc00>" + kanji + "</font>";
+        if (entry.isVerified()) {
+            kanji = "<font color="+colorJapanese+">" + kanji + "</font>";
+        }
+        else {
+            kanji = "<font color="+colorPbJapanese+">" + kanji + "</font>";
         }
         String vText = kanji +
-                "   [<font color=#cc0000>" + entry.getHiragana() + "</font>]   " +
-                "   [<font color=#cc0000>" + romaji + "</font>]";
+                "   <font color="+colorJapanese+">【" + entry.getHiragana() + "】</font>   " +
+                "   <font color="+colorRomaji+">(" + romaji + ")</font>";
         v.setText(Html.fromHtml(vText));
     }
 
