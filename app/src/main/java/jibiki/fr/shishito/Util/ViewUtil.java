@@ -3,8 +3,11 @@ package jibiki.fr.shishito.Util;
 import android.content.Context;
 import android.support.v4.widget.TextViewCompat;
 import android.text.Html;
+import android.text.SpannableString;
+import android.text.TextPaint;
 import android.text.TextUtils;
-import android.util.Log;
+import android.text.method.LinkMovementMethod;
+import android.text.style.ClickableSpan;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
@@ -16,6 +19,7 @@ import jibiki.fr.shishito.Models.Example;
 import jibiki.fr.shishito.Models.GramBlock;
 import jibiki.fr.shishito.Models.ListEntry;
 import jibiki.fr.shishito.R;
+import jibiki.fr.shishito.SearchActivity;
 
 /**
  * Created by tibo on 26/07/16.
@@ -73,7 +77,31 @@ public final class ViewUtil {
         }
     }
 
-    public static void addExamplesToView(View v, ArrayList<Example> examples, Context context) {
+    private static SpannableString getClickSpannable(String input, boolean clickable, final SearchActivity context, ListEntry entry, final String title, final String xpath) {
+        SpannableString ss = new SpannableString(Html.fromHtml(input));
+        if (clickable) {
+            final String contribId = entry.getContribId();
+            final String word = removeFancy(input);
+            ClickableSpan cs = new ClickableSpan() {
+                String s = word;
+
+                @Override
+                public void onClick(View widget) {
+                    context.putFastEdit(contribId, xpath, s, title);
+                }
+                @Override
+                public void updateDrawState(TextPaint ds) {// override updateDrawState
+                    ds.setUnderlineText(false); // set to false to remove underline
+                }
+            };
+            ss.setSpan(cs, 0, word.length(), 0);
+        }
+        return ss;
+
+    }
+
+    public static void addExamplesToView(View v, ListEntry entry, SearchActivity context, boolean canEdit) {
+        ArrayList<Example> examples = entry.getExamples();
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         params.setMargins(0, 8, 0, 8);
         if (examples.size() > 0) {
@@ -82,12 +110,24 @@ public final class ViewUtil {
             exTitle.setText(R.string.example);
             ((LinearLayout) v).addView(exTitle);
         }
+        int i = 1;
         for (Example ex: examples) {
             TextView exView = new TextView(context);
+            exView.setLineSpacing(5, 1);
             TextViewCompat.setTextAppearance(exView, android.R.style.TextAppearance_Medium);
-            String text = context.getString(R.string.example_content, ex.getKanji(), "<font color="+colorRomaji+">(" + ex.getRomaji()+")</font>", ex.getFrench());
-            exView.setText(Html.fromHtml(text));
+
+            String xpath = XMLUtils.getTransformedXPath("cdm-example-jpn", i, context.getVolume());
+            exView.append(getClickSpannable(ex.getKanji(), canEdit, context, entry, "example kanji", xpath));
+            xpath = XMLUtils.getTransformedXPath("cesselin-example-romaji", i, context.getVolume());
+            exView.append(getClickSpannable("<font color="+colorRomaji+">(" + ex.getRomaji()+")</font>", canEdit, context, entry, "example romaji", xpath));
+            exView.append("  ");
+            xpath = XMLUtils.getTransformedXPath("cdm-example-fra", i, context.getVolume());
+            exView.append(getClickSpannable(ex.getFrench(), canEdit, context, entry, "example français", xpath));
+            exView.setMovementMethod(LinkMovementMethod.getInstance());
+//            String text = context.getString(R.string.example_content, ex.getKanji(), "<font color="+colorRomaji+">(" + ex.getRomaji()+")</font>", ex.getFrench());
+//            exView.setText(Html.fromHtml(text));
             ((LinearLayout) v).addView(exView);
+            i++;
         }
     }
 
@@ -115,5 +155,12 @@ public final class ViewUtil {
             verif.setText(R.string.verif);
             ((LinearLayout) v).addView(verif);
         }
+    }
+
+    public static String removeFancy(String input) {
+        if (!TextUtils.isEmpty(input)) {
+            return input.replaceAll("<(.*?)>", "");
+        }
+        return input;
     }
 }

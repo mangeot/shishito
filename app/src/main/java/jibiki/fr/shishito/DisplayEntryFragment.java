@@ -4,6 +4,7 @@ import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.text.Html;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -24,6 +25,8 @@ public class DisplayEntryFragment extends Fragment {
     private ListEntry entry;
 
     private OnEditClickListener mListener;
+
+    private boolean loggedIn = false;
 
     TextView vedette;
     View v;
@@ -58,7 +61,7 @@ public class DisplayEntryFragment extends Fragment {
         ViewUtil.addVedette(vedette, entry);
         ViewUtil.addVerified(v, entry);
         ViewUtil.addGramBlocksToView(v, entry.getGramBlocks(), getContext());
-        ViewUtil.addExamplesToView(v, entry.getExamples(), getContext());
+        ViewUtil.addExamplesToView(v, entry, (SearchActivity)getActivity(), loggedIn);
     }
 
     @Override
@@ -68,6 +71,9 @@ public class DisplayEntryFragment extends Fragment {
         View relative = inflater.inflate(R.layout.activity_display_entry, container, false);
         v = relative.findViewById(R.id.linearlayout);
         vedette = (TextView) v.findViewById(R.id.vedette);
+        if (!TextUtils.isEmpty(((SearchActivity)getActivity()).getUsername())) {
+            loggedIn = true;
+        }
         updateText();
 
 

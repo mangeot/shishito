@@ -28,9 +28,10 @@
     <string name="example_content">"\u25CF <![CDATA[ %1$s %2$s %3$s]]>"</string>
     <string name="empty_field">"(vide)"</string>
 
+    <string name="fast_edit_title">Édition du champ %1$s</string>
+
     <string name="colored_string"><![CDATA[<font color=#%1$s> %2$s  </font>]]></string>
     <string name="bold_string"><![CDATA[<b> %1$s  </b>]]></string>
-
 
 
     <!-- Strings related to login -->

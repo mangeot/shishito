@@ -501,4 +501,17 @@ public final class XMLUtils {
             return null;
         }
     }
+
+    public static String getTransformedXPath(String cdmElement, int num, Volume volume) {
+        String xpath = volume.getElements().get(cdmElement);
+        String cdmVolumePath = volume.getElements().get("cdm-volume");
+
+        if (xpath.contains(cdmVolumePath)) {
+            xpath = xpath.replace(cdmVolumePath, cdmVolumePath + "/d:contribution/d:data");
+        }
+        if (num > 0) {
+            xpath = "(" + xpath + ")[" + num + "]";
+        }
+        return xpath;
+    }
 }

@@ -91,7 +91,7 @@ public class SearchActivity extends AppCompatActivity implements SearchFragment.
         super.onRestoreInstanceState(savedInstanceState);
 
         username = savedInstanceState.getString(USERNAME);
-        volume = (Volume)savedInstanceState.getSerializable(VOLUME);
+        volume = (Volume) savedInstanceState.getSerializable(VOLUME);
 
     }
 
@@ -220,6 +220,20 @@ public class SearchActivity extends AppCompatActivity implements SearchFragment.
         transaction.commit();
     }
 
+
+    public void putFastEdit(String contribId, String xPath, String content, String title) {
+        FastEditFragment fef = FastEditFragment.newInstance(content, xPath, contribId, title);
+        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+
+        // Replace whatever is in the fragment_container view with this fragment,
+        // and add the transaction to the back stack so the user can navigate back
+        transaction.replace(R.id.fragment_container, fef);
+        transaction.addToBackStack(null);
+
+        // Commit the transaction
+        transaction.commit();
+    }
+
     private void setLoggedIn() {
         if (!TextUtils.isEmpty(username)) {
             MenuItem item = menu.findItem(R.id.action_sign_in);
@@ -243,10 +257,15 @@ public class SearchActivity extends AppCompatActivity implements SearchFragment.
         return this.volume;
     }
 
+    public String getUsername() {
+        return this.username;
+    }
+
     @Override
     public void onWordSelected(ListEntry entry) {
         putDisplayEntryFragment(entry);
     }
+
 
     @Override
     public void onEditClick(ListEntry entry) {

@@ -34,7 +34,9 @@ import javax.xml.xpath.XPathExpressionException;
 import jibiki.fr.shishito.Models.Example;
 import jibiki.fr.shishito.Models.GramBlock;
 import jibiki.fr.shishito.Models.ListEntry;
+import jibiki.fr.shishito.Models.Volume;
 import jibiki.fr.shishito.Util.HTTPUtils;
+import jibiki.fr.shishito.Util.ViewUtil;
 import jibiki.fr.shishito.Util.XMLUtils;
 
 public class EditFragment extends Fragment {
@@ -118,18 +120,13 @@ public class EditFragment extends Fragment {
             tv.addTextChangedListener(tw);
         }
         tv.setId(id);
-        tv.setText(removeFancy(text));
+        tv.setText(ViewUtil.removeFancy(text));
         tv.setLayoutParams(params1);
         addTitleView(title, ll);
         ll.addView(tv);
     }
 
-    private String removeFancy(String input) {
-        if (!TextUtils.isEmpty(input)) {
-            return input.replaceAll("<(.*?)>", "");
-        }
-        return input;
-    }
+
 
     private void addTitleView(String title, LinearLayout ll) {
         LinearLayout.LayoutParams titleParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -144,7 +141,7 @@ public class EditFragment extends Fragment {
         LinearLayout.LayoutParams editParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         EditText et = new EditText(getContext());
         et.setLayoutParams(editParams);
-        et.setText(removeFancy(content));
+        et.setText(ViewUtil.removeFancy(content));
         et.setId(id);
         et.setInputType(InputType.TYPE_CLASS_TEXT);
         et.addTextChangedListener(tw);
@@ -227,13 +224,9 @@ public class EditFragment extends Fragment {
 
                 i = 1;
                 for (Example ex : entry.getExamples()) {
-                    Log.d(TAG, "1");
                     checkAddPairToArrayList(xpaths, ex.getKanji(), "cdm-example-jpn", EXAMPLE_KANJI + i, v, i);
-                    Log.d(TAG, "2");
                     checkAddPairToArrayList(xpaths, ex.getHiragana(), "cesselin-example-hiragana", EXAMPLE_HIRAGANA + i, v, i);
-                    Log.d(TAG, "3");
                     checkAddPairToArrayList(xpaths, ex.getRomaji(), "cesselin-example-romaji", EXAMPLE_ROMAJI + i, v, i);
-                    Log.d(TAG, "4");
                     checkAddPairToArrayList(xpaths, ex.getFrench(), "cdm-example-fra", EXAMPLE_FRENCH + i, v, i);
                     i++;
                 }
@@ -269,20 +262,12 @@ public class EditFragment extends Fragment {
 
     private void checkAddPairToArrayList(ArrayList<Pair<String, String>> a, String value, String cdmElement, int id, View v, int num) {
 
-        value = removeFancy(value);
+        value = ViewUtil.removeFancy(value);
         if (!value.equals(((EditText) v.findViewById(id)).getText().toString())) {
             Log.d(TAG, value);
             Log.d(TAG, ((EditText) v.findViewById(id)).getText().toString());
             String update = ((EditText) v.findViewById(id)).getText().toString();
-            String xpath = ((SearchActivity) getActivity()).getVolume().getElements().get(cdmElement);
-            String cdmVolumePath = ((SearchActivity) getActivity()).getVolume().getElements().get("cdm-volume");
-
-            if (xpath.contains(cdmVolumePath)) {
-                xpath = xpath.replace(cdmVolumePath, cdmVolumePath + "/d:contribution/d:data");
-            }
-            if (num > 0) {
-                xpath = "(" + xpath + ")[" + num + "]";
-            }
+            String xpath = XMLUtils.getTransformedXPath(cdmElement, num, ((SearchActivity) getActivity()).getVolume());
             a.add(new Pair<>(xpath, update));
         }
     }
@@ -296,11 +281,11 @@ public class EditFragment extends Fragment {
         this.mListener.onEntryUpdatedListener(entry);
     }
 
-    private ListEntry handleListEntryStream(InputStream stream) {
+    public static ListEntry handleListEntryStream(InputStream stream, Volume volume) {
         ListEntry entry = null;
         if (stream != null) {
             try {
-                entry = XMLUtils.parseEntryStream(stream, ((SearchActivity) getActivity()).getVolume());
+                entry = XMLUtils.parseEntryStream(stream, volume);
             } catch (IOException | ParserConfigurationException | SAXException | XPathExpressionException e) {
                 Log.e(TAG, "Error parsing entry stream: " + e.getMessage());
             }
@@ -336,7 +321,7 @@ public class EditFragment extends Fragment {
         protected ListEntry doInBackground(String... params) {
             String url = SearchActivity.SERVER_API_URL + "Cesselin/jpn/" + params[0] + "/" + params[1];
             InputStream is = HTTPUtils.doPut(url, params[2]);
-            return handleListEntryStream(is);
+            return handleListEntryStream(is, ((SearchActivity)getActivity()).getVolume());
         }
 
         @Override
