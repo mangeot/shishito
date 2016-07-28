@@ -12,6 +12,10 @@
                 android:visible="false"/>
         </menu>
     </item>
+    <item
+        android:id="@+id/action_about"
+        android:title="@string/menu_help"
+        app:showAsAction="never"/>
     <!--<item-->
         <!--android:id="@+id/action_settings"-->
         <!--android:orderInCategory="100"-->

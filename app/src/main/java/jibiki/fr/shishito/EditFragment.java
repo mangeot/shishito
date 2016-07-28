@@ -7,6 +7,7 @@ import android.support.v4.app.Fragment;
 import android.os.Bundle;
 import android.support.v4.widget.TextViewCompat;
 import android.text.Editable;
+import android.text.InputType;
 import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -50,6 +51,7 @@ public class EditFragment extends Fragment {
     private static final int EXAMPLE_HIRAGANA = 1000;
     private static final int EXAMPLE_ROMAJI = 1500;
     private static final int EXAMPLE_FRENCH = 2000;
+    private static final int EXAMPLE_KANJI = 2500;
 
 
     private ListEntry entry;
@@ -116,10 +118,17 @@ public class EditFragment extends Fragment {
             tv.addTextChangedListener(tw);
         }
         tv.setId(id);
-        tv.setText(text);
+        tv.setText(removeFancy(text));
         tv.setLayoutParams(params1);
         addTitleView(title, ll);
         ll.addView(tv);
+    }
+
+    private String removeFancy(String input) {
+        if (!TextUtils.isEmpty(input)) {
+            return input.replaceAll("<(.*?)>", "");
+        }
+        return input;
     }
 
     private void addTitleView(String title, LinearLayout ll) {
@@ -135,8 +144,9 @@ public class EditFragment extends Fragment {
         LinearLayout.LayoutParams editParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         EditText et = new EditText(getContext());
         et.setLayoutParams(editParams);
-        et.setText(content);
+        et.setText(removeFancy(content));
         et.setId(id);
+        et.setInputType(InputType.TYPE_CLASS_TEXT);
         et.addTextChangedListener(tw);
         ll.addView(et);
     }
@@ -164,9 +174,10 @@ public class EditFragment extends Fragment {
         };
 
         addFieldVerif(ll, entry.isVerified(), entry.getKanji(), getString(R.string.kanji), tw, KANJI);
-        addFieldVerif(ll, entry.isVerified(), entry.getHiragana(), getString(R.string.hiragana), tw, HIRAGANA);
-        addFieldVerif(ll, entry.isVerified(), entry.getRomajiDisplay(), getString(R.string.romaji), tw, ROMAJI_DISPLAY);
-        addFieldVerif(ll, entry.isVerified(), entry.getRomajiSearch(), getString(R.string.romaji_search), tw, ROMAJI_SEARCH);
+        //Setting to true ensure that they are not editable... little hack
+        addFieldVerif(ll, true, entry.getHiragana(), getString(R.string.hiragana), tw, HIRAGANA);
+        addFieldVerif(ll, true, entry.getRomajiDisplay(), getString(R.string.romaji), tw, ROMAJI_DISPLAY);
+        addFieldVerif(ll, true, entry.getRomajiSearch(), getString(R.string.romaji_search), tw, ROMAJI_SEARCH);
 
         int cnt = 1;
         for (GramBlock gram: entry.getGramBlocks()) {
@@ -183,6 +194,8 @@ public class EditFragment extends Fragment {
         cnt = 1;
         for (Example ex : entry.getExamples()) {
             addTitleView(getString(R.string.edit_example, cnt), ll);
+            addTitleView(getString(R.string.edit_example_kanji), ll);
+            addEditView(ex.getKanji(), ll, tw, EXAMPLE_KANJI + cnt);
             addTitleView(getString(R.string.edit_example_hiragana), ll);
             addEditView(ex.getHiragana(), ll, tw, EXAMPLE_HIRAGANA + cnt);
             addTitleView(getString(R.string.edit_example_romaji), ll);
@@ -214,9 +227,14 @@ public class EditFragment extends Fragment {
 
                 i = 1;
                 for (Example ex : entry.getExamples()) {
+                    Log.d(TAG, "1");
+                    checkAddPairToArrayList(xpaths, ex.getKanji(), "cdm-example-jpn", EXAMPLE_KANJI + i, v, i);
+                    Log.d(TAG, "2");
                     checkAddPairToArrayList(xpaths, ex.getHiragana(), "cesselin-example-hiragana", EXAMPLE_HIRAGANA + i, v, i);
+                    Log.d(TAG, "3");
                     checkAddPairToArrayList(xpaths, ex.getRomaji(), "cesselin-example-romaji", EXAMPLE_ROMAJI + i, v, i);
-                    checkAddPairToArrayList(xpaths, ex.getFrench(), "cdm-example", EXAMPLE_FRENCH + i, v, i);
+                    Log.d(TAG, "4");
+                    checkAddPairToArrayList(xpaths, ex.getFrench(), "cdm-example-fra", EXAMPLE_FRENCH + i, v, i);
                     i++;
                 }
 
@@ -251,6 +269,7 @@ public class EditFragment extends Fragment {
 
     private void checkAddPairToArrayList(ArrayList<Pair<String, String>> a, String value, String cdmElement, int id, View v, int num) {
 
+        value = removeFancy(value);
         if (!value.equals(((EditText) v.findViewById(id)).getText().toString())) {
             Log.d(TAG, value);
             Log.d(TAG, ((EditText) v.findViewById(id)).getText().toString());

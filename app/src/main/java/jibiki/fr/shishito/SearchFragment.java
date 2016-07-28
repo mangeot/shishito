@@ -212,7 +212,6 @@ public class SearchFragment extends Fragment {
      * >Communicating with Other Fragments</a> for more information.
      */
     public interface OnWordSelectedListener {
-        // TODO: Update argument type and name
         void onWordSelected(ListEntry entry);
     }
 

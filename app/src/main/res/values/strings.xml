@@ -19,6 +19,7 @@
     <string name="example">"Exemples:"</string>
     <string name="verif">"Entrée non vérifiée"</string>
     <string name="edit_example">"Exemple %1$d:"</string>
+    <string name="edit_example_kanji">"Exemple Kanji :"</string>
     <string name="edit_example_hiragana">"Exemple Hiragana :"</string>
     <string name="edit_example_romaji">"Exemple Romaji :"</string>
     <string name="edit_example_french">"Exemple Français :"</string>
@@ -43,6 +44,12 @@
     <string name="error_invalid_password">This password is too short</string>
     <string name="error_incorrect_password">This password is incorrect</string>
     <string name="error_field_required">This field is required</string>
+
+    <!-- Strings related to help page -->
+    <string name="link_website">Cette application est dérivé du site http://jibiki.fr/.
+        Visitez ce site pour vous inscrire. Une page d\'aide est disponible http://jibiki.fr/help.php .
+        Pour plus d\'information: http://jibiki.fr/informations.php .</string>
+    <string name="menu_help">"Aide"</string>
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>

@@ -56,12 +56,6 @@ public final class XMLUtils {
     protected static java.util.regex.Pattern regexXpath = java.util.regex.Pattern.compile("/([^\\/\\s\\[:]+:)?([^\\[\\/\\s:]+)", java.util.regex.Pattern.DOTALL);
     protected static java.util.regex.Pattern regexTags = java.util.regex.Pattern.compile("<([^\\/\\s\\\\?>:]+:)?([^\\/\\s\\?:>]+)", java.util.regex.Pattern.DOTALL);
 
-    private static final String enColor = "#00e600";
-    private static final String pbFraColor = "#ffff00";
-    private static final String pbJpnColor = "#ff9933";
-
-
-
     private XMLUtils() {
     }
 
@@ -88,37 +82,91 @@ public final class XMLUtils {
         return parseListEntry(xPath, document, volume);
     }
 
-    private static String parseElement(Element ex, boolean lang, Volume volume) {
-        Log.d(TAG, ex.getNodeName());
-        Node node = ex.getFirstChild();
-        Log.d(TAG, node.getNodeName());
-        Log.d(TAG, volume.getOldNewTagMap().get("en"));
-        //If first child in english then no french, add color
-        if (node instanceof Element && ((Element) node).getTagName().equals(volume.getOldNewTagMap().get("en"))) {
-            return Resources.getSystem().getString(R.string.colored_string, enColor, node.getTextContent());
-        }
-        StringBuilder content = new StringBuilder();
-        while (node.getNextSibling() != null) {
-            if (node instanceof Text) {
-                content.append(node.getTextContent());
-            } else if (node instanceof Element) {
-                if (((Element) node).getTagName().equals("pb")) {
-                    if (lang) {
-                        content.append(Resources.getSystem().getString(R.string.colored_string, pbFraColor, node.getTextContent()));
-                    } else {
-                        content.append(Resources.getSystem().getString(R.string.colored_string, pbJpnColor, node.getTextContent()));
-                    }
-                } else if(((Element) node).getTagName().equals("vr") || ((Element) node).getTagName().equals("vj")) {
-                    content.append(Resources.getSystem().getString(R.string.bold_string, node.getTextContent()));
-                }
+    private static GramBlock parseGramBlock(XPath xPath, String xpath, Element block, Volume volume) throws XPathExpressionException {
+        String posPath = adjustXpath("cdm-pos", volume).split("\\|")[0].substring(xpath.length());
+        String[] defs = adjustXpath("cdm-definition", volume).split("\\|");
+        String sens = adjustXpath("cdm-sense", volume).substring(xpath.length());
+        defs[0] = defs[0].substring(xpath.length() + sens.length());
+        defs[1] = defs[1].replace(" ", "").substring(xpath.length() + sens.length());
+
+        GramBlock gb = new GramBlock();
+        gb.setGram(xPath.evaluate("." + posPath, block));
+        NodeList sensList = (NodeList) xPath.evaluate("." + sens, block, XPathConstants.NODESET);
+        for (int j = 0; j < sensList.getLength(); j++) {
+            Element sensEl = (Element) sensList.item(j);
+            String defxpath = "." + defs[0].replace("/text()", "");
+            //                Log.d(TAG, "def text xpath:" + defxpath);
+            Object result = xPath.evaluate(defxpath, sensEl, XPathConstants.NODESET);
+            NodeList defNodes = (NodeList) result;
+            Node defNode = defNodes.item(0);
+            String defResult = getStringFromNode(defNode);
+            //               Log.d(TAG, "Def French XML:" + defResult);
+            //               Log.d(TAG, "en tag:" + volume.getOldNewTagMap().get("en"));
+            if (!TextUtils.isEmpty(defResult) && defResult.contains("<" + volume.getOldNewTagMap().get("en") + ">")) {
+                defResult = "<font color=" + ViewUtil.colorEnglish + ">" + defResult + "</font>";
+            } else {
+                defResult = "<font color=" + ViewUtil.colorFrench + ">" + defResult + "</font>";
             }
+            //               Log.d(TAG, "Def French XML end:" + defResult);
+            gb.addSens(defResult);
         }
-        return content.toString();
+        return gb;
     }
 
+    private static Example parseExample(XPath xPath, String xpath, Element exEl, Volume volume) throws XPathExpressionException {
+        String french = adjustXpath("cdm-example-fra", volume).substring(xpath.length());
+        french = "." + french.replace("/text()", "");
+        String kanji = adjustXpath("cdm-example-jpn", volume).substring(xpath.length());
+        kanji = "." + kanji.replace("/text()", "");
+        String hiragana = adjustXpath("cesselin-example-hiragana", volume).substring(xpath.length()).replace("/text()", "");
+        String romaji = adjustXpath("cesselin-example-romaji", volume).substring(xpath.length()).replace("/text()", "");
+        hiragana = "." + hiragana;
+        romaji = "." + romaji;
+        Example example = new Example();
+//        Log.d(TAG, "french xpath: " + french);
+        Object result = xPath.evaluate(french, exEl, XPathConstants.NODESET);
+        NodeList frenchNodes = (NodeList) result;
+        Node frenchNode = frenchNodes.item(0);
+        String frenchResult = getStringFromNode(frenchNode);
+        //  on vire la balise racine
+        if (!TextUtils.isEmpty(frenchResult)) {
+            frenchResult = frenchResult.replaceFirst("^\\<[^\\>]+\\>", "");
+            frenchResult = frenchResult.replaceFirst("\\<\\/[^\\>]+\\>$", "");
+            //  on remplace la balise pb par une couleur de font spéciale
+//            Log.d(TAG, "Pb tag: " + "<" + volume.getOldNewTagMap().get("pb") + ">");
+            frenchResult = frenchResult.replaceAll("<" + volume.getOldNewTagMap().get("pb") + ">", "</font><b><font color=" + ViewUtil.colorPbFrench + ">");
+            frenchResult = "<font color=" + ViewUtil.colorFrench + ">" + frenchResult + "</font>";
+            example.setFrench(frenchResult);
+        }
+
+        Object resultKanji = xPath.evaluate(kanji, exEl, XPathConstants.NODESET);
+        NodeList kanjiNodes = (NodeList) resultKanji;
+        Node kanjiNode = kanjiNodes.item(0);
+        String kanjiResult = getStringFromNode(kanjiNode);
+        //  on vire la balise racine
+        if (!TextUtils.isEmpty(kanjiResult)) {
+            kanjiResult = kanjiResult.replaceFirst("^\\<[^\\>]+\\>", "");
+            kanjiResult = kanjiResult.replaceFirst("\\<\\/[^\\>]+\\>$", "");
+
+            //  en attendant de trouver un moyen d'afficher le furigana, on le vire...
+            String rtRegexp = "<" + volume.getOldNewTagMap().get("rt") + ">" + "[^\\<]+" + "</" + volume.getOldNewTagMap().get("rt") + ">";
+            kanjiResult = kanjiResult.replaceAll(rtRegexp, "");
+            //  on remplace la balise pb par une couleur de font spéciale
+            kanjiResult = kanjiResult.replaceAll("<" + volume.getOldNewTagMap().get("rt") + ">", "</font><font color=" + ViewUtil.colorPbJapanese + "><b>");
+            kanjiResult = kanjiResult.replaceAll("</" + volume.getOldNewTagMap().get("pb") + ">", "</b></font><font color=" + ViewUtil.colorJapanese + ">");
+            // on pourrait mettre les vedettes en gras, comme sur le site Web...
+            kanjiResult = kanjiResult.replaceAll("<" + volume.getOldNewTagMap().get("vj") + ">", "<b>");
+            kanjiResult = kanjiResult.replaceAll("</" + volume.getOldNewTagMap().get("vj") + ">", "</b>");
+            kanjiResult = "<font color=" + ViewUtil.colorJapanese + ">" + kanjiResult + "</font>";
+        }
+        example.setKanji(kanjiResult);
+        example.setRomaji(xPath.evaluate("string(" + romaji + ")", exEl));
+        example.setHiragana(xPath.evaluate("string(" + hiragana + ")", exEl));
+        return example;
+    }
 
     private static ListEntry parseListEntry(XPath xPath, Node el, Volume volume) throws XPathExpressionException {
-        String xpath = "";
+        String xpath;
         ListEntry entry = new ListEntry();
         xpath = adjustXpath("cdm-headword", volume);
         entry.setKanji(xPath.evaluate(xpath, el));
@@ -133,91 +181,23 @@ public final class XMLUtils {
         entry.setRomajiSearch(xPath.evaluate(xpath, el));
         xpath = adjustXpath("cdm-reading", volume);
         entry.setHiragana(xPath.evaluate(xpath, el));
+
         xpath = adjustXpath("cdm-gram-block", volume);
-        String posPath = adjustXpath("cdm-pos", volume).split("\\|")[0].substring(xpath.length());
-        String sens = adjustXpath("cdm-sense", volume).substring(xpath.length());
-        String[] defs = adjustXpath("cdm-definition", volume).split("\\|");
-
-        defs[0] = defs[0].substring(xpath.length() + sens.length());
-        defs[1] = defs[1].replace(" ", "").substring(xpath.length() + sens.length());
-
         NodeList gramBlocks = (NodeList) xPath.evaluate(xpath, el, XPathConstants.NODESET);
         for (int i = 0; i < gramBlocks.getLength(); i++) {
             Element block = (Element) gramBlocks.item(i);
-            GramBlock gb = new GramBlock();
-            gb.setGram(xPath.evaluate("." + posPath, block));
-            NodeList sensList = (NodeList) xPath.evaluate("." + sens, block, XPathConstants.NODESET);
-            for (int j = 0; j < sensList.getLength(); j++) {
-                Element sensEl = (Element) sensList.item(j);
-                String defxpath = "." + defs[0].replace("/text()","");
-                //                Log.d(TAG, "def text xpath:" + defxpath);
-                Object result = xPath.evaluate(defxpath, sensEl, XPathConstants.NODESET);
-            NodeList defNodes = (NodeList) result;
-            Node defNode = defNodes.item(0);
-            String defResult = getStringFromNode(defNode);
-                //               Log.d(TAG, "Def French XML:" + defResult);
-                //               Log.d(TAG, "en tag:" + volume.getOldNewTagMap().get("en"));
-                if (defResult.contains("<"+volume.getOldNewTagMap().get("en")+">")) {
-                    defResult = "<font color="+ViewUtil.colorEnglish+">" + defResult + "</font>";
-                }
-                else {
-                    defResult = "<font color="+ViewUtil.colorFrench+">" + defResult + "</font>";
-                }
-                //               Log.d(TAG, "Def French XML end:" + defResult);
-                gb.addSens(defResult);
-            }
+            GramBlock gb = parseGramBlock(xPath, xpath, block, volume);
             entry.addGramBlock(gb);
         }
 
         xpath = adjustXpath("cdm-example-block", volume);
-        String french = adjustXpath("cdm-example-fra", volume).substring(xpath.length());
-        french = "." + french.replace("/text()","");
-        String kanji = adjustXpath("cdm-example-jpn", volume).substring(xpath.length());
-        kanji = "." + kanji.replace("/text()","");
-        String romaji = adjustXpath("cesselin-example-romaji", volume).substring(xpath.length()).replace("/text()", "");
-        romaji = "." + romaji;
-
         NodeList examples = (NodeList) xPath.evaluate(xpath, el, XPathConstants.NODESET);
         for (int i = 0; i < examples.getLength(); i++) {
             Element exEl = (Element) examples.item(i);
-            Example example = new Example();
-            Log.d(TAG, "french xpath: " + french);
-            Object result = xPath.evaluate(french, exEl, XPathConstants.NODESET);
-            NodeList frenchNodes = (NodeList) result;
-            Node frenchNode = frenchNodes.item(0);
-            String frenchResult = getStringFromNode(frenchNode);
-            //  on vire la balise racine
-            frenchResult = frenchResult.replaceFirst("^\\<[^\\>]+\\>", "");
-            frenchResult = frenchResult.replaceFirst("\\<\\/[^\\>]+\\>$", "");
-            //  on remplace la balise pb par une couleur de font spéciale
-            Log.d(TAG, "Pb tag: " + "<"+volume.getOldNewTagMap().get("pb")+">");
-            frenchResult = frenchResult.replaceAll("<"+volume.getOldNewTagMap().get("pb")+">","</font><b><font color="+ViewUtil.colorPbFrench+">");
-            frenchResult = frenchResult.replaceAll("</"+volume.getOldNewTagMap().get("pb")+">","</font></b><font color="+ViewUtil.colorFrench+">");
-            frenchResult = "<font color="+ViewUtil.colorFrench+">" + frenchResult + "</font>";
-            example.setFrench(frenchResult);
-
-            Object resultKanji = xPath.evaluate(kanji, exEl, XPathConstants.NODESET);
-            NodeList kanjiNodes = (NodeList) resultKanji;
-            Node kanjiNode = kanjiNodes.item(0);
-            String kanjiResult = getStringFromNode(kanjiNode);
-            //  on vire la balise racine
-            kanjiResult = kanjiResult.replaceFirst("^\\<[^\\>]+\\>", "");
-            kanjiResult = kanjiResult.replaceFirst("\\<\\/[^\\>]+\\>$", "");
-            //  en attendant de trouver un moyen d'afficher le furigana, on le vire...
-            String rtRegexp = "<"+volume.getOldNewTagMap().get("rt")+">" + "[^\\<]+" + "</"+volume.getOldNewTagMap().get("rt")+">";
-            kanjiResult = kanjiResult.replaceAll(rtRegexp,"");
-            //  on remplace la balise pb par une couleur de font spéciale
-            kanjiResult = kanjiResult.replaceAll("<"+volume.getOldNewTagMap().get("rt")+">","</font><font color="+ViewUtil.colorPbJapanese+"><b>");
-            kanjiResult = kanjiResult.replaceAll("</"+volume.getOldNewTagMap().get("pb")+">","</b></font><font color="+ViewUtil.colorJapanese+">");
-            // on pourrait mettre les vedettes en gras, comme sur le site Web...
-            //   kanjiResult = kanjiResult.replaceAll("<"+volume.getOldNewTagMap().get("vj")+">","<b>");
-            //   kanjiResult = kanjiResult.replaceAll("</"+volume.getOldNewTagMap().get("vj")+">","</b>");
-            kanjiResult = "<font color="+ViewUtil.colorJapanese+">" + kanjiResult + "</font>";
-            example.setKanji(kanjiResult);
-            example.setRomaji(xPath.evaluate("string(" + romaji + ")", exEl));
+            Example example = parseExample(xPath, xpath, exEl, volume);
             entry.addExample(example);
-            Log.d(TAG, "Example French: " + example.getFrench());
-            Log.d(TAG, "Example KANJI: " + example.getKanji());
+//            Log.d(TAG, "Example French: " + example.getFrench());
+//            Log.d(TAG, "Example KANJI: " + example.getKanji());
         }
 
         xpath = adjustXpath("cdm-entry-id", volume);

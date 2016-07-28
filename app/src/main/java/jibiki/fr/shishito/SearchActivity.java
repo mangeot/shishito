@@ -14,7 +14,6 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.ListView;
 import android.widget.Toast;
 
 import org.xmlpull.v1.XmlPullParserException;
@@ -24,8 +23,6 @@ import java.io.InputStream;
 import java.net.CookieHandler;
 import java.net.CookieManager;
 import java.net.CookiePolicy;
-import java.net.HttpCookie;
-import java.util.List;
 
 import jibiki.fr.shishito.Models.Dictionary;
 import jibiki.fr.shishito.Models.ListEntry;
@@ -76,7 +73,8 @@ public class SearchActivity extends AppCompatActivity implements SearchFragment.
                         Toast.LENGTH_SHORT).show();
             }
 
-            handleIntent(getIntent());
+//            handleIntent(getIntent());
+            putSearchFragment(null);
         }
     }
 
@@ -125,6 +123,9 @@ public class SearchActivity extends AppCompatActivity implements SearchFragment.
             case R.id.action_sign_out:
                 logOut();
                 return true;
+            case R.id.action_about:
+                putAboutFragment();
+                return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
@@ -151,7 +152,6 @@ public class SearchActivity extends AppCompatActivity implements SearchFragment.
     }
 
     private void handleIntent(Intent intent) {
-
         if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
             String query = intent.getStringExtra(SearchManager.QUERY);
             Fragment frag = getSupportFragmentManager().findFragmentById(R.id.fragment_container);
@@ -174,6 +174,20 @@ public class SearchActivity extends AppCompatActivity implements SearchFragment.
         // Replace whatever is in the fragment_container view with this fragment,
         // don't add to back stack to avoid empty fragment container
         transaction.replace(R.id.fragment_container, sf, "search");
+
+        // Commit the transaction
+        transaction.commit();
+    }
+
+    private void putAboutFragment() {
+        AboutFragment def = AboutFragment.newInstance();
+
+        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+
+        // Replace whatever is in the fragment_container view with this fragment,
+        // and add the transaction to the back stack so the user can navigate back
+        transaction.replace(R.id.fragment_container, def, "about");
+        transaction.addToBackStack(null);
 
         // Commit the transaction
         transaction.commit();
