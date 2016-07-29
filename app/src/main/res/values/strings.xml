@@ -47,9 +47,13 @@
     <string name="error_field_required">This field is required</string>
 
     <!-- Strings related to help page -->
-    <string name="link_website">Cette application est dérivé du site http://jibiki.fr/.
-        Visitez ce site pour vous inscrire. Une page d\'aide est disponible http://jibiki.fr/help.php .
-        Pour plus d\'information: http://jibiki.fr/informations.php .</string>
+    <string name="link_website">Cette application est dérivée du site http://jibiki.fr/.\n\n
+
+        Visitez ce site pour vous inscrire et nous aider à corriger les informations du dictionnaire.\n\n
+
+        Une page d\'aide est disponible : http://jibiki.fr/help.php .\n\n
+
+        Pour plus d\'information sur le projet : http://jibiki.fr/informations.php .</string>
     <string name="menu_help">"Aide"</string>
 
     <!-- TODO: Remove or change this placeholder text -->
