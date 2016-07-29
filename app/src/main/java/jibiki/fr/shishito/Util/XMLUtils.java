@@ -483,17 +483,25 @@ public final class XMLUtils {
         }
     }
 
-    public static String getTransformedXPath(String cdmElement, int num, Volume volume) {
-        String xpath = volume.getElements().get(cdmElement);
+    public static String getTransformedXPath(String xpath, Volume volume) {
         String cdmVolumePath = volume.getElements().get("cdm-volume");
 
         if (xpath.contains(cdmVolumePath)) {
             xpath = xpath.replace(cdmVolumePath, cdmVolumePath + "/d:contribution/d:data");
         }
-        if (num > 0) {
-            xpath = "(" + xpath + ")[" + num + "]";
-        }
+        xpath = xpath.replace("/text()", "");
+
         return xpath;
+    }
+
+    public static String getTransformedNumberedXpath(Volume volume, String cdm, String tag, int num) {
+        String xpath = volume.getElements().get(cdm);
+        xpath = addNum(xpath, tag, num);
+        return getTransformedXPath(xpath, volume);
+    }
+
+    public static String addNum(String xpath, String tag, int num) {
+        return xpath.replace("/" + tag + "/", "/" + tag + "[" + num + "]/");
     }
 
     public static ListEntry handleListEntryStream(InputStream stream, Volume volume) {

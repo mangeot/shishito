@@ -121,8 +121,10 @@ public class FastEditFragment extends Fragment implements UpdateContribution.Con
         saveButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                saveButton.setEnabled(false);
                 if (!et.getText().toString().equals(fieldContent)) {
                     String[] params = {contribId, et.getText().toString(), xpath};
+                    Log.d(TAG, et.getText().toString());
                     new UpdateContribution(FastEditFragment.this, volume).execute(params);
                 }
             }

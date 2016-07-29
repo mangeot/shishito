@@ -9,6 +9,7 @@ import android.text.TextPaint;
 import android.text.TextUtils;
 import android.text.method.LinkMovementMethod;
 import android.text.style.ClickableSpan;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
@@ -72,8 +73,10 @@ public final class ViewUtil {
                 TextView senseView = new TextView(context);
                 senseView.setLayoutParams(params);
                 senseView.append(i + ". ");
+                String xpath = XMLUtils.getTransformedNumberedXpath(volume, "cdm-definition", "sens", count).split("\\|")[0];
+                Log.d(TAG, "TESTEST: " + xpath);
                 appendClickSpannable(s, canEdit,
-                        context, entry, "sense", "cdm-definition", count, senseView, volume);
+                        context, entry, "sense", xpath, senseView);
                 TextViewCompat.setTextAppearance(senseView, android.R.style.TextAppearance_Medium);
                 ((LinearLayout) v).addView(senseView);
                 count++;
@@ -85,11 +88,10 @@ public final class ViewUtil {
     private static void appendClickSpannable(String input, boolean clickable,
                                              Context context, ListEntry entry,
                                              final String title,
-                                             String cdm, int num,
-                                             TextView tv, Volume volume) {
+                                             final String xpath,
+                                             TextView tv) {
         SpannableString ss = new SpannableString(Html.fromHtml(input));
         if (clickable) {
-            final String xpath = XMLUtils.getTransformedXPath(cdm, num, volume);
             tv.setMovementMethod(LinkMovementMethod.getInstance());
             final String contribId = entry.getContribId();
             final String word = removeFancy(input);
@@ -131,13 +133,16 @@ public final class ViewUtil {
             exView.setLineSpacing(8, 1);
             TextViewCompat.setTextAppearance(exView, android.R.style.TextAppearance_Medium);
 
+            String xpath = XMLUtils.getTransformedNumberedXpath(volume, "cdm-example-jpn", "exemple", i);
             appendClickSpannable(ex.getKanji(), canEdit, context, entry,
-                    "example kanji", "cdm-example-jpn", i, exView, volume);
+                    "example kanji", xpath, exView);
+            xpath = XMLUtils.getTransformedNumberedXpath(volume, "cesselin-example-romaji", "exemple", i);
             appendClickSpannable("<font color=" + colorRomaji + ">(" + ex.getRomaji() + ")</font>", canEdit,
-                    context, entry, "example romaji", "cesselin-example-romaji", i, exView, volume);
+                    context, entry, "example romaji", xpath, exView);
             exView.append("  ");
+            xpath = XMLUtils.getTransformedNumberedXpath(volume, "cdm-example-fra", "exemple", i);
             appendClickSpannable(ex.getFrench(), canEdit, context, entry, "example français",
-                    "cdm-example-fra", i, exView, volume);
+                    xpath, exView);
             exView.setTextColor(Color.parseColor(colorFrench));
             ((LinearLayout) v).addView(exView);
             i++;
@@ -155,7 +160,8 @@ public final class ViewUtil {
             v.append(Html.fromHtml(kanji));
         } else {
             kanji = "<font color=" + colorPbJapanese + ">" + kanji + "</font>";
-            appendClickSpannable(kanji, loggedIn, context, entry, "vedette Kanji", "cdm-headword", 0, v, volume);
+            String xpath = XMLUtils.getTransformedXPath("cdm-headword", volume);
+            appendClickSpannable(kanji, loggedIn, context, entry, "vedette Kanji", xpath, v);
         }
         String vText = "   <font color=" + colorJapanese + ">【" + entry.getHiragana() + "】</font>   " +
                 "   <font color=" + colorRomaji + ">(" + romaji + ")</font>";

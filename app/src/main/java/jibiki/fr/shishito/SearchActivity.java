@@ -8,6 +8,7 @@ import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
@@ -281,6 +282,11 @@ public class SearchActivity extends AppCompatActivity implements SearchFragment.
         @Override
         protected void onPostExecute(Volume volume) {
             SearchActivity.this.volume = volume;
+            Fragment frag = getSupportFragmentManager().findFragmentByTag("search");
+
+            if (frag != null && frag instanceof SearchFragment) {
+                ((SearchFragment) frag).setVolume(volume);
+            }
         }
     }
 

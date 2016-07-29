@@ -201,26 +201,35 @@ public class EditFragment extends Fragment implements UpdateContribution.Contrib
                 ArrayList<Pair<String, String>> xpaths = new ArrayList<>(4);
                 saveButton.setEnabled(false);
                 if (!entry.isVerified()) {
-                    checkAddPairToArrayList(xpaths, entry.getKanji(), "cdm-headword", KANJI, v, 0);
-                    checkAddPairToArrayList(xpaths, entry.getHiragana(), "cdm-reading", HIRAGANA, v, 0);
-                    checkAddPairToArrayList(xpaths, entry.getRomajiDisplay(), "cdm-writing", ROMAJI_DISPLAY, v, 0);
-                    checkAddPairToArrayList(xpaths, entry.getRomajiSearch(), "cdm-writing", ROMAJI_SEARCH, v, 0);
+                    String xpath = volume.getElements().get("cdm-headword");
+                    checkAddPairToArrayList(xpaths, entry.getKanji(), xpath, KANJI, v);
+                    xpath = volume.getElements().get("cdm-reading");
+                    checkAddPairToArrayList(xpaths, entry.getHiragana(), xpath, HIRAGANA, v);
+                    xpath = volume.getElements().get("cdm-writing-display");
+                    checkAddPairToArrayList(xpaths, entry.getRomajiDisplay(), xpath, ROMAJI_DISPLAY, v);
+                    xpath = volume.getElements().get("cdm-writing");
+                    checkAddPairToArrayList(xpaths, entry.getRomajiSearch(), xpath, ROMAJI_SEARCH, v);
                 }
 
                 int i = 1;
                 for (GramBlock gramBlock : entry.getGramBlocks()) {
                     for (String sense: gramBlock.getSens()) {
-                        checkAddPairToArrayList(xpaths, sense, "cdm-definition", SENS + i, v, i);
+                        String xpath = volume.getElements().get("cdm-definition");
+                        checkAddPairToArrayList(xpaths, sense, xpath, SENS + i, v);
                         i++;
                     }
                 }
 
                 i = 1;
                 for (Example ex : entry.getExamples()) {
-                    checkAddPairToArrayList(xpaths, ex.getKanji(), "cdm-example-jpn", EXAMPLE_KANJI + i, v, i);
-                    checkAddPairToArrayList(xpaths, ex.getHiragana(), "cesselin-example-hiragana", EXAMPLE_HIRAGANA + i, v, i);
-                    checkAddPairToArrayList(xpaths, ex.getRomaji(), "cesselin-example-romaji", EXAMPLE_ROMAJI + i, v, i);
-                    checkAddPairToArrayList(xpaths, ex.getFrench(), "cdm-example-fra", EXAMPLE_FRENCH + i, v, i);
+                    String xpath = XMLUtils.getTransformedNumberedXpath(volume, "cdm-example-jpn", "exemple", i);
+                    checkAddPairToArrayList(xpaths, ex.getKanji(), xpath, EXAMPLE_KANJI + i, v);
+                    xpath = XMLUtils.getTransformedNumberedXpath(volume, "cesselin-example-hiragana", "exemple", i);
+                    checkAddPairToArrayList(xpaths, ex.getHiragana(), xpath, EXAMPLE_HIRAGANA + i, v);
+                    xpath = XMLUtils.getTransformedNumberedXpath(volume, "cesselin-example-romaji", "exemple", i);
+                    checkAddPairToArrayList(xpaths, ex.getRomaji(), xpath, EXAMPLE_ROMAJI + i, v);
+                    xpath = XMLUtils.getTransformedNumberedXpath(volume, "cdm-example-fra", "exemple", i);
+                    checkAddPairToArrayList(xpaths, ex.getFrench(), xpath, EXAMPLE_FRENCH + i, v);
                     i++;
                 }
 
@@ -253,12 +262,12 @@ public class EditFragment extends Fragment implements UpdateContribution.Contrib
         new UpdateContribution(this, volume).execute(params);
     }
 
-    private void checkAddPairToArrayList(ArrayList<Pair<String, String>> a, String value, String cdmElement, int id, View v, int num) {
+    private void checkAddPairToArrayList(ArrayList<Pair<String, String>> a, String value, String xpath, int id, View v) {
 
         value = ViewUtil.removeFancy(value);
         if (!value.equals(((EditText) v.findViewById(id)).getText().toString())) {
             String update = ((EditText) v.findViewById(id)).getText().toString();
-            String xpath = XMLUtils.getTransformedXPath(cdmElement, num, ((SearchActivity) getActivity()).getVolume());
+            xpath = XMLUtils.getTransformedXPath(xpath, ((SearchActivity) getActivity()).getVolume());
             a.add(new Pair<>(xpath, update));
         }
     }

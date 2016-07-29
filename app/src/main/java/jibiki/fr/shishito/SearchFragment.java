@@ -105,6 +105,10 @@ public class SearchFragment extends Fragment {
         }
     }
 
+    public void setVolume(Volume volume) {
+        this.volume = volume;
+    }
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
