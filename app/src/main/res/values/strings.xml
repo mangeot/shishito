@@ -18,7 +18,7 @@
     <string name="kanji">"Japonais (kanji/kana)"</string>
     <string name="example">"Exemples:"</string>
     <string name="verif">"Entrée non vérifiée"</string>
-    <string name="edit_example">"Exemple %1$d:"</string>
+    <string name="edit_example">"Exemple %1$d :"</string>
     <string name="edit_example_kanji">"Exemple Kanji :"</string>
     <string name="edit_example_hiragana">"Exemple Hiragana :"</string>
     <string name="edit_example_romaji">"Exemple Romaji :"</string>
