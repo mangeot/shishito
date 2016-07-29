@@ -19,8 +19,8 @@ public class EntryListAdapter extends ArrayAdapter<ListEntry> {
     private final Context context;
     private final ArrayList<ListEntry> values;
     private Volume volume;
-    private boolean isInit = false;
 
+    @SuppressWarnings("unused")
     private static final String TAG = EntryListAdapter.class.getSimpleName();
 
     public EntryListAdapter(Context context, ArrayList<ListEntry> values, Volume volume) {
@@ -40,11 +40,10 @@ public class EntryListAdapter extends ArrayAdapter<ListEntry> {
             rowView = inflater.inflate(R.layout.word_list_element, parent, false);
 
             TextView vedette = (TextView) rowView.findViewById(R.id.vedette);
-            ViewUtil.addVedette(vedette, entry);
+            ViewUtil.addVedette(vedette, entry, volume, false, context);
 
                 ViewUtil.addVerified(rowView, entry);
                 ViewUtil.addGramBlocksToView(rowView, entry, context, false, volume);
-                isInit = true;
         }
         if (position % 2 == 1) {
             rowView.setBackgroundColor(ContextCompat.getColor(context, R.color.green));

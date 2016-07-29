@@ -1,17 +1,13 @@
 package jibiki.fr.shishito.Util;
 
-import android.content.res.Resources;
 import android.text.TextUtils;
 import android.util.Log;
-import android.util.Pair;
-import android.util.Xml;
 
 import org.apache.commons.io.IOUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import org.w3c.dom.Text;
 import org.xml.sax.SAXException;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
@@ -21,7 +17,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
 import java.util.ArrayList;
-
 import java.util.Stack;
 
 import javax.xml.namespace.NamespaceContext;
@@ -42,7 +37,6 @@ import jibiki.fr.shishito.Models.Example;
 import jibiki.fr.shishito.Models.GramBlock;
 import jibiki.fr.shishito.Models.ListEntry;
 import jibiki.fr.shishito.Models.Volume;
-import jibiki.fr.shishito.R;
 
 /**
  * Created by tibo on 17/09/15.
@@ -50,7 +44,10 @@ import jibiki.fr.shishito.R;
 public final class XMLUtils {
 
     private static final String ns = null;
+
+    @SuppressWarnings("unused")
     private static final String TAG = XMLUtils.class.getSimpleName();
+
     private static RomajiComparator myRomajiComparator = new RomajiComparator();
 
     protected static java.util.regex.Pattern regexXpath = java.util.regex.Pattern.compile("/([^\\/\\s\\[:]+:)?([^\\[\\/\\s:]+)", java.util.regex.Pattern.DOTALL);
@@ -171,8 +168,8 @@ public final class XMLUtils {
         ListEntry entry = new ListEntry();
         xpath = adjustXpath("cdm-headword", volume);
         entry.setKanji(xPath.evaluate(xpath, el));
-        NodeList nodes = (NodeList) xPath.evaluate(xpath, el, XPathConstants.NODESET);
-        Node hwjpn = (Node) nodes.item(0);
+//        NodeList nodes = (NodeList) xPath.evaluate(xpath, el, XPathConstants.NODESET);
+//        Node hwjpn = nodes.item(0);
 //        if (hwjpn != null) {
 //            Log.d(TAG, "hwjpn xpath:" + getXpathForNode(hwjpn, volume));
 //        }
@@ -265,29 +262,31 @@ public final class XMLUtils {
         parser.require(XmlPullParser.START_TAG, ns, "volume-metadata-files");
         parser.next();
         while (parser.next() != XmlPullParser.END_TAG) {
-            if (parser.getEventType() != XmlPullParser.START_TAG) {
-                continue;
-            } else {
+            if (parser.getEventType() == XmlPullParser.START_TAG) {
                 String name = parser.getName();
                 // Starts by looking for the entry tag
-                if (name.equals("authors")) {
-                    volume.setAuthors(parser.getText());
-                    skip(parser);
-                } else if (name.equals(("cdm-elements"))) {
-                    while (parser.next() != XmlPullParser.END_TAG) {
-                        String xPath;
-                        if ((xPath = parser.getAttributeValue(null, "xpath")) != null) {
-                            String lang;
-                            if (parser.getName().equals("cdm-example") && (lang = parser.getAttributeValue(null, "lang")) != null) {
-                                volume.getElements().put(parser.getName() + "-" + lang, xPath);
-                            } else {
-                                volume.getElements().put(parser.getName(), xPath);
+                switch (name) {
+                    case "authors":
+                        volume.setAuthors(parser.getText());
+                        skip(parser);
+                        break;
+                    case ("cdm-elements"):
+                        while (parser.next() != XmlPullParser.END_TAG) {
+                            String xPath;
+                            if ((xPath = parser.getAttributeValue(null, "xpath")) != null) {
+                                String lang;
+                                if (parser.getName().equals("cdm-example") && (lang = parser.getAttributeValue(null, "lang")) != null) {
+                                    volume.getElements().put(parser.getName() + "-" + lang, xPath);
+                                } else {
+                                    volume.getElements().put(parser.getName(), xPath);
+                                }
+                                parser.next();
                             }
-                            parser.next();
                         }
-                    }
-                } else {
-                    skip(parser);
+                        break;
+                    default:
+                        skip(parser);
+                        break;
                 }
             }
         }
@@ -309,14 +308,10 @@ public final class XMLUtils {
                 prefix = "";
             }
             String newTagname = theOldNewTagMap.get(oldTagname);
-//            Log.d(TAG, "Old: " + oldTagname + " New: " + newTagname);
             if (newTagname == null) {
                 newTagname = "a" + numtags++;
                 theOldNewTagMap.put(oldTagname, newTagname);
                 theNewOldTagMap.put(newTagname, oldTagname);
-                //Log.d(TAG, "old:" + oldTagname + " new new:" + newTagname + " pref:" + prefix);
-            } else {
-                //Log.d(TAG, "old:" + oldTagname + " new found:" + newTagname + " pref:" + prefix);
             }
             newXml = newXml.replaceAll("<" + prefix + oldTagname + "\\s", "<" + prefix + newTagname + " ");
             newXml = newXml.replaceAll("<" + prefix + oldTagname + ">", "<" + prefix + newTagname + ">");
@@ -352,15 +347,15 @@ public final class XMLUtils {
     }
 
     protected static String adjustXpath(String cdmElement, Volume theVolume) {
-        String xpath = ((String) theVolume.getElements().get(cdmElement));
-        String cdmVolumePath = (String) theVolume.getElements().get("cdm-volume");
+        String xpath = theVolume.getElements().get(cdmElement);
+        String cdmVolumePath =  theVolume.getElements().get("cdm-volume");
         //Log.d(TAG, "notadjustedXpathString:" + xpath);
         if (xpath.contains(cdmVolumePath)) {
             xpath = xpath.replace(cdmVolumePath, "." + cdmVolumePath + "/d:contribution/d:data");
         }
         // à tester !
-        xpath.replaceAll("\\s//", " .//");
-        xpath.replaceAll("^//", ".//");
+//        xpath.replaceAll("\\s//", " .//");
+//        xpath.replaceAll("^//", ".//");
         //Log.d(TAG, "adjustedXpathString:" + xpath);
         xpath = replaceXpathstring(xpath, theVolume.getOldNewTagMap());
         //Log.d(TAG, "replacedXpathstring:" + xpath);
@@ -368,24 +363,13 @@ public final class XMLUtils {
     }
 
     protected static String testXpath(String xpath, Volume theVolume) {
-        String cdmVolumePath = (String) theVolume.getElements().get("cdm-volume");
+        String cdmVolumePath = theVolume.getElements().get("cdm-volume");
         //Log.d(TAG, "notadjustedXpathString:" + xpath);
         if (xpath.contains(cdmVolumePath)) {
             xpath = xpath.replace(cdmVolumePath, "." + cdmVolumePath);
         }
-        // à tester !
-        xpath.replaceAll("\\s//", " .//");
-        xpath.replaceAll("^//", ".//");
         xpath = replaceXpathstring(xpath, theVolume.getOldNewTagMap());
         return xpath;
-    }
-
-    private static String getXpathForNode(Node theNode, Volume aVolume) {
-        String resXpath = "/" + getFullXPath(theNode);
-        resXpath = replaceXpathstring(resXpath, aVolume.getNewOldTagMap());
-        resXpath = resXpath.replaceFirst("/d:entry-list/d:entry\\[[0-9]+\\]", "");
-        //resXpath += "/text()";
-        return resXpath;
     }
 
     protected static String getFullXPath(Node n) {
@@ -395,8 +379,8 @@ public final class XMLUtils {
 
 // declarations
         Node parent;
-        Stack<Node> hierarchy = new Stack<Node>();
-        StringBuffer buffer = new StringBuffer();
+        Stack<Node> hierarchy = new Stack<>();
+        StringBuilder buffer = new StringBuilder();
 
 // push element on stack
         hierarchy.push(n);

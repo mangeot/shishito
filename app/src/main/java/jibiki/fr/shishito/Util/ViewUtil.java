@@ -9,7 +9,6 @@ import android.text.TextPaint;
 import android.text.TextUtils;
 import android.text.method.LinkMovementMethod;
 import android.text.style.ClickableSpan;
-import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
@@ -50,6 +49,7 @@ public final class ViewUtil {
     public static final String colorPbJapanese = "#6600ff";
 
 
+    @SuppressWarnings("unused")
     private static final String TAG = ViewUtil.class.getSimpleName();
 
 
@@ -144,7 +144,7 @@ public final class ViewUtil {
         }
     }
 
-    public static void addVedette(TextView v, ListEntry entry) {
+    public static void addVedette(TextView v, ListEntry entry, Volume volume, boolean loggedIn, Context context) {
         String romaji = entry.getRomajiDisplay();
         if (TextUtils.isEmpty(romaji)) {
             romaji = entry.getRomajiSearch();
@@ -152,13 +152,14 @@ public final class ViewUtil {
         String kanji = entry.getKanji();
         if (entry.isVerified()) {
             kanji = "<font color=" + colorJapanese + ">" + kanji + "</font>";
+            v.append(Html.fromHtml(kanji));
         } else {
             kanji = "<font color=" + colorPbJapanese + ">" + kanji + "</font>";
+            appendClickSpannable(kanji, loggedIn, context, entry, "vedette Kanji", "cdm-headword", 0, v, volume);
         }
-        String vText = kanji +
-                "   <font color=" + colorJapanese + ">【" + entry.getHiragana() + "】</font>   " +
+        String vText = "   <font color=" + colorJapanese + ">【" + entry.getHiragana() + "】</font>   " +
                 "   <font color=" + colorRomaji + ">(" + romaji + ")</font>";
-        v.setText(Html.fromHtml(vText));
+        v.append(Html.fromHtml(vText));
     }
 
     public static void addVerified(View v, ListEntry entry) {

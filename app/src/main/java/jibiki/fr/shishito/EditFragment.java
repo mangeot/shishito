@@ -2,15 +2,13 @@ package jibiki.fr.shishito;
 
 import android.content.Context;
 import android.graphics.Typeface;
-import android.os.AsyncTask;
-import android.support.v4.app.Fragment;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
 import android.support.v4.widget.TextViewCompat;
 import android.text.Editable;
 import android.text.InputType;
 import android.text.TextUtils;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.util.Pair;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -22,14 +20,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import org.xml.sax.SAXException;
-
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
-
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.xpath.XPathExpressionException;
 
 import jibiki.fr.shishito.Interfaces.OnEntryUpdatedListener;
 import jibiki.fr.shishito.Models.Example;
@@ -37,12 +28,12 @@ import jibiki.fr.shishito.Models.GramBlock;
 import jibiki.fr.shishito.Models.ListEntry;
 import jibiki.fr.shishito.Models.Volume;
 import jibiki.fr.shishito.Tasks.UpdateContribution;
-import jibiki.fr.shishito.Util.HTTPUtils;
 import jibiki.fr.shishito.Util.ViewUtil;
 import jibiki.fr.shishito.Util.XMLUtils;
 
 public class EditFragment extends Fragment implements UpdateContribution.ContributionUpdatedListener {
 
+    @SuppressWarnings("unused")
     private static final String TAG = EditFragment.class.getSimpleName();
 
     private static final String ENTRY = "entry";
@@ -266,8 +257,6 @@ public class EditFragment extends Fragment implements UpdateContribution.Contrib
 
         value = ViewUtil.removeFancy(value);
         if (!value.equals(((EditText) v.findViewById(id)).getText().toString())) {
-            Log.d(TAG, value);
-            Log.d(TAG, ((EditText) v.findViewById(id)).getText().toString());
             String update = ((EditText) v.findViewById(id)).getText().toString();
             String xpath = XMLUtils.getTransformedXPath(cdmElement, num, ((SearchActivity) getActivity()).getVolume());
             a.add(new Pair<>(xpath, update));

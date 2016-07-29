@@ -12,7 +12,6 @@
         android:layout_marginEnd="6dip"
         android:layout_marginRight="6dip"
         android:ellipsize="marquee"
-        android:text="djsaoidajsodijasdjaosijfdosa"
         android:textAppearance="?android:attr/textAppearanceLarge" />
 
 </LinearLayout>
