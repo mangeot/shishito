@@ -31,19 +31,23 @@ import java.util.ArrayList;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathExpressionException;
 
+import jibiki.fr.shishito.Interfaces.OnEntryUpdatedListener;
 import jibiki.fr.shishito.Models.Example;
 import jibiki.fr.shishito.Models.GramBlock;
 import jibiki.fr.shishito.Models.ListEntry;
 import jibiki.fr.shishito.Models.Volume;
+import jibiki.fr.shishito.Tasks.UpdateContribution;
 import jibiki.fr.shishito.Util.HTTPUtils;
 import jibiki.fr.shishito.Util.ViewUtil;
 import jibiki.fr.shishito.Util.XMLUtils;
 
-public class EditFragment extends Fragment {
+public class EditFragment extends Fragment implements UpdateContribution.ContributionUpdatedListener {
 
     private static final String TAG = EditFragment.class.getSimpleName();
 
     private static final String ENTRY = "entry";
+    private static final String VOLUME = "volume";
+
 
     private static final int KANJI = 100;
     private static final int HIRAGANA = KANJI + 1;
@@ -58,6 +62,7 @@ public class EditFragment extends Fragment {
 
     private ListEntry entry;
     private Button saveButton;
+    private Volume volume;
 
     private OnEntryUpdatedListener mListener;
 
@@ -66,10 +71,11 @@ public class EditFragment extends Fragment {
     public EditFragment() {
     }
 
-    public static EditFragment newInstance(ListEntry entry) {
+    public static EditFragment newInstance(ListEntry entry, Volume volume) {
         EditFragment fragment = new EditFragment();
         Bundle args = new Bundle();
         args.putSerializable(ENTRY, entry);
+        args.putSerializable(VOLUME, volume);
         fragment.setArguments(args);
         return fragment;
     }
@@ -79,12 +85,8 @@ public class EditFragment extends Fragment {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
             entry = (ListEntry) getArguments().getSerializable(ENTRY);
+            volume = (Volume) getArguments().getSerializable(VOLUME);
         }
-    }
-
-    public interface OnEntryUpdatedListener {
-        // TODO: Update argument type and name
-        void onEntryUpdatedListener(ListEntry entry);
     }
 
     @Override
@@ -257,7 +259,7 @@ public class EditFragment extends Fragment {
         update = p.second;
 
         String[] params = {entry.getContribId(), update, xpath};
-        new UpdateContribution().execute(params);
+        new UpdateContribution(this, volume).execute(params);
     }
 
     private void checkAddPairToArrayList(ArrayList<Pair<String, String>> a, String value, String cdmElement, int id, View v, int num) {
@@ -272,37 +274,12 @@ public class EditFragment extends Fragment {
         }
     }
 
-    private String getXPath(String tag) {
-        SearchActivity sa = (SearchActivity) getActivity();
-        return sa.getVolume().getElements().get(tag);
-    }
-
     private void onEntryModified(ListEntry entry) {
         this.mListener.onEntryUpdatedListener(entry);
     }
 
-    public static ListEntry handleListEntryStream(InputStream stream, Volume volume) {
-        ListEntry entry = null;
-        if (stream != null) {
-            try {
-                entry = XMLUtils.parseEntryStream(stream, volume);
-            } catch (IOException | ParserConfigurationException | SAXException | XPathExpressionException e) {
-                Log.e(TAG, "Error parsing entry stream: " + e.getMessage());
-            }
-        } else {
-            return null;
-        }
-
-        return entry;
-    }
-
     private void handleListEntry(ListEntry entry) {
-        if (entry != null) {
             EditFragment.this.onEntryModified(entry);
-        } else {
-            saveError();
-            EditFragment.this.saveButton.setEnabled(true);
-        }
     }
 
     private void saveError() {
@@ -315,23 +292,18 @@ public class EditFragment extends Fragment {
         t.show();
     }
 
-    private class UpdateContribution extends AsyncTask<String, Void, ListEntry> {
-
-        @Override
-        protected ListEntry doInBackground(String... params) {
-            String url = SearchActivity.SERVER_API_URL + "Cesselin/jpn/" + params[0] + "/" + params[1];
-            InputStream is = HTTPUtils.doPut(url, params[2]);
-            return handleListEntryStream(is, ((SearchActivity)getActivity()).getVolume());
-        }
-
-        @Override
-        protected void onPostExecute(ListEntry entry) {
+    @Override
+    public void onContributionUpdated(ListEntry entry) {
+        if (entry != null) {
             if (EditFragment.this.modifWaitList.size() == 0) {
                 handleListEntry(entry);
             } else {
                 EditFragment.this.entry = entry;
                 EditFragment.this.doNextModif();
             }
+        }else {
+            saveError();
+            EditFragment.this.saveButton.setEnabled(true);
         }
     }
 

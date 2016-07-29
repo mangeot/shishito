@@ -134,8 +134,9 @@ public final class XMLUtils {
             frenchResult = frenchResult.replaceFirst("\\<\\/[^\\>]+\\>$", "");
             //  on remplace la balise pb par une couleur de font spéciale
 //            Log.d(TAG, "Pb tag: " + "<" + volume.getOldNewTagMap().get("pb") + ">");
-            frenchResult = frenchResult.replaceAll("<" + volume.getOldNewTagMap().get("pb") + ">", "</font><b><font color=" + ViewUtil.colorPbFrench + ">");
-            frenchResult = "<font color=" + ViewUtil.colorFrench + ">" + frenchResult + "</font>";
+            frenchResult = frenchResult.replaceAll("<" + volume.getOldNewTagMap().get("pb") + ">", "<b><font color=" + ViewUtil.colorPbFrench + ">");
+            frenchResult = frenchResult.replaceAll("</" + volume.getOldNewTagMap().get("pb") + ">", "</font></b>");
+//            frenchResult = "<font color=" + ViewUtil.colorFrench + ">" + frenchResult + "</font>";
             example.setFrench(frenchResult);
         }
 
@@ -375,9 +376,7 @@ public final class XMLUtils {
         // à tester !
         xpath.replaceAll("\\s//", " .//");
         xpath.replaceAll("^//", ".//");
-        //Log.d(TAG, "adjustedXpathString:" + xpath);
         xpath = replaceXpathstring(xpath, theVolume.getOldNewTagMap());
-        //Log.d(TAG, "replacedXpathstring:" + xpath);
         return xpath;
     }
 
@@ -395,7 +394,7 @@ public final class XMLUtils {
             return null;
 
 // declarations
-        Node parent = null;
+        Node parent;
         Stack<Node> hierarchy = new Stack<Node>();
         StringBuffer buffer = new StringBuffer();
 
@@ -428,14 +427,12 @@ public final class XMLUtils {
         }
 
 // construct xpath
-        Object obj = null;
+        Object obj;
         while (!hierarchy.isEmpty() && null != (obj = hierarchy.pop())) {
             Node node = (Node) obj;
             boolean handled = false;
 
             if (node.getNodeType() == Node.ELEMENT_NODE) {
-                Element e = (Element) node;
-
                 // is this the root element?
                 if (buffer.length() == 0) {
                     // root element - simply append element name
@@ -472,7 +469,7 @@ public final class XMLUtils {
                             }
                             prev_sibling = prev_sibling.getPreviousSibling();
                         }
-                        buffer.append("[" + prev_siblings + "]");
+                        buffer.append("[").append(prev_siblings).append("]");
                     }
                 }
             } else if (node.getNodeType() == Node.ATTRIBUTE_NODE) {
@@ -513,5 +510,20 @@ public final class XMLUtils {
             xpath = "(" + xpath + ")[" + num + "]";
         }
         return xpath;
+    }
+
+    public static ListEntry handleListEntryStream(InputStream stream, Volume volume) {
+        ListEntry entry = null;
+        if (stream != null) {
+            try {
+                entry = parseEntryStream(stream, volume);
+            } catch (IOException | ParserConfigurationException | SAXException | XPathExpressionException e) {
+                Log.e(TAG, "Error parsing entry stream: " + e.getMessage());
+            }
+        } else {
+            return null;
+        }
+
+        return entry;
     }
 }

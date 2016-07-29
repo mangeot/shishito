@@ -3,7 +3,6 @@ package jibiki.fr.shishito;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.text.Html;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -13,6 +12,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import jibiki.fr.shishito.Models.ListEntry;
+import jibiki.fr.shishito.Models.Volume;
 import jibiki.fr.shishito.Util.ViewUtil;
 
 public class DisplayEntryFragment extends Fragment {
@@ -20,9 +20,12 @@ public class DisplayEntryFragment extends Fragment {
 
     private static final String TAG = DisplayEntryFragment.class.getSimpleName();
     private static final String ENTRY = "entry";
+    private static final String VOLUME = "volume";
+
     private static final int EDIT_MENU_ID = 10;
 
     private ListEntry entry;
+    private Volume volume;
 
     private OnEditClickListener mListener;
 
@@ -35,17 +38,17 @@ public class DisplayEntryFragment extends Fragment {
     public DisplayEntryFragment() {
     }
 
-    public static DisplayEntryFragment newInstance(ListEntry entry) {
+    public static DisplayEntryFragment newInstance(ListEntry entry, Volume volume) {
         DisplayEntryFragment fragment = new DisplayEntryFragment();
         Bundle args = new Bundle();
         args.putSerializable(ENTRY, entry);
+        args.putSerializable(VOLUME, volume);
         fragment.setArguments(args);
         return fragment;
     }
 
     public void setListEntry(ListEntry listEntry) {
         this.entry = listEntry;
-        updateText();
     }
 
     @Override
@@ -53,6 +56,7 @@ public class DisplayEntryFragment extends Fragment {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
             entry = (ListEntry) getArguments().getSerializable(ENTRY);
+            volume = (Volume) getArguments().getSerializable(VOLUME);
         }
         setHasOptionsMenu(true);
     }
@@ -60,8 +64,8 @@ public class DisplayEntryFragment extends Fragment {
     private void updateText(){
         ViewUtil.addVedette(vedette, entry);
         ViewUtil.addVerified(v, entry);
-        ViewUtil.addGramBlocksToView(v, entry.getGramBlocks(), getContext());
-        ViewUtil.addExamplesToView(v, entry, (SearchActivity)getActivity(), loggedIn);
+        ViewUtil.addGramBlocksToView(v, entry, getContext(), loggedIn, volume);
+        ViewUtil.addExamplesToView(v, entry, getContext(), loggedIn, volume);
     }
 
     @Override
@@ -75,20 +79,6 @@ public class DisplayEntryFragment extends Fragment {
             loggedIn = true;
         }
         updateText();
-
-
-      /*  ListView listView = (ListView) findViewById(R.id.examples);
-        ArrayList<String> examples = new ArrayList<String>();
-        for(int i = 0; i< entry.getExamples().size(); i++){
-            Example example = entry.getExamples().get(i);
-            examples.add(entry.getExamples().get(i).getKanji() +
-                    "   [<font color=#cc0000>" + entry.getExamples().get(i).getHiragana() + "</font>]   " +
-                    "   [<font color=#cc0000>" + entry.getExamples().get(i).getRomaji() + "</font>]");
-        }
-        final ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,
-                android.R.layout.simple_list_item_1, examples);
-        listView.setAdapter(adapter);*/
-
         return relative;
     }
 
@@ -123,7 +113,6 @@ public class DisplayEntryFragment extends Fragment {
     }
 
     public interface OnEditClickListener {
-        // TODO: Update argument type and name
         void onEditClick(ListEntry entry);
     }
 

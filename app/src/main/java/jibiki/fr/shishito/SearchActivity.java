@@ -24,7 +24,8 @@ import java.net.CookieHandler;
 import java.net.CookieManager;
 import java.net.CookiePolicy;
 
-import jibiki.fr.shishito.Models.Dictionary;
+import jibiki.fr.shishito.Interfaces.FastEditListener;
+import jibiki.fr.shishito.Interfaces.OnEntryUpdatedListener;
 import jibiki.fr.shishito.Models.ListEntry;
 import jibiki.fr.shishito.Models.Volume;
 import jibiki.fr.shishito.Util.PersistentCookieStore;
@@ -34,7 +35,8 @@ import static jibiki.fr.shishito.Util.HTTPUtils.checkLoggedIn;
 import static jibiki.fr.shishito.Util.HTTPUtils.doGet;
 
 
-public class SearchActivity extends AppCompatActivity implements SearchFragment.OnWordSelectedListener, DisplayEntryFragment.OnEditClickListener, EditFragment.OnEntryUpdatedListener {
+public class SearchActivity extends AppCompatActivity implements SearchFragment.OnWordSelectedListener,
+        DisplayEntryFragment.OnEditClickListener, OnEntryUpdatedListener, FastEditListener {
 
     private static final String TAG = "SearchActivity";
     public final static String ENTRY = "jibiki.fr.shishito.ENTRY";
@@ -49,7 +51,6 @@ public class SearchActivity extends AppCompatActivity implements SearchFragment.
     Menu menu;
     String username = "";
 
-    private Dictionary dictionary;
     private Volume volume;
 
     @Override
@@ -111,9 +112,6 @@ public class SearchActivity extends AppCompatActivity implements SearchFragment.
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         switch (item.getItemId()) {
-
-//            case R.id.action_settings:
-//                return true;
             case R.id.action_sign_in:
                 if (TextUtils.isEmpty(username)) {
                     Intent intent = new Intent(this, LoginActivity.class);
@@ -140,7 +138,6 @@ public class SearchActivity extends AppCompatActivity implements SearchFragment.
                 if (username != null && !username.isEmpty()) {
                     MenuItem item = menu.findItem(R.id.action_sign_in);
                     item.setTitle(username);
-//                    new TestPutTask().execute();
                 }
             }
         }
@@ -168,70 +165,41 @@ public class SearchActivity extends AppCompatActivity implements SearchFragment.
     }
 
     private void putSearchFragment(String query) {
-        SearchFragment sf = SearchFragment.newInstance(query);
-        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-
-        // Replace whatever is in the fragment_container view with this fragment,
-        // don't add to back stack to avoid empty fragment container
-        transaction.replace(R.id.fragment_container, sf, "search");
-
-        // Commit the transaction
-        transaction.commit();
+        SearchFragment sf = SearchFragment.newInstance(query, volume);
+        makeTransaction(sf, "search", false);
     }
 
     private void putAboutFragment() {
         AboutFragment def = AboutFragment.newInstance();
+        makeTransaction(def, "about", true);
+    }
 
+    private void makeTransaction(Fragment fragment, String tag, boolean addToBackStack) {
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
 
         // Replace whatever is in the fragment_container view with this fragment,
         // and add the transaction to the back stack so the user can navigate back
-        transaction.replace(R.id.fragment_container, def, "about");
-        transaction.addToBackStack(null);
+        transaction.replace(R.id.fragment_container, fragment, tag);
+        if (addToBackStack) transaction.addToBackStack(null);
 
         // Commit the transaction
         transaction.commit();
     }
 
     private void putDisplayEntryFragment(ListEntry entry) {
-        DisplayEntryFragment def = DisplayEntryFragment.newInstance(entry);
-
-        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-
-        // Replace whatever is in the fragment_container view with this fragment,
-        // and add the transaction to the back stack so the user can navigate back
-        transaction.replace(R.id.fragment_container, def, "display");
-        transaction.addToBackStack(null);
-
-        // Commit the transaction
-        transaction.commit();
+        DisplayEntryFragment def = DisplayEntryFragment.newInstance(entry, volume);
+        makeTransaction(def, "display", true);
     }
 
     private void putEditFragment(ListEntry entry) {
-        EditFragment ef = EditFragment.newInstance(entry);
-        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-
-        // Replace whatever is in the fragment_container view with this fragment,
-        // and add the transaction to the back stack so the user can navigate back
-        transaction.replace(R.id.fragment_container, ef);
-        transaction.addToBackStack(null);
-
-        // Commit the transaction
-        transaction.commit();
+        EditFragment ef = EditFragment.newInstance(entry, volume);
+        makeTransaction(ef, "edit", true);
     }
 
-
+    @Override
     public void putFastEdit(String contribId, String xPath, String content, String title) {
-        FastEditFragment fef = FastEditFragment.newInstance(content, xPath, contribId, title);
-        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-
-        // Replace whatever is in the fragment_container view with this fragment,
-        // and add the transaction to the back stack so the user can navigate back
-        transaction.replace(R.id.fragment_container, fef);
-        transaction.addToBackStack(null);
-
-        // Commit the transaction
-        transaction.commit();
+        FastEditFragment fef = FastEditFragment.newInstance(content, xPath, contribId, title, volume);
+        makeTransaction(fef, "fast", true);
     }
 
     private void setLoggedIn() {
@@ -266,7 +234,6 @@ public class SearchActivity extends AppCompatActivity implements SearchFragment.
         putDisplayEntryFragment(entry);
     }
 
-
     @Override
     public void onEditClick(ListEntry entry) {
         putEditFragment(entry);
@@ -274,8 +241,6 @@ public class SearchActivity extends AppCompatActivity implements SearchFragment.
 
     @Override
     public void onEntryUpdatedListener(ListEntry entry) {
-//        putDisplayEntryFragment(entry);
-        getSupportFragmentManager().popBackStack();
         Fragment frag = getSupportFragmentManager().findFragmentByTag("display");
         if (frag != null && frag instanceof DisplayEntryFragment) {
             DisplayEntryFragment def = (DisplayEntryFragment) frag;
@@ -287,6 +252,7 @@ public class SearchActivity extends AppCompatActivity implements SearchFragment.
             SearchFragment sf = (SearchFragment) frag;
             sf.updateEntry(entry);
         }
+        getSupportFragmentManager().popBackStack();
     }
 
     private class InitVolumeTask extends AsyncTask<String, Void, Volume> {
@@ -298,7 +264,7 @@ public class SearchActivity extends AppCompatActivity implements SearchFragment.
 
         @Override
         protected Volume doInBackground(String... params) {
-            InputStream stream = null;
+            InputStream stream;
             Volume volume = null;
             try {
                 stream = doGet(SERVER_API_URL + "Cesselin/jpn/");
@@ -327,7 +293,7 @@ public class SearchActivity extends AppCompatActivity implements SearchFragment.
 
         @Override
         protected String doInBackground(Void... params) {
-            String username = "";
+            String username;
 
             username = checkLoggedIn();
 

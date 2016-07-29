@@ -1,11 +1,11 @@
 package jibiki.fr.shishito;
 
 import android.content.Context;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,21 +13,21 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
-import java.io.InputStream;
-
+import jibiki.fr.shishito.Interfaces.OnEntryUpdatedListener;
 import jibiki.fr.shishito.Models.ListEntry;
-import jibiki.fr.shishito.Util.HTTPUtils;
+import jibiki.fr.shishito.Models.Volume;
+import jibiki.fr.shishito.Tasks.UpdateContribution;
 
 
 /**
  * A simple {@link Fragment} subclass.
  * Activities that contain this fragment must implement the
- * {@link jibiki.fr.shishito.EditFragment.OnEntryUpdatedListener} interface
+ * {@link OnEntryUpdatedListener} interface
  * to handle interaction events.
  * Use the {@link FastEditFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class FastEditFragment extends Fragment {
+public class FastEditFragment extends Fragment implements UpdateContribution.ContributionUpdatedListener {
 
     private static final String TAG = FastEditFragment.class.getSimpleName();
 
@@ -36,6 +36,7 @@ public class FastEditFragment extends Fragment {
     private static final String XPATH = "xpath";
     private static final String CONTRIB_ID = "contrib_id";
     private static final String TITLE = "title";
+    private static final String VOLUME = "volume";
 
 
 
@@ -45,11 +46,13 @@ public class FastEditFragment extends Fragment {
     private String contribId;
     private String title;
 
+    private Volume volume;
+
 
     private Button saveButton;
     private EditText et;
 
-    private EditFragment.OnEntryUpdatedListener mListener;
+    private OnEntryUpdatedListener mListener;
 
     public FastEditFragment() {
         // Required empty public constructor
@@ -64,14 +67,16 @@ public class FastEditFragment extends Fragment {
      * @return A new instance of fragment FastEditFragment.
      */
     // TODO: Rename and change types and number of parameters
-    public static FastEditFragment newInstance(String fieldContent, String xpath, String contribId, String title) {
+    public static FastEditFragment newInstance(String fieldContent, String xpath, String contribId, String title, Volume volume) {
         FastEditFragment fragment = new FastEditFragment();
         Bundle args = new Bundle();
         args.putString(FIELD_CONTENT, fieldContent);
         args.putString(XPATH, xpath);
         args.putString(CONTRIB_ID, contribId);
         args.putString(TITLE, title);
+        args.putSerializable(VOLUME, volume);
         fragment.setArguments(args);
+        Log.d(TAG, "CONTRIB: " + contribId);
         return fragment;
     }
 
@@ -83,6 +88,7 @@ public class FastEditFragment extends Fragment {
             xpath = getArguments().getString(XPATH);
             contribId = getArguments().getString(CONTRIB_ID);
             title = getArguments().getString(TITLE);
+            volume = (Volume)getArguments().getSerializable(VOLUME);
         }
     }
 
@@ -115,9 +121,9 @@ public class FastEditFragment extends Fragment {
         saveButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (!et.getText().equals(fieldContent)) {
+                if (!et.getText().toString().equals(fieldContent)) {
                     String[] params = {contribId, et.getText().toString(), xpath};
-                    new UpdateContribution().execute(params);
+                    new UpdateContribution(FastEditFragment.this, volume).execute(params);
                 }
             }
         });
@@ -127,8 +133,8 @@ public class FastEditFragment extends Fragment {
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        if (context instanceof EditFragment.OnEntryUpdatedListener) {
-            mListener = (EditFragment.OnEntryUpdatedListener) context;
+        if (context instanceof OnEntryUpdatedListener) {
+            mListener = (OnEntryUpdatedListener) context;
         } else {
             throw new RuntimeException(context.toString()
                     + " must implement OnFragmentInteractionListener");
@@ -141,22 +147,10 @@ public class FastEditFragment extends Fragment {
         mListener = null;
     }
 
-    private class UpdateContribution extends AsyncTask<String, Void, ListEntry> {
-
-        @Override
-        protected ListEntry doInBackground(String... params) {
-            String url = SearchActivity.SERVER_API_URL + "Cesselin/jpn/" + params[0] + "/" + params[1];
-            InputStream is = HTTPUtils.doPut(url, params[2]);
-            return EditFragment.handleListEntryStream(is, ((SearchActivity)getActivity()).getVolume());
-        }
-
-        @Override
-        protected void onPostExecute(ListEntry entry) {
-            if (entry != null) {
-                mListener.onEntryUpdatedListener(entry);
-            }
+    @Override
+    public void onContributionUpdated(ListEntry entry) {
+        if (entry != null) {
+            mListener.onEntryUpdatedListener(entry);
         }
     }
-
-
 }

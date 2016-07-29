@@ -32,6 +32,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathExpressionException;
 
 import jibiki.fr.shishito.Models.ListEntry;
+import jibiki.fr.shishito.Models.Volume;
 import jibiki.fr.shishito.Util.XMLUtils;
 
 import static jibiki.fr.shishito.Util.HTTPUtils.doGet;
@@ -58,6 +59,7 @@ public class SearchFragment extends Fragment {
     ArrayList<ListEntry> curList;
     SearchView searchView;
     TextView noResult;
+    Volume volume;
     private OnWordSelectedListener mListener;
 
     public SearchFragment() {
@@ -72,10 +74,11 @@ public class SearchFragment extends Fragment {
      * @return A new instance of fragment SearchFragment.
      */
     // TODO: Rename and change types and number of parameters
-    public static SearchFragment newInstance(String query) {
+    public static SearchFragment newInstance(String query, Volume volume) {
         SearchFragment fragment = new SearchFragment();
         Bundle args = new Bundle();
         args.putString(QUERY, query);
+        args.putSerializable(VOLUME, volume);
         fragment.setArguments(args);
         return fragment;
     }
@@ -85,6 +88,7 @@ public class SearchFragment extends Fragment {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
             query = getArguments().getString(QUERY);
+            volume = (Volume) getArguments().getSerializable(VOLUME);
         }
         setRetainInstance(true);
     }
@@ -119,7 +123,7 @@ public class SearchFragment extends Fragment {
         if (curList != null) {
             EntryListAdapter adapter = (EntryListAdapter) listView.getAdapter();
             if (adapter == null) {
-                adapter = new EntryListAdapter(getActivity(), curList);
+                adapter = new EntryListAdapter(getActivity(), curList, volume);
                 listView.setAdapter(adapter);
             } else {
                 adapter.clear();
@@ -224,11 +228,10 @@ public class SearchFragment extends Fragment {
 
         @Override
         protected ArrayList<ListEntry> doInBackground(String... params) {
-            InputStream stream = null;
+            InputStream stream;
             ArrayList<ListEntry> result = null;
             try {
                 String word = URLEncoder.encode(params[0], "UTF-8");
-                //stream = doGet(SEREVR_API_URL + "Cesselin/jpn/cdm-headword|cdm-reading|cdm-writing/" + word + "/entries/?strategy=CASE_INSENSITIVE_STARTS_WITH");
                 stream = doGet(BaseActivity.SERVER_API_URL + "Cesselin/jpn/cdm-headword|cdm-reading|cdm-writing/" + word + "/entries/?strategy=CASE_INSENSITIVE_EQUAL");
                 result = XMLUtils.parseEntryList(stream, ((SearchActivity) getActivity()).getVolume());
                 Log.v(TAG, "index=" + result);
@@ -260,7 +263,7 @@ public class SearchFragment extends Fragment {
 
                     EntryListAdapter adapter = (EntryListAdapter) listView.getAdapter();
                     if (adapter == null) {
-                        adapter = new EntryListAdapter(getActivity(), result);
+                        adapter = new EntryListAdapter(getActivity(), result, volume);
                         listView.setAdapter(adapter);
                     } else {
                         adapter.clear();
