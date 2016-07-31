@@ -180,7 +180,7 @@ public final class XMLUtils {
         xpath = adjustXpath("cdm-reading", volume);
         entry.setHiragana(xPath.evaluate(xpath, el));
 
-        xpath = adjustXpath("cdm-gram-block", volume);
+ /*       xpath = adjustXpath("cdm-gram-block", volume);
         NodeList gramBlocks = (NodeList) xPath.evaluate(xpath, el, XPathConstants.NODESET);
         for (int i = 0; i < gramBlocks.getLength(); i++) {
             Element block = (Element) gramBlocks.item(i);
@@ -197,7 +197,7 @@ public final class XMLUtils {
 //            Log.d(TAG, "Example French: " + example.getFrench());
 //            Log.d(TAG, "Example KANJI: " + example.getKanji());
         }
-
+*/
         xpath = adjustXpath("cdm-entry-id", volume);
         entry.setEntryId(xPath.evaluate(xpath, el));
         xpath = adjustXpath("cesselin-vedette-jpn-match", volume);
