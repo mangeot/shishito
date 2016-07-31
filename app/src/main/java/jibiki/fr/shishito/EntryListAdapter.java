@@ -40,10 +40,10 @@ public class EntryListAdapter extends ArrayAdapter<ListEntry> {
             rowView = inflater.inflate(R.layout.word_list_element, parent, false);
 
             TextView vedette = (TextView) rowView.findViewById(R.id.vedette);
-            ViewUtil.addVedette(vedette, entry, volume, false, context);
+            ViewUtil.addVedette(vedette, entry, false, context);
 
                 ViewUtil.addVerified(rowView, entry);
-                ViewUtil.addGramBlocksToView(rowView, entry, context, false, volume);
+                ViewUtil.parseAndAddGramBlocksToView(rowView, entry, context, false);
         }
         if (position % 2 == 1) {
             rowView.setBackgroundColor(ContextCompat.getColor(context, R.color.green));

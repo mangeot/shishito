@@ -1,5 +1,7 @@
 package jibiki.fr.shishito.Models;
 
+import org.w3c.dom.Node;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 
@@ -8,6 +10,8 @@ import java.util.ArrayList;
  */
 public class ListEntry implements Serializable {
 
+    private Volume volume;
+    private org.w3c.dom.Node entryNode;
     private String kanji;
     private String hiragana;
     private String romajiDisplay;
@@ -23,9 +27,19 @@ public class ListEntry implements Serializable {
 
     private boolean verified;
 
-    public ListEntry() {
+    public ListEntry(org.w3c.dom.Node theEntryNode, Volume theVolume) {
         gramBlocks = new ArrayList<>();
         examples = new ArrayList<>();
+        volume = theVolume;
+        entryNode = theEntryNode;
+    }
+
+    public Volume getVolume() {
+        return volume;
+    }
+
+    public Node getNode() {
+        return entryNode;
     }
 
     public String getKanji() {

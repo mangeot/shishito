@@ -33,6 +33,7 @@ import javax.xml.xpath.XPathExpressionException;
 
 import jibiki.fr.shishito.Models.ListEntry;
 import jibiki.fr.shishito.Models.Volume;
+import jibiki.fr.shishito.Util.ViewUtil;
 import jibiki.fr.shishito.Util.XMLUtils;
 
 import static jibiki.fr.shishito.Util.HTTPUtils.doGet;
@@ -236,6 +237,8 @@ public class SearchFragment extends Fragment {
             ArrayList<ListEntry> result = null;
             try {
                 String word = URLEncoder.encode(params[0], "UTF-8");
+                word = ViewUtil.normalizeQueryString(word);
+
                 stream = doGet(BaseActivity.SERVER_API_URL + "Cesselin/jpn/cdm-headword|cdm-reading|cdm-writing/" + word + "/entries/?strategy=CASE_INSENSITIVE_EQUAL");
                 result = XMLUtils.parseEntryList(stream, ((SearchActivity) getActivity()).getVolume());
                 Log.v(TAG, "index=" + result);

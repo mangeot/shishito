@@ -86,7 +86,7 @@ public final class XMLUtils {
         defs[0] = defs[0].substring(xpath.length() + sens.length());
         defs[1] = defs[1].replace(" ", "").substring(xpath.length() + sens.length());
 
-        GramBlock gb = new GramBlock();
+        GramBlock gb = new GramBlock(block);
         gb.setGram(xPath.evaluate("." + posPath, block));
         NodeList sensList = (NodeList) xPath.evaluate("." + sens, block, XPathConstants.NODESET);
         for (int j = 0; j < sensList.getLength(); j++) {
@@ -165,7 +165,7 @@ public final class XMLUtils {
 
     private static ListEntry parseListEntry(XPath xPath, Node el, Volume volume) throws XPathExpressionException {
         String xpath;
-        ListEntry entry = new ListEntry();
+        ListEntry entry = new ListEntry(el,volume);
         xpath = adjustXpath("cdm-headword", volume);
         entry.setKanji(xPath.evaluate(xpath, el));
 //        NodeList nodes = (NodeList) xPath.evaluate(xpath, el, XPathConstants.NODESET);
@@ -220,7 +220,7 @@ public final class XMLUtils {
         return db.parse(source);
     }
 
-    private static XPath getNewXPath() {
+    public static XPath getNewXPath() {
         NamespaceContext context = new NamespaceContextMap(
                 "d", "http://www-clips.imag.fr/geta/services/dml",
                 "xslt", "http://bar",
@@ -362,6 +362,14 @@ public final class XMLUtils {
         return xpath;
     }
 
+    public static String removeXpathBeforeVolumeTag(String xpathString, Volume theVolume) {
+        String cdmVolumePath =  theVolume.getElements().get("cdm-volume");
+        if (xpathString.contains(cdmVolumePath)) {
+            xpathString = xpathString.replaceFirst("^.*?\\" + cdmVolumePath, cdmVolumePath);
+        }
+        return xpathString;
+    }
+
     protected static String testXpath(String xpath, Volume theVolume) {
         String cdmVolumePath = theVolume.getElements().get("cdm-volume");
         //Log.d(TAG, "notadjustedXpathString:" + xpath);
@@ -467,7 +475,7 @@ public final class XMLUtils {
         return buffer.toString();
     }
 
-    private static String getStringFromNode(Node theNode) {
+    public static String getStringFromNode(Node theNode) {
         try {
             DOMSource domSource = new DOMSource(theNode);
             StringWriter writer = new StringWriter();
