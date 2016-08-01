@@ -106,7 +106,13 @@ public final class ViewUtil {
                 Element sensEl = (Element) sensList.item(j);
                 NodeList defNodes = (NodeList) xPath.evaluate(defPath, sensEl, XPathConstants.NODESET);
                 Node defNode = defNodes.item(0);
-                TextView senseView = parseAndCreateSenseView(defNode, entry, canEdit, context, params, j+1);
+                TextView senseView = new TextView(context);
+                senseView.setLayoutParams(params);
+                TextViewCompat.setTextAppearance(senseView, android.R.style.TextAppearance_Medium);
+                if (sensList.getLength()>1) {
+                    senseView.append((j+1) + ". ");
+                }
+                parseAndAddSenseToView(defNode, entry, canEdit, context, senseView);
                 ((LinearLayout) v).addView(senseView);
             }
         }
@@ -115,27 +121,21 @@ public final class ViewUtil {
         }
     }
 
-    private static TextView parseAndCreateSenseView(Node senseNode, ListEntry entry, boolean canEdit, Context context, LinearLayout.LayoutParams params, int senseNumber) {
-        TextView senseView = new TextView(context);
-        senseView.setLayoutParams(params);
-        senseView.append(senseNumber + ". ");
-        TextViewCompat.setTextAppearance(senseView, android.R.style.TextAppearance_Medium);
-            String defResult = XMLUtils.getStringFromNode(senseNode);
-            //               Log.d(TAG, "Def French XML:" + defResult);
-            //               Log.d(TAG, "en tag:" + volume.getOldNewTagMap().get("en"));
-            if (!TextUtils.isEmpty(defResult) && defResult.contains("<" + entry.getVolume().getOldNewTagMap().get("en") + ">")) {
-                defResult = "<font color=" + ViewUtil.colorEnglish + ">" + defResult + "</font>";
-            } else {
-                defResult = "<font color=" + ViewUtil.colorFrench + ">" + defResult + "</font>";
-            }
-            //               Log.d(TAG, "Def French XML end:" + defResult);
-            String xpathPointer = "/" + XMLUtils.getFullXPath(senseNode);
-            xpathPointer = XMLUtils.replaceXpathstring(xpathPointer, entry.getVolume().getNewOldTagMap());
-            xpathPointer = XMLUtils.removeXpathBeforeVolumeTag(xpathPointer, entry.getVolume());
-            //Log.d(TAG, "xpathPointer: " + xpathPointer);
-            appendClickSpannable(defResult, canEdit,
-                    context, entry, "sense", xpathPointer, senseView);
-         return senseView;
+    private static void parseAndAddSenseToView(Node senseNode, ListEntry entry, boolean canEdit, Context context, TextView senseView) {
+        String defResult = XMLUtils.getStringFromNode(senseNode);
+        //               Log.d(TAG, "Def French XML:" + defResult);
+        //               Log.d(TAG, "en tag:" + volume.getOldNewTagMap().get("en"));
+        if (!TextUtils.isEmpty(defResult) && defResult.contains("<" + entry.getVolume().getOldNewTagMap().get("en") + ">")) {
+            defResult = "<font color=" + ViewUtil.colorEnglish + ">" + defResult + "</font>";
+        } else {
+            defResult = "<font color=" + ViewUtil.colorFrench + ">" + defResult + "</font>";
+        }
+        String xpathPointer = "/" + XMLUtils.getFullXPath(senseNode);
+        xpathPointer = XMLUtils.replaceXpathstring(xpathPointer, entry.getVolume().getNewOldTagMap());
+        xpathPointer = XMLUtils.removeXpathBeforeVolumeTag(xpathPointer, entry.getVolume());
+        //Log.d(TAG, "xpathPointer: " + xpathPointer);
+        appendClickSpannable(defResult, canEdit,
+                context, entry, "sense", xpathPointer, senseView);
     }
 
 
@@ -200,6 +200,7 @@ public final class ViewUtil {
     private static TextView parseAndCreateExampleView(Element exampleNode, ListEntry entry, boolean canEdit, Context context, String blockXpathString) {
         TextView exView = new TextView(context);
         exView.setLineSpacing(8, 1);
+        exView.append("▪ ");
         TextViewCompat.setTextAppearance(exView, android.R.style.TextAppearance_Medium);
         try {
 
@@ -217,15 +218,19 @@ public final class ViewUtil {
             NodeList romajiNodes = (NodeList) xPath.evaluate(romajiPath, exampleNode, XPathConstants.NODESET);
             Node romajiNode = romajiNodes.item(0);
             parseAndAddExampleRomajiToView(romajiNode, entry, canEdit, context, exView);
-            exView.append("  ");
+            exView.append(" ");
 
 
             String frenchPath = XMLUtils.adjustXpath("cdm-example-fra", entry.getVolume()).substring(blockXpathString.length());
             frenchPath = "." + frenchPath.replace("/text()", "");
             NodeList frenchNodes = (NodeList) xPath.evaluate(frenchPath, exampleNode, XPathConstants.NODESET);
-            Node frenchNode = frenchNodes.item(0);
-
-            parseAndAddExampleFrenchToView(frenchNode, entry, canEdit, context, exView);
+            for (int i = 0; i < frenchNodes.getLength(); i++) {
+                Element frenchNode = (Element) frenchNodes.item(i);
+                if (frenchNodes.getLength()>1) {
+                    exView.append(" ["+(i+1)+"] ");
+                }
+                parseAndAddExampleFrenchToView(frenchNode, entry, canEdit, context, exView);
+            }
         }
     catch (XPathExpressionException ex) {
         Log.e(TAG, "Error xPath: " + ex.getMessage());
