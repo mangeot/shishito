@@ -48,12 +48,11 @@
 
     <!-- Strings related to help page -->
     <string name="link_website">Cette application est dérivée du site http://jibiki.fr/.\n\n
-
         Visitez ce site pour vous inscrire et nous aider à corriger les informations du dictionnaire.\n\n
-
         Une page d\'aide est disponible : http://jibiki.fr/help.php .\n\n
-
-        Pour plus d\'information sur le projet : http://jibiki.fr/informations.php .</string>
+        Pour plus d\'information sur le projet : http://jibiki.fr/informations.php .\n\n
+        Pour signaler un bogue, déclarez-le sur l'interface suivante : https://forge.imag.fr/tracker/?atid=3655&group_id=823
+    </string>
     <string name="menu_help">"Aide"</string>
 
     <!-- TODO: Remove or change this placeholder text -->
