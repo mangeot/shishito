@@ -17,6 +17,7 @@ import jibiki.fr.shishito.Interfaces.OnEntryUpdatedListener;
 import jibiki.fr.shishito.Models.ListEntry;
 import jibiki.fr.shishito.Models.Volume;
 import jibiki.fr.shishito.Tasks.UpdateContribution;
+import jibiki.fr.shishito.Util.XMLUtils;
 
 
 /**
@@ -122,11 +123,20 @@ public class FastEditFragment extends Fragment implements UpdateContribution.Con
             @Override
             public void onClick(View v) {
                 saveButton.setEnabled(false);
-                if (!et.getText().toString().equals(fieldContent)) {
+                // On sauvegarde même s'il n'y a pas de modifications car des fois, ce sont des fausses erreurs détectées
+                // if (!et.getText().toString().equals(fieldContent)) {
                     String[] params = {contribId, et.getText().toString(), xpath};
                     Log.d(TAG, et.getText().toString());
                     new UpdateContribution(FastEditFragment.this, volume).execute(params);
-                }
+                    if (params[2].contains("vedette-jpn")) {
+                        Log.d(TAG, "PUT de vedette-jpn");
+                        String[] paramsValide = {contribId, "manuel", XMLUtils.addContributionTagsToXPath(volume.getElements().get("cesselin-vedette-jpn-match"))};
+                        // Ici, il y a un pb car qd on fait un premier PUT, le contributionId change et donc le deuxième PUT ne marche pas.
+                        // Il faut trouver une solution pour récupérer le nouveau contributionId
+
+                        //new UpdateContribution(FastEditFragment.this, volume).execute(paramsValide);
+                    }
+                // }
             }
         });
         return v;

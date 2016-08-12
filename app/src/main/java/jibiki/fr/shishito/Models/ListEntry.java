@@ -12,8 +12,8 @@ public class ListEntry implements Serializable {
 
     private Volume volume;
     private org.w3c.dom.Node entryNode;
-    private String kanji;
-    private String hiragana;
+    private org.w3c.dom.Node kanjiNode;
+    private org.w3c.dom.Node hiraganaNode;
     private String romajiDisplay;
     private String romajiSearch;
 
@@ -42,20 +42,20 @@ public class ListEntry implements Serializable {
         return entryNode;
     }
 
-    public String getKanji() {
-        return kanji;
+    public Node getKanjiNode() {
+        return kanjiNode;
     }
 
-    public void setKanji(String kanji) {
-        this.kanji = kanji;
+    public void setKanjiNode(Node kanji) {
+        this.kanjiNode = kanji;
     }
 
-    public String getHiragana() {
-        return hiragana;
+    public Node getHiraganaNode() {
+        return hiraganaNode;
     }
 
-    public void setHiragana(String hiragana) {
-        this.hiragana = hiragana;
+    public void setHiraganaNode(org.w3c.dom.Node hiragana) {
+        this.hiraganaNode = hiragana;
     }
 
     public String getRomajiDisplay() {

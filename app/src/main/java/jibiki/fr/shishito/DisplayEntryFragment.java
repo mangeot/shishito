@@ -25,7 +25,6 @@ public class DisplayEntryFragment extends Fragment {
     private static final int EDIT_MENU_ID = 10;
 
     private ListEntry entry;
-    private Volume volume;
 
     private OnEditClickListener mListener;
 
@@ -38,11 +37,10 @@ public class DisplayEntryFragment extends Fragment {
     public DisplayEntryFragment() {
     }
 
-    public static DisplayEntryFragment newInstance(ListEntry entry, Volume volume) {
+    public static DisplayEntryFragment newInstance(ListEntry entry) {
         DisplayEntryFragment fragment = new DisplayEntryFragment();
         Bundle args = new Bundle();
         args.putSerializable(ENTRY, entry);
-        args.putSerializable(VOLUME, volume);
         fragment.setArguments(args);
         return fragment;
     }
@@ -56,7 +54,6 @@ public class DisplayEntryFragment extends Fragment {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
             entry = (ListEntry) getArguments().getSerializable(ENTRY);
-            volume = (Volume) getArguments().getSerializable(VOLUME);
         }
         setHasOptionsMenu(true);
     }

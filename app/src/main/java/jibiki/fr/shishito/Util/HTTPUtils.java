@@ -18,6 +18,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.io.UnsupportedEncodingException;
 import java.net.CookieHandler;
 import java.net.CookieManager;
 import java.net.CookiePolicy;
@@ -63,8 +64,8 @@ public final class HTTPUtils {
         HttpURLConnection urlConnection = null;
         InputStream is;
         Log.d(TAG, data);
-        try {
-            URL url = new URL(sUrl.replace(" ", "%20"));
+         try {
+            URL url = new URL(sUrl);
             urlConnection = (HttpURLConnection) url.openConnection();
             urlConnection.setRequestMethod("PUT");
             urlConnection.setDoOutput(true);

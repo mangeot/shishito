@@ -123,8 +123,13 @@ public final class ViewUtil {
 
     private static void parseAndAddSenseToView(Node senseNode, ListEntry entry, boolean canEdit, Context context, TextView senseView) {
         String defResult = XMLUtils.getStringFromNode(senseNode);
-        //               Log.d(TAG, "Def French XML:" + defResult);
-        //               Log.d(TAG, "en tag:" + volume.getOldNewTagMap().get("en"));
+        defResult = defResult.replaceFirst("^\\<[^\\>]+\\>", "");
+        defResult = defResult.replaceFirst("\\<\\/[^\\>]+\\>$", "");
+        //  on remplace la balise pb par une couleur de font spéciale
+//            Log.d(TAG, "Pb tag: " + "<" + volume.getOldNewTagMap().get("pb") + ">");
+        defResult = defResult.replaceAll("\\<" + entry.getVolume().getOldNewTagMap().get("pb") + "\\>", "</font><b><font color=" + ViewUtil.colorPbFrench + ">");
+        defResult = defResult.replaceAll("\\<\\/" + entry.getVolume().getOldNewTagMap().get("pb") + "\\>", "</font></b><font color=" + ViewUtil.colorFrench + ">");
+
         if (!TextUtils.isEmpty(defResult) && defResult.contains("<" + entry.getVolume().getOldNewTagMap().get("en") + ">")) {
             defResult = "<font color=" + ViewUtil.colorEnglish + ">" + defResult + "</font>";
         } else {
@@ -342,16 +347,20 @@ public final class ViewUtil {
         if (TextUtils.isEmpty(romaji)) {
             romaji = entry.getRomajiSearch();
         }
-        String kanji = entry.getKanji();
+        Node kanjiNode = entry.getKanjiNode();
+        String kanji = XMLUtils.getStringFromNode(kanjiNode);
         if (entry.isVerified()) {
             kanji = "<font color=" + colorJapanese + ">" + kanji + "</font>";
             v.append(Html.fromHtml(kanji));
         } else {
             kanji = "<font color=" + colorPbJapanese + ">" + kanji + "</font>";
-            String xpath = XMLUtils.getTransformedXPath("cdm-headword", entry.getVolume());
-            appendClickSpannable(kanji, loggedIn, context, entry, "vedette Kanji", xpath, v);
+            String xpathPointer = "/" + XMLUtils.getFullXPath(kanjiNode);
+            xpathPointer = XMLUtils.replaceXpathstring(xpathPointer, entry.getVolume().getNewOldTagMap());
+            xpathPointer = XMLUtils.removeXpathBeforeVolumeTag(xpathPointer, entry.getVolume());
+            appendClickSpannable(kanji, loggedIn, context, entry, "vedette Kanji", xpathPointer, v);
         }
-        String vText = "   <font color=" + colorJapanese + ">【" + entry.getHiragana() + "】</font>   " +
+        String hiraganaString = XMLUtils.getStringFromNode(entry.getHiraganaNode());
+        String vText = "   <font color=" + colorJapanese + ">【" + hiraganaString + "】</font>   " +
                 "   <font color=" + colorRomaji + ">(" + romaji + ")</font>";
         v.append(Html.fromHtml(vText));
     }
