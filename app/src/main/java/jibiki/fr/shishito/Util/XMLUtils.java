@@ -48,6 +48,14 @@ public final class XMLUtils {
     @SuppressWarnings("unused")
     private static final String TAG = XMLUtils.class.getSimpleName();
 
+    private static final NamespaceContext myNamespaceContext = new NamespaceContextMap(
+            "d", "http://www-clips.imag.fr/geta/services/dml",
+            "xslt", "http://bar",
+            "def", "http://def");
+
+    private static final XPathFactory myXPathFactory = XPathFactory.newInstance();
+
+
     private static RomajiComparator myRomajiComparator = new RomajiComparator();
 
     protected static java.util.regex.Pattern regexXpath = java.util.regex.Pattern.compile("/([^\\/\\s\\[:]+:)?([^\\[\\/\\s:]+)", java.util.regex.Pattern.DOTALL);
@@ -86,7 +94,7 @@ public final class XMLUtils {
         defs[0] = defs[0].substring(xpath.length() + sens.length());
         defs[1] = defs[1].replace(" ", "").substring(xpath.length() + sens.length());
 
-        GramBlock gb = new GramBlock();
+        GramBlock gb = new GramBlock(block);
         gb.setGram(xPath.evaluate("." + posPath, block));
         NodeList sensList = (NodeList) xPath.evaluate("." + sens, block, XPathConstants.NODESET);
         for (int j = 0; j < sensList.getLength(); j++) {
@@ -165,22 +173,22 @@ public final class XMLUtils {
 
     private static ListEntry parseListEntry(XPath xPath, Node el, Volume volume) throws XPathExpressionException {
         String xpath;
-        ListEntry entry = new ListEntry();
+        ListEntry entry = new ListEntry(el,volume);
         xpath = adjustXpath("cdm-headword", volume);
-        entry.setKanji(xPath.evaluate(xpath, el));
-//        NodeList nodes = (NodeList) xPath.evaluate(xpath, el, XPathConstants.NODESET);
-//        Node hwjpn = nodes.item(0);
-//        if (hwjpn != null) {
-//            Log.d(TAG, "hwjpn xpath:" + getXpathForNode(hwjpn, volume));
-//        }
+        NodeList nodes = (NodeList) xPath.evaluate(xpath, el, XPathConstants.NODESET);
+        if (nodes.getLength()>0) {
+            entry.setKanjiNode(nodes.item(0));
+        }
         xpath = adjustXpath("cesselin-writing-display", volume);
         entry.setRomajiDisplay(xPath.evaluate(xpath, el));
         xpath = adjustXpath("cdm-writing", volume);
         entry.setRomajiSearch(xPath.evaluate(xpath, el));
         xpath = adjustXpath("cdm-reading", volume);
-        entry.setHiragana(xPath.evaluate(xpath, el));
-
-        xpath = adjustXpath("cdm-gram-block", volume);
+        NodeList hiraganaNodes = (NodeList) xPath.evaluate(xpath, el, XPathConstants.NODESET);
+        if (hiraganaNodes.getLength()>0) {
+            entry.setHiraganaNode(hiraganaNodes.item(0));
+        }
+ /*       xpath = adjustXpath("cdm-gram-block", volume);
         NodeList gramBlocks = (NodeList) xPath.evaluate(xpath, el, XPathConstants.NODESET);
         for (int i = 0; i < gramBlocks.getLength(); i++) {
             Element block = (Element) gramBlocks.item(i);
@@ -197,12 +205,12 @@ public final class XMLUtils {
 //            Log.d(TAG, "Example French: " + example.getFrench());
 //            Log.d(TAG, "Example KANJI: " + example.getKanji());
         }
-
+*/
         xpath = adjustXpath("cdm-entry-id", volume);
         entry.setEntryId(xPath.evaluate(xpath, el));
         xpath = adjustXpath("cesselin-vedette-jpn-match", volume);
         entry.setVerified(!TextUtils.isEmpty(xPath.evaluate(xpath, el)));
-        xpath = testXpath("/volume/d:contribution/@d:contribid", volume);
+        xpath = testXpath(volume.getElements().get("cdm-volume") + "/d:contribution/@d:contribid", volume);
         entry.setContribId(xPath.evaluate(xpath, el));
         return entry;
     }
@@ -220,15 +228,9 @@ public final class XMLUtils {
         return db.parse(source);
     }
 
-    private static XPath getNewXPath() {
-        NamespaceContext context = new NamespaceContextMap(
-                "d", "http://www-clips.imag.fr/geta/services/dml",
-                "xslt", "http://bar",
-                "def", "http://def");
-
-        XPathFactory factory = XPathFactory.newInstance();
-        XPath xPath = factory.newXPath();
-        xPath.setNamespaceContext(context);
+    public static XPath getNewXPath() {
+        XPath xPath = myXPathFactory.newXPath();
+        xPath.setNamespaceContext(myNamespaceContext);
         return xPath;
     }
 
@@ -348,18 +350,33 @@ public final class XMLUtils {
 
     protected static String adjustXpath(String cdmElement, Volume theVolume) {
         String xpath = theVolume.getElements().get(cdmElement);
-        String cdmVolumePath =  theVolume.getElements().get("cdm-volume");
-        //Log.d(TAG, "notadjustedXpathString:" + xpath);
-        if (xpath.contains(cdmVolumePath)) {
-            xpath = xpath.replace(cdmVolumePath, "." + cdmVolumePath + "/d:contribution/d:data");
+        xpath = addContributionTagsToXPath(xpath);
+        if (!xpath.startsWith(".")) {
+            xpath = "." + xpath;
         }
-        // à tester !
+                // à tester !
 //        xpath.replaceAll("\\s//", " .//");
 //        xpath.replaceAll("^//", ".//");
         //Log.d(TAG, "adjustedXpathString:" + xpath);
         xpath = replaceXpathstring(xpath, theVolume.getOldNewTagMap());
         //Log.d(TAG, "replacedXpathstring:" + xpath);
         return xpath;
+    }
+
+    public static String addContributionTagsToXPath(String theXPath, Volume oneVolume){
+        String cdmVolumePath =  oneVolume.getElements().get("cdm-volume");
+        if (theXPath.contains(cdmVolumePath)) {
+            theXPath = theXPath.replace(cdmVolumePath, cdmVolumePath + "/d:contribution/d:data");
+        }
+        return theXPath;
+    }
+
+    public static String removeXpathBeforeVolumeTag(String xpathString, Volume theVolume) {
+        String cdmVolumePath =  theVolume.getElements().get("cdm-volume");
+        if (xpathString.contains(cdmVolumePath)) {
+            xpathString = xpathString.replaceFirst("^.*?\\" + cdmVolumePath, cdmVolumePath);
+        }
+        return xpathString;
     }
 
     protected static String testXpath(String xpath, Volume theVolume) {
@@ -372,7 +389,7 @@ public final class XMLUtils {
         return xpath;
     }
 
-    protected static String getFullXPath(Node n) {
+    public static String getFullXPath(Node n) {
 // abort early
         if (null == n)
             return null;
@@ -467,7 +484,7 @@ public final class XMLUtils {
         return buffer.toString();
     }
 
-    private static String getStringFromNode(Node theNode) {
+    public static String getStringFromNode(Node theNode) {
         try {
             DOMSource domSource = new DOMSource(theNode);
             StringWriter writer = new StringWriter();

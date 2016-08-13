@@ -20,6 +20,8 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.w3c.dom.Node;
+
 import java.util.ArrayList;
 
 import jibiki.fr.shishito.Interfaces.OnEntryUpdatedListener;
@@ -53,7 +55,6 @@ public class EditFragment extends Fragment implements UpdateContribution.Contrib
 
     private ListEntry entry;
     private Button saveButton;
-    private Volume volume;
 
     private OnEntryUpdatedListener mListener;
 
@@ -62,11 +63,10 @@ public class EditFragment extends Fragment implements UpdateContribution.Contrib
     public EditFragment() {
     }
 
-    public static EditFragment newInstance(ListEntry entry, Volume volume) {
+    public static EditFragment newInstance(ListEntry entry) {
         EditFragment fragment = new EditFragment();
         Bundle args = new Bundle();
         args.putSerializable(ENTRY, entry);
-        args.putSerializable(VOLUME, volume);
         fragment.setArguments(args);
         return fragment;
     }
@@ -76,7 +76,6 @@ public class EditFragment extends Fragment implements UpdateContribution.Contrib
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
             entry = (ListEntry) getArguments().getSerializable(ENTRY);
-            volume = (Volume) getArguments().getSerializable(VOLUME);
         }
     }
 
@@ -163,9 +162,9 @@ public class EditFragment extends Fragment implements UpdateContribution.Contrib
             }
         };
 
-        addFieldVerif(ll, entry.isVerified(), entry.getKanji(), getString(R.string.kanji), tw, KANJI);
+        addFieldVerif(ll, entry.isVerified(), XMLUtils.getStringFromNode(entry.getKanjiNode()), getString(R.string.kanji), tw, KANJI);
         //Setting to true ensure that they are not editable... little hack
-        addFieldVerif(ll, true, entry.getHiragana(), getString(R.string.hiragana), tw, HIRAGANA);
+        addFieldVerif(ll, true, XMLUtils.getStringFromNode(entry.getHiraganaNode()), getString(R.string.hiragana), tw, HIRAGANA);
         addFieldVerif(ll, true, entry.getRomajiDisplay(), getString(R.string.romaji), tw, ROMAJI_DISPLAY);
         addFieldVerif(ll, true, entry.getRomajiSearch(), getString(R.string.romaji_search), tw, ROMAJI_SEARCH);
 
@@ -201,16 +200,13 @@ public class EditFragment extends Fragment implements UpdateContribution.Contrib
                 ArrayList<Pair<String, String>> xpaths = new ArrayList<>(4);
                 saveButton.setEnabled(false);
                 if (!entry.isVerified()) {
-                    String xpath = volume.getElements().get("cdm-headword");
-                    checkAddPairToArrayList(xpaths, entry.getKanji(), xpath, KANJI, v);
-                    xpath = volume.getElements().get("cdm-reading");
-                    checkAddPairToArrayList(xpaths, entry.getHiragana(), xpath, HIRAGANA, v);
-                    xpath = volume.getElements().get("cdm-writing-display");
-                    checkAddPairToArrayList(xpaths, entry.getRomajiDisplay(), xpath, ROMAJI_DISPLAY, v);
-                    xpath = volume.getElements().get("cdm-writing");
-                    checkAddPairToArrayList(xpaths, entry.getRomajiSearch(), xpath, ROMAJI_SEARCH, v);
+                    checkAddPairToArrayList(xpaths, entry.getKanjiNode(), KANJI, v);
+                    checkAddPairToArrayList(xpaths, entry.getHiraganaNode(), HIRAGANA, v);
+                    //checkAddPairToArrayList(xpaths, entry.getRomajiDisplay(), xpath, ROMAJI_DISPLAY, v);
+                    //checkAddPairToArrayList(xpaths, entry.getRomajiSearch(), xpath, ROMAJI_SEARCH, v);
                 }
 
+/*
                 int i = 1;
                 for (GramBlock gramBlock : entry.getGramBlocks()) {
                     for (String sense: gramBlock.getSens()) {
@@ -232,6 +228,7 @@ public class EditFragment extends Fragment implements UpdateContribution.Contrib
                     checkAddPairToArrayList(xpaths, ex.getFrench(), xpath, EXAMPLE_FRENCH + i, v);
                     i++;
                 }
+*/
 
 
                 if (xpaths.size() == 0) {
@@ -259,15 +256,15 @@ public class EditFragment extends Fragment implements UpdateContribution.Contrib
         update = p.second;
 
         String[] params = {entry.getContribId(), update, xpath};
-        new UpdateContribution(this, volume).execute(params);
+        new UpdateContribution(this, entry.getVolume()).execute(params);
     }
 
-    private void checkAddPairToArrayList(ArrayList<Pair<String, String>> a, String value, String xpath, int id, View v) {
-
+    private void checkAddPairToArrayList(ArrayList<Pair<String, String>> a, Node theNode, int id, View v) {
+        String value = XMLUtils.getStringFromNode(theNode);
         value = ViewUtil.removeFancy(value);
         if (!value.equals(((EditText) v.findViewById(id)).getText().toString())) {
             String update = ((EditText) v.findViewById(id)).getText().toString();
-            xpath = XMLUtils.getTransformedXPath(xpath, ((SearchActivity) getActivity()).getVolume());
+            String xpath = XMLUtils.getFullXPath(theNode);
             a.add(new Pair<>(xpath, update));
         }
     }

@@ -1,5 +1,7 @@
 package jibiki.fr.shishito.Models;
 
+import org.w3c.dom.Node;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 
@@ -9,11 +11,21 @@ import java.util.ArrayList;
 public class GramBlock implements Serializable{
 
     String gram;
+    org.w3c.dom.Node gramBlockNode;
     ArrayList<String> sens;
     ArrayList<String> enSens;
 
-    public GramBlock() {
+//    public GramBlock() {
+//        sens = new ArrayList<>();
+//    }
+
+    public GramBlock(org.w3c.dom.Node newGramBlockNode) {
+        gramBlockNode = newGramBlockNode;
         sens = new ArrayList<>();
+    }
+
+    public org.w3c.dom.Node getNode() {
+        return gramBlockNode;
     }
 
     public String getGram() {

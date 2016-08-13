@@ -16,7 +16,7 @@
     <string name="romaji_search">"Rōmaji Recherche (hepburn)"</string>
     <string name="hiragana">"Hiragana"</string>
     <string name="kanji">"Japonais (kanji/kana)"</string>
-    <string name="example">"Exemples:"</string>
+    <string name="example">"Exemples :"</string>
     <string name="verif">"Entrée non vérifiée"</string>
     <string name="edit_example">"Exemple %1$d :"</string>
     <string name="edit_example_kanji">"Exemple Kanji :"</string>
@@ -48,12 +48,13 @@
 
     <!-- Strings related to help page -->
     <string name="link_website">Cette application est dérivée du site http://jibiki.fr/.\n\n
-
         Visitez ce site pour vous inscrire et nous aider à corriger les informations du dictionnaire.\n\n
-
         Une page d\'aide est disponible : http://jibiki.fr/help.php .\n\n
-
-        Pour plus d\'information sur le projet : http://jibiki.fr/informations.php .</string>
+        Pour plus d\'information sur le projet : http://jibiki.fr/informations.php .\n\n
+        Pour signaler un bogue, déclarez-le sur l\'interface suivante : https://forge.imag.fr/tracker/?atid=3655&amp;group_id=823 \n\n
+        Auteurs : Thibaut Le Guilly et Mathieu Mangeot-Nagata \n\n
+        Version : 0.1b
+    </string>
     <string name="menu_help">"Aide"</string>
 
     <!-- TODO: Remove or change this placeholder text -->

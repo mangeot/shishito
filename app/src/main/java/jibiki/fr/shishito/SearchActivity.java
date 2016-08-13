@@ -188,12 +188,12 @@ public class SearchActivity extends AppCompatActivity implements SearchFragment.
     }
 
     private void putDisplayEntryFragment(ListEntry entry) {
-        DisplayEntryFragment def = DisplayEntryFragment.newInstance(entry, volume);
+        DisplayEntryFragment def = DisplayEntryFragment.newInstance(entry);
         makeTransaction(def, "display", true);
     }
 
     private void putEditFragment(ListEntry entry) {
-        EditFragment ef = EditFragment.newInstance(entry, volume);
+        EditFragment ef = EditFragment.newInstance(entry);
         makeTransaction(ef, "edit", true);
     }
 
