@@ -214,7 +214,7 @@ public class EditFragment extends Fragment implements UpdateContribution.Contrib
                 int i = 1;
                 for (GramBlock gramBlock : entry.getGramBlocks()) {
                     for (String sense: gramBlock.getSens()) {
-                        String xpath = volume.getElements().get("cdm-definition");
+                        String xpath = XMLUtils.getTransformedNumberedXpath(volume, "cdm-definition", "sens", i);
                         checkAddPairToArrayList(xpaths, sense, xpath, SENS + i, v);
                         i++;
                     }
