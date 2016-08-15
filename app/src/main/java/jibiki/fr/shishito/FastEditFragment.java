@@ -130,7 +130,7 @@ public class FastEditFragment extends Fragment implements UpdateContribution.Con
                     new UpdateContribution(FastEditFragment.this, volume).execute(params);
                     if (params[2].contains("vedette-jpn")) {
                         Log.d(TAG, "PUT de vedette-jpn");
-                        String[] paramsValide = {contribId, "manuel", XMLUtils.addContributionTagsToXPath(volume.getElements().get("cesselin-vedette-jpn-match"))};
+                        String[] paramsValide = {contribId, "manuel", XMLUtils.addContributionTagsToXPath(volume.getElements().get("cesselin-vedette-jpn-match"),volume)};
                         // Ici, il y a un pb car qd on fait un premier PUT, le contributionId change et donc le deuxième PUT ne marche pas.
                         // Il faut trouver une solution pour récupérer le nouveau contributionId
 
