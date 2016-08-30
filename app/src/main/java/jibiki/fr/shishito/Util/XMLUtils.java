@@ -350,7 +350,7 @@ public final class XMLUtils {
 
     protected static String adjustXpath(String cdmElement, Volume theVolume) {
         String xpath = theVolume.getElements().get(cdmElement);
-        xpath = addContributionTagsToXPath(xpath);
+        xpath = addContributionTagsToXPath(xpath, theVolume);
         if (!xpath.startsWith(".")) {
             xpath = "." + xpath;
         }
