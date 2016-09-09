@@ -54,6 +54,7 @@ public class FastEditFragment extends Fragment implements UpdateContribution.Con
     private EditText et;
 
     private OnEntryUpdatedListener mListener;
+    private boolean updateEntryValidation = false;
 
     public FastEditFragment() {
         // Required empty public constructor
@@ -129,12 +130,7 @@ public class FastEditFragment extends Fragment implements UpdateContribution.Con
                     Log.d(TAG, et.getText().toString());
                     new UpdateContribution(FastEditFragment.this, volume).execute(params);
                     if (params[2].contains("vedette-jpn")) {
-                        Log.d(TAG, "PUT de vedette-jpn");
-                        String[] paramsValide = {contribId, "manuel", XMLUtils.addContributionTagsToXPath(volume.getElements().get("cesselin-vedette-jpn-match"),volume)};
-                        // Ici, il y a un pb car qd on fait un premier PUT, le contributionId change et donc le deuxième PUT ne marche pas.
-                        // Il faut trouver une solution pour récupérer le nouveau contributionId
-
-                        //new UpdateContribution(FastEditFragment.this, volume).execute(paramsValide);
+                        FastEditFragment.this.updateEntryValidation = true;
                     }
                 // }
             }
@@ -162,7 +158,17 @@ public class FastEditFragment extends Fragment implements UpdateContribution.Con
     @Override
     public void onContributionUpdated(ListEntry entry) {
         if (entry != null) {
-            mListener.onEntryUpdatedListener(entry);
+            if (FastEditFragment.this.updateEntryValidation == true) {
+                // solution pour récupérer le nouveau contributionId
+                Log.d(TAG, "PUT de vedette-jpn");
+                FastEditFragment.this.updateEntryValidation = false;
+                String[] paramsValide = {entry.getContribId(), "manuel", XMLUtils.addContributionTagsToXPath(volume.getElements().get("cesselin-vedette-jpn-match"),volume)};
+                new UpdateContribution(FastEditFragment.this, volume).execute(paramsValide);
+            }
+            else {
+                mListener.onEntryUpdatedListener(entry);
+            }
         }
     }
+
 }
