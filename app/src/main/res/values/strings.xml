@@ -52,8 +52,8 @@
         Une page d\'aide est disponible : http://jibiki.fr/help.php .\n\n
         Pour plus d\'informations sur le projet : http://jibiki.fr/informations.php .\n\n
         Des erreurs potentielles ont été automatiquement détectées dans les données : les mots-vedette japonais non validés ou les erreurs détectées sur des mots japonais sont affichés en violet;
-        les erreurs sur le français sont affichées en jaune. Une fois que vous êtes connecté (menu en haut à droite de l'écran), vous pouvez corriger ces erreurs en cliquant sur le segment de texte concerné.
-        Une fenêtre d'édition s'ouvrira et le segment sera affiché dans une boite de texte. Vous pourrez le modifier puis appuyer sur le bouton "valider" afin de sauvegarder vos modifications. \n\n
+        les erreurs sur le français sont affichées en jaune. Une fois que vous êtes connecté (menu en haut à droite de l\'écran), vous pouvez corriger ces erreurs en cliquant sur le segment de texte concerné.
+        Une fenêtre d\'édition s\'ouvrira et le segment sera affiché dans une boite de texte. Vous pourrez le modifier puis appuyer sur le bouton "valider" afin de sauvegarder vos modifications. \n\n
         Pour signaler un bogue, déclarez-le sur l\'interface suivante : https://forge.imag.fr/tracker/?atid=3655&amp;group_id=823 \n\n
         Auteurs : Thibaut Le Guilly et Mathieu Mangeot-Nagata \n\n
         Version : 0.1b

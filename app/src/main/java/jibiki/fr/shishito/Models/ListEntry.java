@@ -11,9 +11,9 @@ import java.util.ArrayList;
 public class ListEntry implements Serializable {
 
     private Volume volume;
-    private org.w3c.dom.Node entryNode;
-    private org.w3c.dom.Node kanjiNode;
-    private org.w3c.dom.Node hiraganaNode;
+    private Node entryNode;
+    private Node kanjiNode;
+    private Node hiraganaNode;
     private String romajiDisplay;
     private String romajiSearch;
 
@@ -27,7 +27,7 @@ public class ListEntry implements Serializable {
 
     private boolean verified;
 
-    public ListEntry(org.w3c.dom.Node theEntryNode, Volume theVolume) {
+    public ListEntry(Node theEntryNode, Volume theVolume) {
         gramBlocks = new ArrayList<>();
         examples = new ArrayList<>();
         volume = theVolume;
@@ -54,7 +54,7 @@ public class ListEntry implements Serializable {
         return hiraganaNode;
     }
 
-    public void setHiraganaNode(org.w3c.dom.Node hiragana) {
+    public void setHiraganaNode(Node hiragana) {
         this.hiraganaNode = hiragana;
     }
 

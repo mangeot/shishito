@@ -8,7 +8,6 @@ import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
@@ -49,8 +48,8 @@ public class SearchActivity extends AppCompatActivity implements SearchFragment.
 
     public final static int USERNAME_RESULT = 1;
 
-    Menu menu;
-    String username = "";
+    private Menu menu;
+    private String username = "";
 
     private Volume volume;
 
@@ -60,7 +59,6 @@ public class SearchActivity extends AppCompatActivity implements SearchFragment.
         setContentView(R.layout.activity_search);
         if (savedInstanceState == null) {
 
-            //searchView.setSubmitButtonEnabled(true);
             ConnectivityManager connMgr = (ConnectivityManager)
                     getSystemService(Context.CONNECTIVITY_SERVICE);
             NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
@@ -75,7 +73,6 @@ public class SearchActivity extends AppCompatActivity implements SearchFragment.
                         Toast.LENGTH_SHORT).show();
             }
 
-//            handleIntent(getIntent());
             putSearchFragment(null);
         }
     }
@@ -109,9 +106,6 @@ public class SearchActivity extends AppCompatActivity implements SearchFragment.
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         switch (item.getItemId()) {
             case R.id.action_sign_in:
                 if (TextUtils.isEmpty(username)) {

@@ -5,10 +5,8 @@ import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.TextViewCompat;
-import android.text.Editable;
 import android.text.InputType;
 import android.text.TextUtils;
-import android.text.TextWatcher;
 import android.util.Pair;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -28,7 +26,6 @@ import jibiki.fr.shishito.Interfaces.OnEntryUpdatedListener;
 import jibiki.fr.shishito.Models.Example;
 import jibiki.fr.shishito.Models.GramBlock;
 import jibiki.fr.shishito.Models.ListEntry;
-import jibiki.fr.shishito.Models.Volume;
 import jibiki.fr.shishito.Tasks.UpdateContribution;
 import jibiki.fr.shishito.Util.ViewUtil;
 import jibiki.fr.shishito.Util.XMLUtils;
@@ -96,7 +93,7 @@ public class EditFragment extends Fragment implements UpdateContribution.Contrib
         mListener = null;
     }
 
-    private void addFieldVerif(LinearLayout ll, boolean verif, String text, String title, TextWatcher tw, int id) {
+    private void addFieldVerif(LinearLayout ll, boolean verif, String text, String title, int id) {
         LinearLayout.LayoutParams params1 = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         TextView tv;
         if (verif) {
@@ -109,7 +106,6 @@ public class EditFragment extends Fragment implements UpdateContribution.Contrib
             }
         } else {
             tv = new EditText(getContext());
-            tv.addTextChangedListener(tw);
         }
         tv.setId(id);
         tv.setText(ViewUtil.removeFancy(text));
@@ -129,14 +125,13 @@ public class EditFragment extends Fragment implements UpdateContribution.Contrib
         ll.addView(titleView);
     }
 
-    private void addEditView(String content, LinearLayout ll, TextWatcher tw, int id) {
+    private void addEditView(String content, LinearLayout ll, int id) {
         LinearLayout.LayoutParams editParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         EditText et = new EditText(getContext());
         et.setLayoutParams(editParams);
         et.setText(ViewUtil.removeFancy(content));
         et.setId(id);
         et.setInputType(InputType.TYPE_CLASS_TEXT);
-        et.addTextChangedListener(tw);
         ll.addView(et);
     }
 
@@ -145,28 +140,11 @@ public class EditFragment extends Fragment implements UpdateContribution.Contrib
                              Bundle savedInstanceState) {
         final View v = inflater.inflate(R.layout.activity_edit, container, false);
         LinearLayout ll = (LinearLayout) v.findViewById(R.id.editlinear);
-        TextWatcher tw = new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
-            }
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-                saveButton.setEnabled(true);
-            }
-        };
-
-        addFieldVerif(ll, entry.isVerified(), XMLUtils.getStringFromNode(entry.getKanjiNode()), getString(R.string.kanji), tw, KANJI);
+        addFieldVerif(ll, entry.isVerified(), XMLUtils.getStringFromNode(entry.getKanjiNode()), getString(R.string.kanji), KANJI);
         //Setting to true ensure that they are not editable... little hack
-        addFieldVerif(ll, true, XMLUtils.getStringFromNode(entry.getHiraganaNode()), getString(R.string.hiragana), tw, HIRAGANA);
-        addFieldVerif(ll, true, entry.getRomajiDisplay(), getString(R.string.romaji), tw, ROMAJI_DISPLAY);
-        addFieldVerif(ll, true, entry.getRomajiSearch(), getString(R.string.romaji_search), tw, ROMAJI_SEARCH);
+        addFieldVerif(ll, true, XMLUtils.getStringFromNode(entry.getHiraganaNode()), getString(R.string.hiragana),  HIRAGANA);
+        addFieldVerif(ll, true, entry.getRomajiDisplay(), getString(R.string.romaji),  ROMAJI_DISPLAY);
+        addFieldVerif(ll, true, entry.getRomajiSearch(), getString(R.string.romaji_search),  ROMAJI_SEARCH);
 
         int cnt = 1;
         for (GramBlock gram: entry.getGramBlocks()) {
@@ -174,7 +152,7 @@ public class EditFragment extends Fragment implements UpdateContribution.Contrib
             int i = 1;
             for (String sense: gram.getSens()) {
                 addTitleView("Sens " + i + ":", ll);
-                addEditView(sense, ll, tw, SENS + cnt);
+                addEditView(sense, ll,  SENS + cnt);
                 i++;
                 cnt++;
             }
@@ -184,13 +162,13 @@ public class EditFragment extends Fragment implements UpdateContribution.Contrib
         for (Example ex : entry.getExamples()) {
             addTitleView(getString(R.string.edit_example, cnt), ll);
             addTitleView(getString(R.string.edit_example_kanji), ll);
-            addEditView(ex.getKanji(), ll, tw, EXAMPLE_KANJI + cnt);
+            addEditView(ex.getKanji(), ll,  EXAMPLE_KANJI + cnt);
             addTitleView(getString(R.string.edit_example_hiragana), ll);
-            addEditView(ex.getHiragana(), ll, tw, EXAMPLE_HIRAGANA + cnt);
+            addEditView(ex.getHiragana(), ll,  EXAMPLE_HIRAGANA + cnt);
             addTitleView(getString(R.string.edit_example_romaji), ll);
-            addEditView(ex.getRomaji(), ll, tw, EXAMPLE_ROMAJI + cnt);
+            addEditView(ex.getRomaji(), ll,  EXAMPLE_ROMAJI + cnt);
             addTitleView(getString(R.string.edit_example_french), ll);
-            addEditView(ex.getFrench(), ll, tw, EXAMPLE_FRENCH + cnt);
+            addEditView(ex.getFrench(), ll,  EXAMPLE_FRENCH + cnt);
             cnt++;
         }
 
@@ -198,7 +176,6 @@ public class EditFragment extends Fragment implements UpdateContribution.Contrib
         saveButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View but) {
                 ArrayList<Pair<String, String>> xpaths = new ArrayList<>(4);
-                saveButton.setEnabled(false);
                 if (!entry.isVerified()) {
                     checkAddPairToArrayList(xpaths, entry.getKanjiNode(), KANJI, v);
                     checkAddPairToArrayList(xpaths, entry.getHiraganaNode(), HIRAGANA, v);
@@ -298,7 +275,6 @@ public class EditFragment extends Fragment implements UpdateContribution.Contrib
             }
         }else {
             saveError();
-            EditFragment.this.saveButton.setEnabled(true);
         }
     }
 

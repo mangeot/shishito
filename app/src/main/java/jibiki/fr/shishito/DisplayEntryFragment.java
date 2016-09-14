@@ -12,9 +12,16 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import jibiki.fr.shishito.Models.ListEntry;
-import jibiki.fr.shishito.Models.Volume;
 import jibiki.fr.shishito.Util.ViewUtil;
 
+/**
+ * A {@link Fragment} subclass that enables display of a word.
+ * Activities that contain this fragment must implement the
+ * {@link OnEditClickListener} interface
+ * to handle interaction events.
+ * Use the {@link DisplayEntryFragment#newInstance} factory method to
+ * create an instance of this fragment.
+ */
 public class DisplayEntryFragment extends Fragment {
 
 
@@ -24,19 +31,26 @@ public class DisplayEntryFragment extends Fragment {
 
     private static final int EDIT_MENU_ID = 10;
 
-    private ListEntry entry;
+    private transient ListEntry entry;
 
     private OnEditClickListener mListener;
 
     private boolean loggedIn = false;
 
-    TextView vedette;
-    View v;
+    private TextView vedette;
+    private View v;
 
 
     public DisplayEntryFragment() {
     }
 
+    /**
+     * Factory method to create a new instance of
+     * this fragment using the provided parameters.
+     *
+     * @param entry The entry to be displayed.
+     * @return A new instance of fragment SearchFragment.
+     */
     public static DisplayEntryFragment newInstance(ListEntry entry) {
         DisplayEntryFragment fragment = new DisplayEntryFragment();
         Bundle args = new Bundle();

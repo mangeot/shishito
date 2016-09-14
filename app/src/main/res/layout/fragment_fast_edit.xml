@@ -22,9 +22,8 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/fast_edit"
         android:layout_centerHorizontal="true"
-        android:clickable="false"
-        android:enabled="false"
         android:gravity="center"
-        android:text="@string/save" />
+        android:text="@string/save"
+        android:enabled="true" />
 
 </RelativeLayout>

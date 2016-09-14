@@ -3,8 +3,6 @@ package jibiki.fr.shishito;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -68,7 +66,6 @@ public class FastEditFragment extends Fragment implements UpdateContribution.Con
      * @param xpath Parameter 2.
      * @return A new instance of fragment FastEditFragment.
      */
-    // TODO: Rename and change types and number of parameters
     public static FastEditFragment newInstance(String fieldContent, String xpath, String contribId, String title, Volume volume) {
         FastEditFragment fragment = new FastEditFragment();
         Bundle args = new Bundle();
@@ -78,7 +75,6 @@ public class FastEditFragment extends Fragment implements UpdateContribution.Con
         args.putString(TITLE, title);
         args.putSerializable(VOLUME, volume);
         fragment.setArguments(args);
-        Log.d(TAG, "CONTRIB: " + contribId);
         return fragment;
     }
 
@@ -103,27 +99,9 @@ public class FastEditFragment extends Fragment implements UpdateContribution.Con
         et = (EditText)v.findViewById(R.id.fast_edit);
         et.setText(fieldContent);
         saveButton = (Button) v.findViewById(R.id.button_fast);
-        TextWatcher tw = new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
-            }
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-                saveButton.setEnabled(true);
-            }
-        };
-        et.addTextChangedListener(tw);
         saveButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                saveButton.setEnabled(false);
                 // On sauvegarde même s'il n'y a pas de modifications car des fois, ce sont des fausses erreurs détectées
                 // if (!et.getText().toString().equals(fieldContent)) {
                     String[] params = {contribId, et.getText().toString(), xpath};

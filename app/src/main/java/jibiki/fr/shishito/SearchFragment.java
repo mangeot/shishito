@@ -40,7 +40,8 @@ import static jibiki.fr.shishito.Util.HTTPUtils.doGet;
 
 
 /**
- * A simple {@link Fragment} subclass.
+ * A {@link Fragment} subclass that enables search and display of
+ * serach results.
  * Activities that contain this fragment must implement the
  * {@link OnWordSelectedListener} interface
  * to handle interaction events.
@@ -56,11 +57,11 @@ public class SearchFragment extends Fragment {
     private static final String VOLUME = "volume";
 
     private String query;
-    ListView listView;
-    ArrayList<ListEntry> curList;
-    SearchView searchView;
-    TextView noResult;
-    Volume volume;
+    private ListView listView;
+    private transient ArrayList<ListEntry> curList;
+    private SearchView searchView;
+    private TextView noResult;
+    private Volume volume;
     private OnWordSelectedListener mListener;
 
     public SearchFragment() {
@@ -68,13 +69,13 @@ public class SearchFragment extends Fragment {
     }
 
     /**
-     * Use this factory method to create a new instance of
+     * Factory method to create a new instance of
      * this fragment using the provided parameters.
      *
-     * @param query Parameter 2.
+     * @param query The search query to perform.
+     * @param volume the volume object obtain by the main activity
      * @return A new instance of fragment SearchFragment.
      */
-    // TODO: Rename and change types and number of parameters
     public static SearchFragment newInstance(String query, Volume volume) {
         SearchFragment fragment = new SearchFragment();
         Bundle args = new Bundle();
@@ -187,6 +188,10 @@ public class SearchFragment extends Fragment {
                 getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
         if (networkInfo != null && networkInfo.isConnected()) {
+            if (listView.getAdapter() != null) {
+                EntryListAdapter adapter = (EntryListAdapter) listView.getAdapter();
+                adapter.clear();
+            }
             FragmentTransaction ft = getFragmentManager().beginTransaction();
             Fragment prev = getFragmentManager().findFragmentByTag("dialog");
             if (prev != null) {
@@ -211,14 +216,8 @@ public class SearchFragment extends Fragment {
     }
 
     /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p/>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
+     * Interface to call main activity when a word in the list is selected
+     * by the user.
      */
     public interface OnWordSelectedListener {
         void onWordSelected(ListEntry entry);
@@ -252,7 +251,6 @@ public class SearchFragment extends Fragment {
 
         @Override
         protected void onPostExecute(ArrayList<ListEntry> result) {
-
             Fragment prev = getFragmentManager().findFragmentByTag("dialog");
             if (prev != null && prev instanceof ShishitoProgressDialog) {
                 ShishitoProgressDialog pd = (ShishitoProgressDialog) prev;
@@ -267,7 +265,6 @@ public class SearchFragment extends Fragment {
                     noResult.setVisibility(View.VISIBLE);
                 } else {
                     noResult.setVisibility(View.GONE);
-
                     EntryListAdapter adapter = (EntryListAdapter) listView.getAdapter();
                     if (adapter == null) {
                         adapter = new EntryListAdapter(getActivity(), result, volume);
