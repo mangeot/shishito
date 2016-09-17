@@ -138,7 +138,7 @@ public final class ViewUtil {
         String xpathPointer = "/" + XMLUtils.getFullXPath(senseNode);
         xpathPointer = XMLUtils.replaceXpathstring(xpathPointer, entry.getVolume().getNewOldTagMap());
         xpathPointer = XMLUtils.removeXpathBeforeVolumeTag(xpathPointer, entry.getVolume());
-        //Log.d(TAG, "xpathPointer: " + xpathPointer);
+        //Log.d(TAG, "Here XpathPointer: " + xpathPointer);
         appendClickSpannable(defResult, canEdit,
                 context, entry, "sense", xpathPointer, senseView);
     }

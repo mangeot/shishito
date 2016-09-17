@@ -87,4 +87,9 @@ public class Volume implements Serializable{
         return oldnewTagMap;
     }
 
+    public void initializeTagMaps() {
+        newoldTagMap = new java.util.HashMap<>();
+        oldnewTagMap = new java.util.HashMap<>();
+    }
+
 }

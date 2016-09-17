@@ -236,6 +236,7 @@ public final class XMLUtils {
 
     public static ArrayList<ListEntry> parseEntryList(InputStream stream, Volume volume) throws IOException, XmlPullParserException, XPathExpressionException, SAXException, ParserConfigurationException {
 
+        volume.initializeTagMaps();
         Document document = prepareDocumentFromStream(stream, volume);
 
         XPath xPath = getNewXPath();
