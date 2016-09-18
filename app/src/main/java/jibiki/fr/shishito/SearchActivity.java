@@ -73,7 +73,7 @@ public class SearchActivity extends AppCompatActivity implements SearchFragment.
                 new InitVolumeTask().execute();
                 new CheckLoggedIn().execute();
             } else {
-                Toast.makeText(getApplicationContext(), "No Network",
+                Toast.makeText(getApplicationContext(), R.string.no_network,
                         Toast.LENGTH_SHORT).show();
             }
 

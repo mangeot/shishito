@@ -4,6 +4,7 @@
     <string name="action_settings">Settings</string>
     <string name="search_hint">Rechercher un mot japonais&#8230;</string>
     <string name="search_input" />
+    <string name="no_network">Pas de réseau :-(</string>
     <string name="app_label">Shishito</string>
     <string name="action_search">Recherche&#8230;</string>
     <color name="green">#dac792</color>

@@ -204,7 +204,7 @@ public class SearchFragment extends Fragment {
             newFragment.show(ft, "dialog");
             new SearchTask().execute(query);
         } else {
-            Toast.makeText(getActivity().getApplicationContext(), "No Network",
+            Toast.makeText(getActivity().getApplicationContext(), R.string.no_network,
                     Toast.LENGTH_SHORT).show();
         }
     }
@@ -235,8 +235,9 @@ public class SearchFragment extends Fragment {
             InputStream stream;
             ArrayList<ListEntry> result = null;
             try {
-                String word = URLEncoder.encode(params[0], "UTF-8");
-                word = ViewUtil.normalizeQueryString(word);
+                String word = ViewUtil.normalizeQueryString(params[0]);
+                Log.v(TAG, "search=" + word);
+                word = URLEncoder.encode(word, "UTF-8");
 
                 stream = doGet(SearchActivity.VOLUME_API_URL + "cdm-headword|cdm-reading|cdm-writing/" + word + "/entries/?strategy=CASE_INSENSITIVE_EQUAL");
                 result = XMLUtils.parseEntryList(stream, ((SearchActivity) getActivity()).getVolume());

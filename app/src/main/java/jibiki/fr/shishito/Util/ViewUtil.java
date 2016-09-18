@@ -264,7 +264,7 @@ public final class ViewUtil {
             // on pourrait mettre les vedettes en gras, comme sur le site Web...
             kanjiResult = kanjiResult.replaceAll("\\<" + entry.getVolume().getOldNewTagMap().get("vj") + "\\>", "<b>");
             kanjiResult = kanjiResult.replaceAll("\\<\\/" + entry.getVolume().getOldNewTagMap().get("vj") + "\\>", "</b>");
-            kanjiResult = "<font color=" + ViewUtil.colorJapanese + ">" + kanjiResult + "</font>";
+            kanjiResult = "<font color=" + ViewUtil.colorJapanese + ">" + kanjiResult + " </font>";
 
             String xpathPointer = "/" + XMLUtils.getFullXPath(exampleJpnNode);
             xpathPointer = XMLUtils.replaceXpathstring(xpathPointer, entry.getVolume().getNewOldTagMap());
