@@ -2,7 +2,7 @@
     <string name="app_name">Shishito</string>
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
-    <string name="search_hint">Recherche&#8230;</string>
+    <string name="search_hint">Rechercher un mot japonais&#8230;</string>
     <string name="search_input" />
     <string name="app_label">Shishito</string>
     <string name="action_search">Recherche&#8230;</string>
@@ -47,9 +47,12 @@
     <string name="error_field_required">This field is required</string>
 
     <!-- Strings related to help page -->
-    <string name="link_website">Cette application est dérivée du site http://jibiki.fr/.\n\n
+    <string name="link_website">Le dictionnaire que vous pouvez consulter est un dictionnaire japonais-&gt;français tiré du Cesselin, du JMdict et de Wikipedia.\n\n
+        Vous pouvez rechercher un mot japonais en rōmaji, hiragana ou kanji. Le rōmaji est le hepburn moderne.
+        Il est possible d\'utiliser un accent circonflexe à la place du macron. Ex : dôzo\n\n
+        Cette application est dérivée du site http://jibiki.fr/ .
         Visitez ce site pour vous inscrire et nous aider à corriger les informations du dictionnaire.\n\n
-        Une page d\'aide est disponible : http://jibiki.fr/help.php .\n\n
+        Une page d\'aide est disponible : http://jibiki.fr/help.php .
         Pour plus d\'informations sur le projet : http://jibiki.fr/informations.php .\n\n
         Des erreurs potentielles ont été automatiquement détectées dans les données : les mots-vedette japonais non validés ou les erreurs détectées sur des mots japonais sont affichés en violet;
         les erreurs sur le français sont affichées en jaune. Une fois que vous êtes connecté (menu en haut à droite de l\'écran), vous pouvez corriger ces erreurs en cliquant sur le segment de texte concerné.

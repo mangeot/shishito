@@ -282,7 +282,7 @@ public class EditFragment extends Fragment implements UpdateContribution.Contrib
 //    private class PrepareUpdateEntry extends AsyncTask<ArrayList<Pair<String, String>>, Void, String> {
 //        @Override
 //        protected String doInBackground(ArrayList<Pair<String, String>>... params) {
-//            String url = SearchActivity.SERVER_API_URL + "Cesselin/jpn/" + EditFragment.this.entry.getContribId() + "/";
+//            String url = SearchActivity.VOLUME_API_URL + EditFragment.this.entry.getContribId() + "/";
 //            InputStream stream = HTTPUtils.doGet(url);
 //            String res;
 //            try {
@@ -309,7 +309,7 @@ public class EditFragment extends Fragment implements UpdateContribution.Contrib
 //
 //        @Override
 //        protected ListEntry doInBackground(String... params) {
-//            String url = SearchActivity.SERVER_API_URL + "Cesselin/jpn/" + EditFragment.this.entry.getEntryId() + "/";
+//            String url = SearchActivity.VOLUME_API_URL + EditFragment.this.entry.getEntryId() + "/";
 //            InputStream stream = HTTPUtils.doPut(url, params[0]);
 //            return handleListEntryStream(stream);
 //        }

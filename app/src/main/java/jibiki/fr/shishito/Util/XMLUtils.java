@@ -236,7 +236,7 @@ public final class XMLUtils {
 
     public static ArrayList<ListEntry> parseEntryList(InputStream stream, Volume volume) throws IOException, XmlPullParserException, XPathExpressionException, SAXException, ParserConfigurationException {
 
-        volume.initializeTagMaps();
+        // volume.initializeTagMaps();
         Document document = prepareDocumentFromStream(stream, volume);
 
         XPath xPath = getNewXPath();
@@ -303,7 +303,7 @@ public final class XMLUtils {
 
         java.util.regex.Matcher m = regexTags.matcher(newXml);
 
-        int numtags = 1;
+        int numtags = 1 + theOldNewTagMap.size();
         while (m.find()) {
             String oldTagname = m.group(2);
             String prefix = m.group(1);

@@ -238,7 +238,7 @@ public class SearchFragment extends Fragment {
                 String word = URLEncoder.encode(params[0], "UTF-8");
                 word = ViewUtil.normalizeQueryString(word);
 
-                stream = doGet(BaseActivity.SERVER_API_URL + "Cesselin/jpn/cdm-headword|cdm-reading|cdm-writing/" + word + "/entries/?strategy=CASE_INSENSITIVE_EQUAL");
+                stream = doGet(SearchActivity.VOLUME_API_URL + "cdm-headword|cdm-reading|cdm-writing/" + word + "/entries/?strategy=CASE_INSENSITIVE_EQUAL");
                 result = XMLUtils.parseEntryList(stream, ((SearchActivity) getActivity()).getVolume());
                 Log.v(TAG, "index=" + result);
 

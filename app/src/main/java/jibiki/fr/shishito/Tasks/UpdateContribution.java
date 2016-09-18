@@ -40,7 +40,7 @@ public class UpdateContribution extends AsyncTask<String, Void, ListEntry> {
             Log.d(TAG, "Error:", e);
         }
 
-        String url = SearchActivity.SERVER_API_URL + "Cesselin/jpn/" + param0 + "/" + param1;
+        String url = SearchActivity.VOLUME_API_URL + param0 + "/" + param1;
         InputStream is = HTTPUtils.doPut(url, params[2]);
         return XMLUtils.handleListEntryStream(is, volume);
     }

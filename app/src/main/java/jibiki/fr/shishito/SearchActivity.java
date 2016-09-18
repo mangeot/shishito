@@ -42,6 +42,10 @@ public class SearchActivity extends AppCompatActivity implements SearchFragment.
     public final static String ENTRY = "jibiki.fr.shishito.ENTRY";
     public final static String SERVER_URL = "http://jibiki.fr/jibiki/";
     public final static String SERVER_API_URL = SERVER_URL + "api/";
+    public final static String DICT_NAME = "Cesselin";
+    public final static String SRC_LANG = "jpn";
+    public final static String VOLUME_API_URL = SERVER_API_URL + DICT_NAME + "/" + SRC_LANG + "/";
+
 
     public final static String USERNAME = "jibiki.fr.shishito.USERNAME";
     public final static String VOLUME = "jibiki.fr.shishito.VOLUME";
@@ -262,7 +266,7 @@ public class SearchActivity extends AppCompatActivity implements SearchFragment.
             InputStream stream;
             Volume volume = null;
             try {
-                stream = doGet(SERVER_API_URL + "Cesselin/jpn/");
+                stream = doGet(VOLUME_API_URL);
                 volume = XMLUtils.createVolume(stream);
 
                 Log.v(TAG, "index=" + volume);
