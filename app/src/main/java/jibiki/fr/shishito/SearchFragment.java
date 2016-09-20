@@ -242,20 +242,25 @@ public class SearchFragment extends Fragment {
             try {
                 String word = ViewUtil.normalizeQueryString(params[0]);
                 int firstCharCode = Character.codePointAt(word,1);
-                Matcher hiraganaMatcher = hiraganaPattern.matcher(word);
-                Log.v(TAG, "search=" + word + " firstCharCode: " + firstCharCode);
-                word = URLEncoder.encode(word, "UTF-8");
+                // Log.v(TAG, "search=" + word + " firstCharCode: " + firstCharCode);
                 // Si le mot est en romaji (attention, il peut y avoir des macrons (ā = 257 à ū = 360)
                 if (firstCharCode < 0x3042) {
+                    word = ViewUtil.replace_macron(word);
+                    word = ViewUtil.to_hepburn(word);
+                    word = URLEncoder.encode(word, "UTF-8");
                     stream = doGet(SearchActivity.VOLUME_API_URL + "cdm-writing/" + word + "/entries/?strategy=CASE_INSENSITIVE_EQUAL");
                 }
                 // Si le mot est en hiragana
-                else if (hiraganaMatcher.matches()) {
-                    stream = doGet(SearchActivity.VOLUME_API_URL + "cdm-reading/" + word + "/entries/?strategy=EQUAL");
-                }
-                // Sinon, mot en japonais (katakana, kanji, ...)
                 else {
-                    stream = doGet(SearchActivity.VOLUME_API_URL + "cdm-headword/" + word + "/entries/?strategy=EQUAL");
+                    Matcher hiraganaMatcher = hiraganaPattern.matcher(word);
+                    word = URLEncoder.encode(word, "UTF-8");
+                    if (hiraganaMatcher.matches()) {
+                        stream = doGet(SearchActivity.VOLUME_API_URL + "cdm-reading/" + word + "/entries/?strategy=EQUAL");
+                    }
+                    // Sinon, mot en japonais (katakana, kanji, ...)
+                    else {
+                        stream = doGet(SearchActivity.VOLUME_API_URL + "cdm-headword/" + word + "/entries/?strategy=EQUAL");
+                    }
                 }
 
                 result = XMLUtils.parseEntryList(stream, ((SearchActivity) getActivity()).getVolume());

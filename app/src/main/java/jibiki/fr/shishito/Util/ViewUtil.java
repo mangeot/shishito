@@ -382,12 +382,10 @@ public final class ViewUtil {
 
     public static String normalizeQueryString(String string) {
         string = string.replace(" ","");
-        string = replace_macron(string);
-        string = to_hepburn(string);
         return string;
     }
 
-    private static String replace_macron(String string) {
+    public static String replace_macron(String string) {
         string = string.replace("â","ā");
         string = string.replace("ê","ē");
         string = string.replace("î","ī");
@@ -401,7 +399,7 @@ public final class ViewUtil {
         return string;
     }
 
-    private static String to_hepburn(String string) {
+    public static String to_hepburn(String string) {
         string = string.replace("si","shi");
         string = string.replace("ti","chi");
         string = string.replace("tu","tsu");
