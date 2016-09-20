@@ -27,6 +27,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathExpressionException;
@@ -63,6 +66,8 @@ public class SearchFragment extends Fragment {
     private TextView noResult;
     private Volume volume;
     private OnWordSelectedListener mListener;
+
+    public static final Pattern hiraganaPattern = Pattern.compile("[\\p{InHiragana}]+");
 
     public SearchFragment() {
         // Required empty public constructor
@@ -236,10 +241,23 @@ public class SearchFragment extends Fragment {
             ArrayList<ListEntry> result = null;
             try {
                 String word = ViewUtil.normalizeQueryString(params[0]);
-                Log.v(TAG, "search=" + word);
+                int firstCharCode = Character.codePointAt(word,1);
+                Matcher hiraganaMatcher = hiraganaPattern.matcher(word);
+                Log.v(TAG, "search=" + word + " firstCharCode: " + firstCharCode);
                 word = URLEncoder.encode(word, "UTF-8");
+                // Si le mot est en romaji (attention, il peut y avoir des macrons (ā = 257 à ū = 360)
+                if (firstCharCode < 0x3042) {
+                    stream = doGet(SearchActivity.VOLUME_API_URL + "cdm-writing/" + word + "/entries/?strategy=CASE_INSENSITIVE_EQUAL");
+                }
+                // Si le mot est en hiragana
+                else if (hiraganaMatcher.matches()) {
+                    stream = doGet(SearchActivity.VOLUME_API_URL + "cdm-reading/" + word + "/entries/?strategy=EQUAL");
+                }
+                // Sinon, mot en japonais (katakana, kanji, ...)
+                else {
+                    stream = doGet(SearchActivity.VOLUME_API_URL + "cdm-headword/" + word + "/entries/?strategy=EQUAL");
+                }
 
-                stream = doGet(SearchActivity.VOLUME_API_URL + "cdm-headword|cdm-reading|cdm-writing/" + word + "/entries/?strategy=CASE_INSENSITIVE_EQUAL");
                 result = XMLUtils.parseEntryList(stream, ((SearchActivity) getActivity()).getVolume());
                 Log.v(TAG, "index=" + result);
 
@@ -279,4 +297,5 @@ public class SearchFragment extends Fragment {
             }
         }
     }
+
 }

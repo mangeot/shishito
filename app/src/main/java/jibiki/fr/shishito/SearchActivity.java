@@ -40,7 +40,9 @@ public class SearchActivity extends AppCompatActivity implements SearchFragment.
 
     private static final String TAG = "SearchActivity";
     public final static String ENTRY = "jibiki.fr.shishito.ENTRY";
-    public final static String SERVER_URL = "http://jibiki.fr/jibiki/";
+    //public final static String SERVER_URL = "http://jibiki.fr/jibiki/";
+    // Il y a une version sécurisée. On l'active par défaut ? => oui
+    public final static String SERVER_URL = "https://jibiki.imag.fr/jibiki/";
     public final static String SERVER_API_URL = SERVER_URL + "api/";
     public final static String DICT_NAME = "Cesselin";
     public final static String SRC_LANG = "jpn";
