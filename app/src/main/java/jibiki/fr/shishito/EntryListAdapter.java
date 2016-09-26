@@ -2,6 +2,7 @@ package jibiki.fr.shishito;
 
 
 import android.content.Context;
+import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,26 +13,24 @@ import android.widget.TextView;
 import java.util.ArrayList;
 
 import jibiki.fr.shishito.Models.ListEntry;
-import jibiki.fr.shishito.Models.Volume;
 import jibiki.fr.shishito.Util.ViewUtil;
 
-public class EntryListAdapter extends ArrayAdapter<ListEntry> {
+class EntryListAdapter extends ArrayAdapter<ListEntry> {
     private final Context context;
-    private final ArrayList<ListEntry> values;
-    private Volume volume;
+    private transient final ArrayList<ListEntry> values;
 
     @SuppressWarnings("unused")
     private static final String TAG = EntryListAdapter.class.getSimpleName();
 
-    public EntryListAdapter(Context context, ArrayList<ListEntry> values, Volume volume) {
+    public EntryListAdapter(Context context, ArrayList<ListEntry> values) {
         super(context, R.layout.word_list_element, values);
         this.context = context;
         this.values = values;
-        this.volume = volume;
     }
 
+    @NonNull
     @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
+    public View getView(int position, View convertView, @NonNull ViewGroup parent) {
         LayoutInflater inflater = (LayoutInflater) context
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View rowView = convertView;

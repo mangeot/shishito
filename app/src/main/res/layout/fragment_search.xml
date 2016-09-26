@@ -1,36 +1,30 @@
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
     tools:context="jibiki.fr.shishito.SearchFragment">
 
-    <LinearLayout
-        android:orientation="vertical"
+    <SearchView
+        android:id="@+id/action_search"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="wrap_content"
+        android:title="@string/action_search" />
 
-        <SearchView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:title="@string/action_search"
-            android:id="@+id/action_search"/>
+    <TextView
+        android:id="@+id/noResult"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:gravity="center_horizontal"
+        android:text="@string/no_result"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:textStyle="italic"
+        android:visibility="gone" />
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceMedium"
-            android:text="Pas de résultat pour cette recherche"
-            android:id="@+id/noResult"
-            android:layout_gravity="center_horizontal"
-            android:visibility="gone"
-            android:textStyle="italic"
-            android:gravity="center_horizontal" />
+    <ListView
+        android:id="@+id/listView"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent" />
 
-        <ListView
-            android:id="@+id/listView"
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent" />
-
-    </LinearLayout>
-
-</FrameLayout>
+</LinearLayout>

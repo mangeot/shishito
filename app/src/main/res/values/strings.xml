@@ -1,18 +1,16 @@
 <resources>
     <string name="app_name">Shishito</string>
-    <string name="hello_world">Hello world!</string>
-    <string name="action_settings">Settings</string>
     <string name="search_hint">Rechercher un mot japonais&#8230;</string>
-    <string name="search_input" />
     <string name="no_network">Pas de réseau :-(</string>
+    <string name="error">Une erreur est survenue, désolé!</string>
     <string name="app_label">Shishito</string>
     <string name="action_search">Recherche&#8230;</string>
+    <string name="no_result">Pas de résultat pour cette recherche</string>
     <color name="green">#dac792</color>
     <color name="light_green">#ffffff</color>
     <string name="title_activity_login">Connexion</string>
     <string name="edit_menu_item">Edition</string>
     <string name="save">Sauvegarde</string>
-    <string name="translation">"Traductions en français"</string>
     <string name="romaji">"Rōmaji (hepburn)"</string>
     <string name="romaji_search">"Rōmaji Recherche (hepburn)"</string>
     <string name="hiragana">"Hiragana"</string>
@@ -26,26 +24,16 @@
     <string name="edit_example_french">"Exemple Français :"</string>
     <string name="in_bracket">"[%1$s]"</string>
 
-    <string name="example_content">"\u25CF <![CDATA[ %1$s %2$s %3$s]]>"</string>
     <string name="empty_field">"(vide)"</string>
 
     <string name="fast_edit_title">Édition du champ %1$s</string>
 
-    <string name="colored_string"><![CDATA[<font color=#%1$s> %2$s  </font>]]></string>
-    <string name="bold_string"><![CDATA[<b> %1$s  </b>]]></string>
-
-
     <!-- Strings related to login -->
     <string name="prompt_email">Nom d\'utilisateur</string>
     <string name="prompt_password">Mot de passe</string>
-    <string name="action_sign_in">Sign in or register</string>
     <string name="action_sign_in_short">Connexion</string>
     <string name="action_sign_out_short">Déconnexion</string>
     <string name="error_incorrect_login">Identifiant ou mot de passe incorrect</string>
-    <string name="error_invalid_email">This email address is invalid</string>
-    <string name="error_invalid_password">This password is too short</string>
-    <string name="error_incorrect_password">This password is incorrect</string>
-    <string name="error_field_required">This field is required</string>
 
     <!-- Strings related to help page -->
     <string name="link_website">Le dictionnaire que vous pouvez consulter est un dictionnaire japonais-&gt;français tiré du Cesselin, du JMdict et de Wikipedia.\n\n
@@ -63,7 +51,5 @@
         Version : 0.1b
     </string>
     <string name="menu_help">"Aide"</string>
-
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="load_message">Chargement en cours…</string>
 </resources>

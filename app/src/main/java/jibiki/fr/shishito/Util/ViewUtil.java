@@ -27,9 +27,7 @@ import javax.xml.xpath.XPathExpressionException;
 
 import jibiki.fr.shishito.Interfaces.FastEditListener;
 import jibiki.fr.shishito.Models.Example;
-import jibiki.fr.shishito.Models.GramBlock;
 import jibiki.fr.shishito.Models.ListEntry;
-import jibiki.fr.shishito.Models.Volume;
 import jibiki.fr.shishito.R;
 
 public final class ViewUtil {
@@ -50,12 +48,12 @@ public final class ViewUtil {
 
  */
 
-    public static final String colorFrench = "#002395";
-    public static final String colorRomaji = "#D45455";
-    public static final String colorJapanese = "#BC002D";
-    public static final String colorEnglish = "#009900";
-    public static final String colorPbFrench = "#FFCC00";
-    public static final String colorPbJapanese = "#6600ff";
+    static final String colorFrench = "#002395";
+    static final String colorRomaji = "#D45455";
+    static final String colorJapanese = "#BC002D";
+    static final String colorEnglish = "#009900";
+    static final String colorPbFrench = "#FFCC00";
+    static final String colorPbJapanese = "#6600ff";
 
 
     @SuppressWarnings("unused")
@@ -123,24 +121,26 @@ public final class ViewUtil {
 
     private static void parseAndAddSenseToView(Node senseNode, ListEntry entry, boolean canEdit, Context context, TextView senseView) {
         String defResult = XMLUtils.getStringFromNode(senseNode);
-        defResult = defResult.replaceFirst("^\\<[^\\>]+\\>", "");
-        defResult = defResult.replaceFirst("\\<\\/[^\\>]+\\>$", "");
-        //  on remplace la balise pb par une couleur de font spéciale
+        if (defResult != null) {
+            defResult = defResult.replaceFirst("^<[^>]+>", "");
+            defResult = defResult.replaceFirst("</[^>]+>$", "");
+            //  on remplace la balise pb par une couleur de font spéciale
 //            Log.d(TAG, "Pb tag: " + "<" + volume.getOldNewTagMap().get("pb") + ">");
-        defResult = defResult.replaceAll("\\<" + entry.getVolume().getOldNewTagMap().get("pb") + "\\>", "</font><b><font color=" + ViewUtil.colorPbFrench + ">");
-        defResult = defResult.replaceAll("\\<\\/" + entry.getVolume().getOldNewTagMap().get("pb") + "\\>", "</font></b><font color=" + ViewUtil.colorFrench + ">");
+            defResult = defResult.replaceAll("<" + entry.getVolume().getOldNewTagMap().get("pb") + ">", "</font><b><font color=" + ViewUtil.colorPbFrench + ">");
+            defResult = defResult.replaceAll("</" + entry.getVolume().getOldNewTagMap().get("pb") + ">", "</font></b><font color=" + ViewUtil.colorFrench + ">");
 
-        if (!TextUtils.isEmpty(defResult) && defResult.contains("<" + entry.getVolume().getOldNewTagMap().get("en") + ">")) {
-            defResult = "<font color=" + ViewUtil.colorEnglish + ">" + defResult + "</font>";
-        } else {
-            defResult = "<font color=" + ViewUtil.colorFrench + ">" + defResult + "</font>";
+            if (!TextUtils.isEmpty(defResult) && defResult.contains("<" + entry.getVolume().getOldNewTagMap().get("en") + ">")) {
+                defResult = "<font color=" + ViewUtil.colorEnglish + ">" + defResult + "</font>";
+            } else {
+                defResult = "<font color=" + ViewUtil.colorFrench + ">" + defResult + "</font>";
+            }
+            String xpathPointer = "/" + XMLUtils.getFullXPath(senseNode);
+            xpathPointer = XMLUtils.replaceXpathstring(xpathPointer, entry.getVolume().getNewOldTagMap());
+            xpathPointer = XMLUtils.removeXpathBeforeVolumeTag(xpathPointer, entry.getVolume());
+            //Log.d(TAG, "Here XpathPointer: " + xpathPointer);
+            appendClickSpannable(defResult, canEdit,
+                    context, entry, "sense", xpathPointer, senseView);
         }
-        String xpathPointer = "/" + XMLUtils.getFullXPath(senseNode);
-        xpathPointer = XMLUtils.replaceXpathstring(xpathPointer, entry.getVolume().getNewOldTagMap());
-        xpathPointer = XMLUtils.removeXpathBeforeVolumeTag(xpathPointer, entry.getVolume());
-        //Log.d(TAG, "Here XpathPointer: " + xpathPointer);
-        appendClickSpannable(defResult, canEdit,
-                context, entry, "sense", xpathPointer, senseView);
     }
 
 
@@ -248,22 +248,22 @@ public final class ViewUtil {
         String kanjiResult = XMLUtils.getStringFromNode(exampleJpnNode);
         if (!TextUtils.isEmpty(kanjiResult)) {
 
-            kanjiResult = kanjiResult.replaceFirst("^\\<[^\\>]+\\>", "");
-            kanjiResult = kanjiResult.replaceFirst("\\<\\/[^\\>]+\\>$", "");
+            kanjiResult = kanjiResult.replaceFirst("^<[^>]+>", "");
+            kanjiResult = kanjiResult.replaceFirst("</[^>]+>$", "");
             //Log.d(TAG, "Kanji string 2:" + kanjiResult);
 
             //  en attendant de trouver un moyen d'afficher le furigana, on le vire...
-            String rtRegexp = "\\<" + entry.getVolume().getOldNewTagMap().get("rt") + "\\>" + "[^\\<]+" + "\\<\\/" + entry.getVolume().getOldNewTagMap().get("rt") + "\\>";
+            String rtRegexp = "<" + entry.getVolume().getOldNewTagMap().get("rt") + ">" + "[^<]+" + "</" + entry.getVolume().getOldNewTagMap().get("rt") + ">";
             kanjiResult = kanjiResult.replaceAll(rtRegexp, "");
             //Log.d(TAG, "Kanji string 4:" + kanjiResult);
             //Log.d(TAG, "pb tag:" + entry.getVolume().getOldNewTagMap().get("pb"));
             //  on remplace la balise pb par une couleur de font spéciale
-            kanjiResult = kanjiResult.replaceAll("\\<" + entry.getVolume().getOldNewTagMap().get("pb") + "\\>", "</font><font color=" + ViewUtil.colorPbJapanese + "><b>");
-            kanjiResult = kanjiResult.replaceAll("\\<\\/" + entry.getVolume().getOldNewTagMap().get("pb") + "\\>", "</b></font><font color=" + ViewUtil.colorJapanese + ">");
+            kanjiResult = kanjiResult.replaceAll("<" + entry.getVolume().getOldNewTagMap().get("pb") + ">", "</font><font color=" + ViewUtil.colorPbJapanese + "><b>");
+            kanjiResult = kanjiResult.replaceAll("</" + entry.getVolume().getOldNewTagMap().get("pb") + ">", "</b></font><font color=" + ViewUtil.colorJapanese + ">");
             // Log.d(TAG, "Kanji string 6:" + kanjiResult);
             // on pourrait mettre les vedettes en gras, comme sur le site Web...
-            kanjiResult = kanjiResult.replaceAll("\\<" + entry.getVolume().getOldNewTagMap().get("vj") + "\\>", "<b>");
-            kanjiResult = kanjiResult.replaceAll("\\<\\/" + entry.getVolume().getOldNewTagMap().get("vj") + "\\>", "</b>");
+            kanjiResult = kanjiResult.replaceAll("<" + entry.getVolume().getOldNewTagMap().get("vj") + ">", "<b>");
+            kanjiResult = kanjiResult.replaceAll("</" + entry.getVolume().getOldNewTagMap().get("vj") + ">", "</b>");
             kanjiResult = "<font color=" + ViewUtil.colorJapanese + ">" + kanjiResult + " </font>";
 
             String xpathPointer = "/" + XMLUtils.getFullXPath(exampleJpnNode);
@@ -292,12 +292,12 @@ public final class ViewUtil {
         String frenchResult = XMLUtils.getStringFromNode(exampleFrenchNode);
         if (!TextUtils.isEmpty(frenchResult)) {
 
-            frenchResult = frenchResult.replaceFirst("^\\<[^\\>]+\\>", "");
-            frenchResult = frenchResult.replaceFirst("\\<\\/[^\\>]+\\>$", "");
+            frenchResult = frenchResult.replaceFirst("^<[^>]+>", "");
+            frenchResult = frenchResult.replaceFirst("</[^>]+>$", "");
             //  on remplace la balise pb par une couleur de font spéciale
 //            Log.d(TAG, "Pb tag: " + "<" + volume.getOldNewTagMap().get("pb") + ">");
-            frenchResult = frenchResult.replaceAll("\\<" + entry.getVolume().getOldNewTagMap().get("pb") + "\\>", "<b><font color=" + ViewUtil.colorPbFrench + ">");
-            frenchResult = frenchResult.replaceAll("\\<\\/" + entry.getVolume().getOldNewTagMap().get("pb") + "\\>", "</font></b>");
+            frenchResult = frenchResult.replaceAll("<" + entry.getVolume().getOldNewTagMap().get("pb") + ">", "<b><font color=" + ViewUtil.colorPbFrench + ">");
+            frenchResult = frenchResult.replaceAll("</" + entry.getVolume().getOldNewTagMap().get("pb") + ">", "</font></b>");
 
             String xpathPointer = "/" + XMLUtils.getFullXPath(exampleFrenchNode);
             xpathPointer = XMLUtils.replaceXpathstring(xpathPointer, entry.getVolume().getNewOldTagMap());

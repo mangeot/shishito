@@ -3,13 +3,13 @@ package jibiki.fr.shishito;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import jibiki.fr.shishito.Interfaces.OnEntryUpdatedListener;
 import jibiki.fr.shishito.Models.ListEntry;
@@ -28,6 +28,7 @@ import jibiki.fr.shishito.Util.XMLUtils;
  */
 public class FastEditFragment extends Fragment implements UpdateContribution.ContributionUpdatedListener {
 
+    @SuppressWarnings("unused")
     private static final String TAG = FastEditFragment.class.getSimpleName();
 
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -38,8 +39,6 @@ public class FastEditFragment extends Fragment implements UpdateContribution.Con
     private static final String VOLUME = "volume";
 
 
-
-    // TODO: Rename and change types of parameters
     private String fieldContent;
     private String xpath;
     private String contribId;
@@ -47,8 +46,6 @@ public class FastEditFragment extends Fragment implements UpdateContribution.Con
 
     private Volume volume;
 
-
-    private Button saveButton;
     private EditText et;
 
     private OnEntryUpdatedListener mListener;
@@ -98,14 +95,13 @@ public class FastEditFragment extends Fragment implements UpdateContribution.Con
         tv.setText(getString(R.string.fast_edit_title, title));
         et = (EditText)v.findViewById(R.id.fast_edit);
         et.setText(fieldContent);
-        saveButton = (Button) v.findViewById(R.id.button_fast);
+        Button saveButton = (Button) v.findViewById(R.id.button_fast);
         saveButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 // On sauvegarde même s'il n'y a pas de modifications car des fois, ce sont des fausses erreurs détectées
                 // if (!et.getText().toString().equals(fieldContent)) {
                     String[] params = {contribId, et.getText().toString(), xpath};
-                    Log.d(TAG, et.getText().toString());
                     new UpdateContribution(FastEditFragment.this, volume).execute(params);
                     if (params[2].contains("vedette-jpn")) {
                         FastEditFragment.this.updateEntryValidation = true;
@@ -136,9 +132,8 @@ public class FastEditFragment extends Fragment implements UpdateContribution.Con
     @Override
     public void onContributionUpdated(ListEntry entry) {
         if (entry != null) {
-            if (FastEditFragment.this.updateEntryValidation == true) {
+            if (FastEditFragment.this.updateEntryValidation) {
                 // solution pour récupérer le nouveau contributionId
-                Log.d(TAG, "PUT de vedette-jpn");
                 FastEditFragment.this.updateEntryValidation = false;
                 String[] paramsValide = {entry.getContribId(), "manuel", XMLUtils.addContributionTagsToXPath(volume.getElements().get("cesselin-vedette-jpn-match"),volume)};
                 new UpdateContribution(FastEditFragment.this, volume).execute(paramsValide);
@@ -146,6 +141,9 @@ public class FastEditFragment extends Fragment implements UpdateContribution.Con
             else {
                 mListener.onEntryUpdatedListener(entry);
             }
+        } else {
+            Toast.makeText(getActivity().getApplicationContext(), R.string.error,
+                    Toast.LENGTH_SHORT).show();
         }
     }
 

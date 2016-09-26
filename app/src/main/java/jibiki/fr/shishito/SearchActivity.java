@@ -11,11 +11,11 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
+import org.xml.sax.SAXException;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
@@ -23,6 +23,8 @@ import java.io.InputStream;
 import java.net.CookieHandler;
 import java.net.CookieManager;
 import java.net.CookiePolicy;
+
+import javax.xml.parsers.ParserConfigurationException;
 
 import jibiki.fr.shishito.Interfaces.FastEditListener;
 import jibiki.fr.shishito.Interfaces.OnEntryUpdatedListener;
@@ -38,8 +40,8 @@ import static jibiki.fr.shishito.Util.HTTPUtils.doGet;
 public class SearchActivity extends AppCompatActivity implements SearchFragment.OnWordSelectedListener,
         DisplayEntryFragment.OnEditClickListener, OnEntryUpdatedListener, FastEditListener {
 
-    private static final String TAG = "SearchActivity";
-    public final static String ENTRY = "jibiki.fr.shishito.ENTRY";
+    @SuppressWarnings("unused")
+    private static final String TAG = SearchActivity.class.getSimpleName();
     //public final static String SERVER_URL = "http://jibiki.fr/jibiki/";
     // Il y a une version sécurisée. On l'active par défaut ? => oui
     public final static String SERVER_URL = "https://jibiki.imag.fr/jibiki/";
@@ -259,7 +261,7 @@ public class SearchActivity extends AppCompatActivity implements SearchFragment.
     private class InitVolumeTask extends AsyncTask<String, Void, Volume> {
 
 
-        public InitVolumeTask() {
+        InitVolumeTask() {
 
         }
 
@@ -270,11 +272,9 @@ public class SearchActivity extends AppCompatActivity implements SearchFragment.
             try {
                 stream = doGet(VOLUME_API_URL);
                 volume = XMLUtils.createVolume(stream);
-
-                Log.v(TAG, "index=" + volume);
-
             } catch (XmlPullParserException | IOException e) {
-                e.printStackTrace();
+                Toast.makeText(getApplicationContext(), R.string.error,
+                        Toast.LENGTH_SHORT).show();
             }
             return volume;
         }
@@ -282,26 +282,26 @@ public class SearchActivity extends AppCompatActivity implements SearchFragment.
         @Override
         protected void onPostExecute(Volume volume) {
             SearchActivity.this.volume = volume;
-            Fragment frag = getSupportFragmentManager().findFragmentByTag("search");
-
-            if (frag != null && frag instanceof SearchFragment) {
-                ((SearchFragment) frag).setVolume(volume);
-            }
         }
     }
 
     private class CheckLoggedIn extends AsyncTask<Void, Void, String> {
 
 
-        public CheckLoggedIn() {
+        CheckLoggedIn() {
 
         }
 
         @Override
         protected String doInBackground(Void... params) {
-            String username;
+            String username = "";
 
-            username = checkLoggedIn();
+            try {
+                username = checkLoggedIn();
+            } catch (IOException | ParserConfigurationException | SAXException e) {
+                Toast.makeText(getApplicationContext(), R.string.error,
+                        Toast.LENGTH_SHORT).show();
+            }
 
             return username;
         }

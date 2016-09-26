@@ -10,7 +10,6 @@ import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,7 +20,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import org.xml.sax.SAXException;
-import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -29,7 +27,6 @@ import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathExpressionException;
@@ -53,7 +50,8 @@ import static jibiki.fr.shishito.Util.HTTPUtils.doGet;
  */
 public class SearchFragment extends Fragment {
 
-    private static final String TAG = "SearchFragment";
+    @SuppressWarnings("unused")
+    private static final String TAG = SearchFragment.class.getSimpleName();
 
     // the fragment initialization parameters
     private static final String QUERY = "query";
@@ -62,12 +60,10 @@ public class SearchFragment extends Fragment {
     private String query;
     private ListView listView;
     private transient ArrayList<ListEntry> curList;
-    private SearchView searchView;
     private TextView noResult;
-    private Volume volume;
     private OnWordSelectedListener mListener;
 
-    public static final Pattern hiraganaPattern = Pattern.compile("[\\p{InHiragana}]+");
+    private static final Pattern hiraganaPattern = Pattern.compile("[\\p{InHiragana}]+");
 
     public SearchFragment() {
         // Required empty public constructor
@@ -95,7 +91,6 @@ public class SearchFragment extends Fragment {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
             query = getArguments().getString(QUERY);
-            volume = (Volume) getArguments().getSerializable(VOLUME);
         }
         setRetainInstance(true);
     }
@@ -110,10 +105,6 @@ public class SearchFragment extends Fragment {
                 return;
             }
         }
-    }
-
-    public void setVolume(Volume volume) {
-        this.volume = volume;
     }
 
     @Override
@@ -134,7 +125,7 @@ public class SearchFragment extends Fragment {
         if (curList != null) {
             EntryListAdapter adapter = (EntryListAdapter) listView.getAdapter();
             if (adapter == null) {
-                adapter = new EntryListAdapter(getActivity(), curList, volume);
+                adapter = new EntryListAdapter(getActivity(), curList);
                 listView.setAdapter(adapter);
             } else {
                 adapter.clear();
@@ -146,7 +137,7 @@ public class SearchFragment extends Fragment {
         // Associate searchable configuration with the SearchView
         SearchManager searchManager =
                 (SearchManager) getActivity().getSystemService(Context.SEARCH_SERVICE);
-        searchView =
+        SearchView searchView =
                 (SearchView) v.findViewById(R.id.action_search);
         searchView.setSearchableInfo(
                 searchManager.getSearchableInfo(getActivity().getComponentName()));
@@ -231,7 +222,7 @@ public class SearchFragment extends Fragment {
     private class SearchTask extends AsyncTask<String, Void, ArrayList<ListEntry>> {
 
 
-        public SearchTask() {
+        SearchTask() {
 
         }
 
@@ -242,7 +233,6 @@ public class SearchFragment extends Fragment {
             try {
                 String word = ViewUtil.normalizeQueryString(params[0]);
                 int firstCharCode = Character.codePointAt(word,1);
-                // Log.v(TAG, "search=" + word + " firstCharCode: " + firstCharCode);
                 // Si le mot est en romaji (attention, il peut y avoir des macrons (ā = 257 à ū = 360)
                 if (firstCharCode < 0x3042) {
                     word = ViewUtil.replace_macron(word);
@@ -264,10 +254,10 @@ public class SearchFragment extends Fragment {
                 }
 
                 result = XMLUtils.parseEntryList(stream, ((SearchActivity) getActivity()).getVolume());
-                Log.v(TAG, "index=" + result);
 
-            } catch (XmlPullParserException | ParserConfigurationException | SAXException | XPathExpressionException | IOException e) {
-                e.printStackTrace();
+            } catch (ParserConfigurationException | SAXException | XPathExpressionException | IOException e) {
+                Toast.makeText(SearchFragment.this.getActivity().getApplicationContext(), R.string.error,
+                        Toast.LENGTH_SHORT).show();
             }
             curList = result;
             return result;
@@ -291,7 +281,7 @@ public class SearchFragment extends Fragment {
                     noResult.setVisibility(View.GONE);
                     EntryListAdapter adapter = (EntryListAdapter) listView.getAdapter();
                     if (adapter == null) {
-                        adapter = new EntryListAdapter(getActivity(), result, volume);
+                        adapter = new EntryListAdapter(getActivity(), result);
                         listView.setAdapter(adapter);
                     } else {
                         adapter.clear();

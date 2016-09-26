@@ -13,11 +13,8 @@ public class AboutFragment extends Fragment {
         // Required empty public constructor
     }
 
-    // TODO: Rename and change types and number of parameters
     public static AboutFragment newInstance() {
-        AboutFragment fragment = new AboutFragment();
-        Bundle args = new Bundle();
-        return fragment;
+        return new AboutFragment();
     }
 
     @Override

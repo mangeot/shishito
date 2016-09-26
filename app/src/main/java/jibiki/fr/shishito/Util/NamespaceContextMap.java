@@ -17,7 +17,7 @@ import javax.xml.namespace.NamespaceContext;
  *
  * @author McDowell
  */
-public final class NamespaceContextMap implements
+final class NamespaceContextMap implements
         NamespaceContext {
 
     private final Map<String, String> prefixMap;
@@ -32,7 +32,7 @@ public final class NamespaceContextMap implements
      * @param prefixMappings
      *          a map of prefix:namespaceURI values
      */
-    public NamespaceContextMap(
+    private NamespaceContextMap(
             Map<String, String> prefixMappings) {
         prefixMap = createPrefixMap(prefixMappings);
         nsMap = createNamespaceMap(prefixMap);
@@ -50,7 +50,7 @@ public final class NamespaceContextMap implements
 
     private static Map<String, String> toMap(
             String... mappingPairs) {
-        Map<String, String> prefixMappings = new HashMap<String, String>(
+        Map<String, String> prefixMappings = new HashMap<>(
                 mappingPairs.length / 2);
         for (int i = 0; i < mappingPairs.length; i++) {
             prefixMappings
@@ -61,7 +61,7 @@ public final class NamespaceContextMap implements
 
     private Map<String, String> createPrefixMap(
             Map<String, String> prefixMappings) {
-        Map<String, String> prefixMap = new HashMap<String, String>(
+        Map<String, String> prefixMap = new HashMap<>(
                 prefixMappings);
         addConstant(prefixMap, XMLConstants.XML_NS_PREFIX,
                 XMLConstants.XML_NS_URI);
@@ -81,13 +81,13 @@ public final class NamespaceContextMap implements
 
     private Map<String, Set<String>> createNamespaceMap(
             Map<String, String> prefixMap) {
-        Map<String, Set<String>> nsMap = new HashMap<String, Set<String>>();
+        Map<String, Set<String>> nsMap = new HashMap<>();
         for (Map.Entry<String, String> entry : prefixMap
                 .entrySet()) {
             String nsURI = entry.getValue();
             Set<String> prefixes = nsMap.get(nsURI);
             if (prefixes == null) {
-                prefixes = new HashSet<String>();
+                prefixes = new HashSet<>();
                 nsMap.put(nsURI, prefixes);
             }
             prefixes.add(entry.getKey());

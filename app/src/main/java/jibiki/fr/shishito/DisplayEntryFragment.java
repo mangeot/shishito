@@ -25,9 +25,9 @@ import jibiki.fr.shishito.Util.ViewUtil;
 public class DisplayEntryFragment extends Fragment {
 
 
+    @SuppressWarnings("unused")
     private static final String TAG = DisplayEntryFragment.class.getSimpleName();
     private static final String ENTRY = "entry";
-    private static final String VOLUME = "volume";
 
     private static final int EDIT_MENU_ID = 10;
 

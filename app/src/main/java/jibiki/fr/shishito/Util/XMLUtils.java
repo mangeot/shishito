@@ -40,6 +40,7 @@ import jibiki.fr.shishito.Models.Volume;
 
 /**
  * Created by tibo on 17/09/15.
+ * A utility class for XML related functionality.
  */
 public final class XMLUtils {
 
@@ -58,8 +59,7 @@ public final class XMLUtils {
 
     private static RomajiComparator myRomajiComparator = new RomajiComparator();
 
-    protected static java.util.regex.Pattern regexXpath = java.util.regex.Pattern.compile("/([^\\/\\s\\[:]+:)?([^\\[\\/\\s:]+)", java.util.regex.Pattern.DOTALL);
-    protected static java.util.regex.Pattern regexTags = java.util.regex.Pattern.compile("<([^\\/\\s\\\\?>:]+:)?([^\\/\\s\\?:>]+)", java.util.regex.Pattern.DOTALL);
+    private static java.util.regex.Pattern regexTags = java.util.regex.Pattern.compile("<([^/\\s\\\\?>:]+:)?([^/\\s\\?:>]+)", java.util.regex.Pattern.DOTALL);
 
     private XMLUtils() {
     }
@@ -81,7 +81,7 @@ public final class XMLUtils {
         }
     }
 
-    public static ListEntry parseEntryStream(InputStream stream, Volume volume) throws IOException, ParserConfigurationException, SAXException, XPathExpressionException {
+    private static ListEntry parseEntryStream(InputStream stream, Volume volume) throws IOException, ParserConfigurationException, SAXException, XPathExpressionException {
         Document document = prepareDocumentFromStream(stream, volume);
         XPath xPath = getNewXPath();
         return parseListEntry(xPath, document, volume);
@@ -135,8 +135,8 @@ public final class XMLUtils {
         String frenchResult = getStringFromNode(frenchNode);
         //  on vire la balise racine
         if (!TextUtils.isEmpty(frenchResult)) {
-            frenchResult = frenchResult.replaceFirst("^\\<[^\\>]+\\>", "");
-            frenchResult = frenchResult.replaceFirst("\\<\\/[^\\>]+\\>$", "");
+            frenchResult = frenchResult.replaceFirst("^<[^>]+>", "");
+            frenchResult = frenchResult.replaceFirst("</[^>]+>$", "");
             //  on remplace la balise pb par une couleur de font spéciale
 //            Log.d(TAG, "Pb tag: " + "<" + volume.getOldNewTagMap().get("pb") + ">");
             frenchResult = frenchResult.replaceAll("<" + volume.getOldNewTagMap().get("pb") + ">", "<b><font color=" + ViewUtil.colorPbFrench + ">");
@@ -151,11 +151,11 @@ public final class XMLUtils {
         String kanjiResult = getStringFromNode(kanjiNode);
         //  on vire la balise racine
         if (!TextUtils.isEmpty(kanjiResult)) {
-            kanjiResult = kanjiResult.replaceFirst("^\\<[^\\>]+\\>", "");
-            kanjiResult = kanjiResult.replaceFirst("\\<\\/[^\\>]+\\>$", "");
+            kanjiResult = kanjiResult.replaceFirst("^<[^>]+>", "");
+            kanjiResult = kanjiResult.replaceFirst("</[^>]+>$", "");
 
             //  en attendant de trouver un moyen d'afficher le furigana, on le vire...
-            String rtRegexp = "<" + volume.getOldNewTagMap().get("rt") + ">" + "[^\\<]+" + "</" + volume.getOldNewTagMap().get("rt") + ">";
+            String rtRegexp = "<" + volume.getOldNewTagMap().get("rt") + ">" + "[^<]+" + "</" + volume.getOldNewTagMap().get("rt") + ">";
             kanjiResult = kanjiResult.replaceAll(rtRegexp, "");
             //  on remplace la balise pb par une couleur de font spéciale
             kanjiResult = kanjiResult.replaceAll("<" + volume.getOldNewTagMap().get("rt") + ">", "</font><font color=" + ViewUtil.colorPbJapanese + "><b>");
@@ -173,10 +173,10 @@ public final class XMLUtils {
 
     private static ListEntry parseListEntry(XPath xPath, Node el, Volume volume) throws XPathExpressionException {
         String xpath;
-        ListEntry entry = new ListEntry(el,volume);
+        ListEntry entry = new ListEntry(el, volume);
         xpath = adjustXpath("cdm-headword", volume);
         NodeList nodes = (NodeList) xPath.evaluate(xpath, el, XPathConstants.NODESET);
-        if (nodes.getLength()>0) {
+        if (nodes.getLength() > 0) {
             entry.setKanjiNode(nodes.item(0));
         }
         xpath = adjustXpath("cesselin-writing-display", volume);
@@ -185,7 +185,7 @@ public final class XMLUtils {
         entry.setRomajiSearch(xPath.evaluate(xpath, el));
         xpath = adjustXpath("cdm-reading", volume);
         NodeList hiraganaNodes = (NodeList) xPath.evaluate(xpath, el, XPathConstants.NODESET);
-        if (hiraganaNodes.getLength()>0) {
+        if (hiraganaNodes.getLength() > 0) {
             entry.setHiraganaNode(hiraganaNodes.item(0));
         }
  /*       xpath = adjustXpath("cdm-gram-block", volume);
@@ -234,7 +234,7 @@ public final class XMLUtils {
         return xPath;
     }
 
-    public static ArrayList<ListEntry> parseEntryList(InputStream stream, Volume volume) throws IOException, XmlPullParserException, XPathExpressionException, SAXException, ParserConfigurationException {
+    public static ArrayList<ListEntry> parseEntryList(InputStream stream, Volume volume) throws IOException, XPathExpressionException, SAXException, ParserConfigurationException {
 
         // volume.initializeTagMaps();
         Document document = prepareDocumentFromStream(stream, volume);
@@ -298,7 +298,7 @@ public final class XMLUtils {
         return volume;
     }
 
-    protected static String replaceTags(String oldXml, java.util.HashMap<String, String> theOldNewTagMap, java.util.HashMap<String, String> theNewOldTagMap) {
+    private static String replaceTags(String oldXml, java.util.HashMap<String, String> theOldNewTagMap, java.util.HashMap<String, String> theNewOldTagMap) {
         String newXml = oldXml;
 
         java.util.regex.Matcher m = regexTags.matcher(newXml);
@@ -325,8 +325,8 @@ public final class XMLUtils {
         return newXml;
     }
 
-    protected static String replaceXpathstring(String xpathString, java.util.HashMap<String, String> theTagMap) {
-        java.util.regex.Pattern regexXpath = java.util.regex.Pattern.compile("/([^\\/\\s\\[:]+:)?([^\\[\\/\\s:]+)", java.util.regex.Pattern.DOTALL);
+    static String replaceXpathstring(String xpathString, java.util.HashMap<String, String> theTagMap) {
+        java.util.regex.Pattern regexXpath = java.util.regex.Pattern.compile("/([^/\\s\\[:]+:)?([^\\[/\\s:]+)", java.util.regex.Pattern.DOTALL);
         String newXpathString = xpathString;
         //Log.d(TAG, "newXpathString:" + newXpathString);
         java.util.regex.Matcher mXpath = regexXpath.matcher(newXpathString);
@@ -349,13 +349,13 @@ public final class XMLUtils {
         return newXpathString;
     }
 
-    protected static String adjustXpath(String cdmElement, Volume theVolume) {
+    static String adjustXpath(String cdmElement, Volume theVolume) {
         String xpath = theVolume.getElements().get(cdmElement);
         xpath = addContributionTagsToXPath(xpath, theVolume);
         if (!xpath.startsWith(".")) {
             xpath = "." + xpath;
         }
-                // à tester !
+        // à tester !
 //        xpath.replaceAll("\\s//", " .//");
 //        xpath.replaceAll("^//", ".//");
         //Log.d(TAG, "adjustedXpathString:" + xpath);
@@ -364,8 +364,8 @@ public final class XMLUtils {
         return xpath;
     }
 
-    public static String addContributionTagsToXPath(String theXPath, Volume oneVolume){
-        String cdmVolumePath =  oneVolume.getElements().get("cdm-volume");
+    public static String addContributionTagsToXPath(String theXPath, Volume oneVolume) {
+        String cdmVolumePath = oneVolume.getElements().get("cdm-volume");
         if (theXPath.contains(cdmVolumePath)) {
             theXPath = theXPath.replace(cdmVolumePath, cdmVolumePath + "/d:contribution/d:data");
         }
@@ -373,14 +373,14 @@ public final class XMLUtils {
     }
 
     public static String removeXpathBeforeVolumeTag(String xpathString, Volume theVolume) {
-        String cdmVolumePath =  theVolume.getElements().get("cdm-volume");
+        String cdmVolumePath = theVolume.getElements().get("cdm-volume");
         if (xpathString.contains(cdmVolumePath)) {
             xpathString = xpathString.replaceFirst("^.*?\\" + cdmVolumePath, cdmVolumePath);
         }
         return xpathString;
     }
 
-    protected static String testXpath(String xpath, Volume theVolume) {
+    private static String testXpath(String xpath, Volume theVolume) {
         String cdmVolumePath = theVolume.getElements().get("cdm-volume");
         //Log.d(TAG, "notadjustedXpathString:" + xpath);
         if (xpath.contains(cdmVolumePath)) {
@@ -432,8 +432,6 @@ public final class XMLUtils {
         Object obj;
         while (!hierarchy.isEmpty() && null != (obj = hierarchy.pop())) {
             Node node = (Node) obj;
-            boolean handled = false;
-
             if (node.getNodeType() == Node.ELEMENT_NODE) {
                 // is this the root element?
                 if (buffer.length() == 0) {
@@ -458,21 +456,20 @@ public final class XMLUtils {
                         }
                     } */
 
-                    if (!handled) {
-                        // no known attribute we could use - get sibling index
-                        int prev_siblings = 1;
-                        Node prev_sibling = node.getPreviousSibling();
-                        while (null != prev_sibling) {
-                            if (prev_sibling.getNodeType() == node.getNodeType()) {
-                                if (prev_sibling.getNodeName().equalsIgnoreCase(
-                                        node.getNodeName())) {
-                                    prev_siblings++;
-                                }
+                    // no known attribute we could use - get sibling index
+                    int prev_siblings = 1;
+                    Node prev_sibling = node.getPreviousSibling();
+                    while (null != prev_sibling) {
+                        if (prev_sibling.getNodeType() == node.getNodeType()) {
+                            if (prev_sibling.getNodeName().equalsIgnoreCase(
+                                    node.getNodeName())) {
+                                prev_siblings++;
                             }
-                            prev_sibling = prev_sibling.getPreviousSibling();
                         }
-                        buffer.append("[").append(prev_siblings).append("]");
+                        prev_sibling = prev_sibling.getPreviousSibling();
                     }
+                    buffer.append("[").append(prev_siblings).append("]");
+
                 }
             } else if (node.getNodeType() == Node.ATTRIBUTE_NODE) {
                 buffer.append("/@");
@@ -501,7 +498,7 @@ public final class XMLUtils {
         }
     }
 
-    public static String getTransformedXPath(String xpath, Volume volume) {
+    private static String getTransformedXPath(String xpath, Volume volume) {
         String cdmVolumePath = volume.getElements().get("cdm-volume");
 
         if (xpath.contains(cdmVolumePath)) {
@@ -518,7 +515,7 @@ public final class XMLUtils {
         return getTransformedXPath(xpath, volume);
     }
 
-    public static String addNum(String xpath, String tag, int num) {
+    private static String addNum(String xpath, String tag, int num) {
         return xpath.replace("/" + tag + "/", "/" + tag + "[" + num + "]/");
     }
 

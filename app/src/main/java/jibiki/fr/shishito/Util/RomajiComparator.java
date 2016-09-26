@@ -4,8 +4,9 @@ import jibiki.fr.shishito.Models.ListEntry;
 
 /**
  * Created by mangeot on 06/01/16.
+ * A class enabling comparison of two {@link ListEntry} items based on their Romaji.
  */
-public class RomajiComparator implements java.util.Comparator<ListEntry> {
+class RomajiComparator implements java.util.Comparator<ListEntry> {
         @Override
         public int compare(ListEntry o1, ListEntry o2) {
             int res = String.CASE_INSENSITIVE_ORDER.compare(o1.getRomajiDisplay(), o2.getRomajiDisplay());

@@ -7,6 +7,7 @@ import java.util.ArrayList;
 
 /**
  * Created by tibo on 29/11/15.
+ * A class representing an entry from the dictionary.
  */
 public class ListEntry implements Serializable {
 
@@ -70,10 +71,6 @@ public class ListEntry implements Serializable {
         return examples;
     }
 
-    public void addExample(Example example) {
-        this.examples.add(example);
-    }
-
     public String getRomajiSearch() {
         return romajiSearch;
     }
@@ -100,10 +97,6 @@ public class ListEntry implements Serializable {
 
     public ArrayList<GramBlock> getGramBlocks() {
         return gramBlocks;
-    }
-
-    public void addGramBlock(GramBlock gb) {
-        gramBlocks.add(gb);
     }
 
     public boolean isVerified() {

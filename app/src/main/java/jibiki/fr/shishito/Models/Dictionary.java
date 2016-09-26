@@ -6,7 +6,7 @@ import java.util.Map;
 /**
  * Created by tibo on 29/11/15.
  */
-public class Dictionary {
+class Dictionary {
 
     private String contents;
     private String domain;
@@ -16,8 +16,6 @@ public class Dictionary {
     private String access;
 
     private Map elements = new HashMap<String, String>();
-
-    public Dictionary(){};
 
     public String getContents() {
         return contents;

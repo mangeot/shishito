@@ -34,7 +34,7 @@ import java.net.HttpCookie;
  * Modifications in the structure of the class and addition of serialization of httpOnly attribute
  */
 
-public class SerializableHttpCookie implements Serializable {
+class SerializableHttpCookie implements Serializable {
     private static final String TAG = SerializableHttpCookie.class
             .getSimpleName();
 

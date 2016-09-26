@@ -4,6 +4,7 @@ import java.io.Serializable;
 
 /**
  * Created by tibo on 06/01/16.
+ * This class represents an example from the dictionary.
  */
 public class Example implements Serializable{
     private String kanji;

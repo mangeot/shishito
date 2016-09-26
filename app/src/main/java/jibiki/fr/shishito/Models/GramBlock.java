@@ -7,13 +7,14 @@ import java.util.ArrayList;
 
 /**
  * Created by tibo on 26/07/16.
+ * A class representing a grammatical block from a dictionary definition.
  */
 public class GramBlock implements Serializable{
 
-    String gram;
-    org.w3c.dom.Node gramBlockNode;
-    ArrayList<String> sens;
-    ArrayList<String> enSens;
+    private String gram;
+    private Node gramBlockNode;
+    private ArrayList<String> sens;
+    private ArrayList<String> enSens;
 
 //    public GramBlock() {
 //        sens = new ArrayList<>();
@@ -24,7 +25,7 @@ public class GramBlock implements Serializable{
         sens = new ArrayList<>();
     }
 
-    public org.w3c.dom.Node getNode() {
+    public Node getNode() {
         return gramBlockNode;
     }
 

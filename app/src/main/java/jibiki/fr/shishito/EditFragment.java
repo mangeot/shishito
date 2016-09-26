@@ -36,8 +36,6 @@ public class EditFragment extends Fragment implements UpdateContribution.Contrib
     private static final String TAG = EditFragment.class.getSimpleName();
 
     private static final String ENTRY = "entry";
-    private static final String VOLUME = "volume";
-
 
     private static final int KANJI = 100;
     private static final int HIRAGANA = KANJI + 1;
@@ -51,7 +49,6 @@ public class EditFragment extends Fragment implements UpdateContribution.Contrib
 
 
     private ListEntry entry;
-    private Button saveButton;
 
     private OnEntryUpdatedListener mListener;
 
@@ -172,7 +169,7 @@ public class EditFragment extends Fragment implements UpdateContribution.Contrib
             cnt++;
         }
 
-        saveButton = (Button) v.findViewById(R.id.button);
+        Button saveButton = (Button) v.findViewById(R.id.button);
         saveButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View but) {
                 ArrayList<Pair<String, String>> xpaths = new ArrayList<>(4);
