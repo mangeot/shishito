@@ -60,25 +60,25 @@ public final class ViewUtil {
     private static final String TAG = ViewUtil.class.getSimpleName();
 
 
-     public static void parseAndAddGramBlocksToView(View v, ListEntry entry, Context context,
-                                           boolean canEdit) {
+    public static void parseAndAddGramBlocksToView(View v, ListEntry entry, Context context, boolean clickable) {
         String blockXpathString = XMLUtils.adjustXpath("cdm-gram-block", entry.getVolume());
-         try {
-             XPath xPath = XMLUtils.getNewXPath();
-        NodeList gramBlocks = (NodeList) xPath.evaluate(blockXpathString, entry.getNode(), XPathConstants.NODESET);
-        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        params.setMargins(0, 5, 0, 5);
-        for (int i = 0; i < gramBlocks.getLength(); i++) {
-            Element block = (Element) gramBlocks.item(i);
-            parseAndAddGramBlockToView(block, v, entry, canEdit, context, params);
+        try {
+            XPath xPath = XMLUtils.getNewXPath();
+            NodeList gramBlocks = (NodeList) xPath.evaluate(blockXpathString, entry.getNode(), XPathConstants.NODESET);
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            params.setMargins(0, 5, 0, 5);
+            for (int i = 0; i < gramBlocks.getLength(); i++) {
+                Element block = (Element) gramBlocks.item(i);
+                parseAndAddGramBlockToView(block, v, entry, context, params, clickable);
+            }
+        } catch (XPathExpressionException ex) {
+            Log.e(TAG, "Error xPath: " + ex.getMessage());
         }
-         }
-         catch (XPathExpressionException ex) {
-             Log.e(TAG, "Error xPath: " + ex.getMessage());
-         }
-     }
+    }
 
-    private static void parseAndAddGramBlockToView(Element block, View v, ListEntry entry, boolean canEdit, Context context, LinearLayout.LayoutParams params) {
+    private static void parseAndAddGramBlockToView(Element block, View v, ListEntry entry,
+                                                   Context context, LinearLayout.LayoutParams params,
+                                                   boolean clickable) {
         try {
             XPath xPath = XMLUtils.getNewXPath();
             String gramblockPath = XMLUtils.adjustXpath("cdm-gram-block", entry.getVolume());
@@ -107,19 +107,18 @@ public final class ViewUtil {
                 TextView senseView = new TextView(context);
                 senseView.setLayoutParams(params);
                 TextViewCompat.setTextAppearance(senseView, android.R.style.TextAppearance_Medium);
-                if (sensList.getLength()>1) {
-                    senseView.append((j+1) + ". ");
+                if (sensList.getLength() > 1) {
+                    senseView.append((j + 1) + ". ");
                 }
-                parseAndAddSenseToView(defNode, entry, canEdit, context, senseView);
+                parseAndAddSenseToView(defNode, entry, context, senseView, clickable);
                 ((LinearLayout) v).addView(senseView);
             }
-        }
-        catch (XPathExpressionException ex) {
+        } catch (XPathExpressionException ex) {
             Log.e(TAG, "Error xPath: " + ex.getMessage());
         }
     }
 
-    private static void parseAndAddSenseToView(Node senseNode, ListEntry entry, boolean canEdit, Context context, TextView senseView) {
+    private static void parseAndAddSenseToView(Node senseNode, ListEntry entry, Context context, TextView senseView, boolean clickable) {
         String defResult = XMLUtils.getStringFromNode(senseNode);
         if (defResult != null) {
             defResult = defResult.replaceFirst("^<[^>]+>", "");
@@ -138,17 +137,17 @@ public final class ViewUtil {
             xpathPointer = XMLUtils.replaceXpathstring(xpathPointer, entry.getVolume().getNewOldTagMap());
             xpathPointer = XMLUtils.removeXpathBeforeVolumeTag(xpathPointer, entry.getVolume());
             //Log.d(TAG, "Here XpathPointer: " + xpathPointer);
-            appendClickSpannable(defResult, canEdit,
-                    context, entry, "sense", xpathPointer, senseView);
+            appendClickSpannable(defResult,
+                    context, entry, "sense", xpathPointer, senseView, clickable);
         }
     }
 
 
-    private static void appendClickSpannable(String input, boolean clickable,
+    private static void appendClickSpannable(String input,
                                              Context context, ListEntry entry,
                                              final String title,
                                              final String xpath,
-                                             TextView tv) {
+                                             TextView tv, boolean clickable) {
         SpannableString ss = new SpannableString(Html.fromHtml(input));
         if (clickable) {
             tv.setMovementMethod(LinkMovementMethod.getInstance());
@@ -161,7 +160,9 @@ public final class ViewUtil {
 
                     @Override
                     public void onClick(View widget) {
-                        fel.putFastEdit(contribId, xpath, s, title);
+                        if (fel.isLoggedIn()) {
+                            fel.putFastEdit(contribId, xpath, s, title);
+                        }
                     }
 
                     @Override
@@ -177,7 +178,7 @@ public final class ViewUtil {
 
 
     public static void parseAndAddExamplesToView(View v, ListEntry entry, Context context,
-                                                   boolean canEdit) {
+                                                 boolean clickable) {
         String blockXpathString = XMLUtils.adjustXpath("cdm-example-block", entry.getVolume());
         try {
 
@@ -193,16 +194,17 @@ public final class ViewUtil {
             }
             for (int i = 0; i < exampleBlocks.getLength(); i++) {
                 Element block = (Element) exampleBlocks.item(i);
-                TextView exampleView = parseAndCreateExampleView(block, entry, canEdit, context, blockXpathString);
+                TextView exampleView = parseAndCreateExampleView(block, entry, context, blockXpathString, clickable);
                 ((LinearLayout) v).addView(exampleView);
             }
+        } catch (XPathExpressionException ex) {
+            Log.e(TAG, "Error xPath: " + ex.getMessage());
         }
-            catch (XPathExpressionException ex) {
-                Log.e(TAG, "Error xPath: " + ex.getMessage());
-            }
-        }
+    }
 
-    private static TextView parseAndCreateExampleView(Element exampleNode, ListEntry entry, boolean canEdit, Context context, String blockXpathString) {
+    private static TextView parseAndCreateExampleView(Element exampleNode, ListEntry entry,
+                                                      Context context, String blockXpathString,
+                                                      boolean clickable) {
         TextView exView = new TextView(context);
         exView.setLineSpacing(8, 1);
         exView.append("▪ ");
@@ -215,14 +217,14 @@ public final class ViewUtil {
             kanjiPath = "." + kanjiPath.replace("/text()", "");
             NodeList kanjiNodes = (NodeList) xPath.evaluate(kanjiPath, exampleNode, XPathConstants.NODESET);
             Node kanjiNode = kanjiNodes.item(0);
-            parseAndAddExampleJpnToView(kanjiNode, entry, canEdit, context, exView);
+            parseAndAddExampleJpnToView(kanjiNode, entry, context, exView, clickable);
 
 
             String romajiPath = XMLUtils.adjustXpath("cesselin-example-romaji", entry.getVolume()).substring(blockXpathString.length());
             romajiPath = "." + romajiPath.replace("/text()", "");
             NodeList romajiNodes = (NodeList) xPath.evaluate(romajiPath, exampleNode, XPathConstants.NODESET);
             Node romajiNode = romajiNodes.item(0);
-            parseAndAddExampleRomajiToView(romajiNode, entry, canEdit, context, exView);
+            parseAndAddExampleRomajiToView(romajiNode, entry, context, exView, clickable);
             exView.append(" ");
 
 
@@ -231,20 +233,20 @@ public final class ViewUtil {
             NodeList frenchNodes = (NodeList) xPath.evaluate(frenchPath, exampleNode, XPathConstants.NODESET);
             for (int i = 0; i < frenchNodes.getLength(); i++) {
                 Element frenchNode = (Element) frenchNodes.item(i);
-                if (frenchNodes.getLength()>1) {
-                    exView.append(" ["+(i+1)+"] ");
+                if (frenchNodes.getLength() > 1) {
+                    exView.append(" [" + (i + 1) + "] ");
                 }
-                parseAndAddExampleFrenchToView(frenchNode, entry, canEdit, context, exView);
+                parseAndAddExampleFrenchToView(frenchNode, entry, context, exView, clickable);
             }
+        } catch (XPathExpressionException ex) {
+            Log.e(TAG, "Error xPath: " + ex.getMessage());
         }
-    catch (XPathExpressionException ex) {
-        Log.e(TAG, "Error xPath: " + ex.getMessage());
-    }
         exView.setTextColor(Color.parseColor(colorFrench));
         return exView;
-}
+    }
 
-    private static void parseAndAddExampleJpnToView(Node exampleJpnNode, ListEntry entry, boolean canEdit, Context context, TextView exView) {
+    private static void parseAndAddExampleJpnToView(Node exampleJpnNode, ListEntry entry,
+                                                    Context context, TextView exView, boolean clickable) {
         String kanjiResult = XMLUtils.getStringFromNode(exampleJpnNode);
         if (!TextUtils.isEmpty(kanjiResult)) {
 
@@ -271,24 +273,27 @@ public final class ViewUtil {
             xpathPointer = XMLUtils.removeXpathBeforeVolumeTag(xpathPointer, entry.getVolume());
             //Log.d(TAG, "Kanji string 10:" + kanjiResult);
 
-            appendClickSpannable(kanjiResult, canEdit, context, entry,
-                    "exemple kanji", xpathPointer, exView);
+            appendClickSpannable(kanjiResult, context, entry,
+                    "exemple kanji", xpathPointer, exView, clickable);
         }
     }
 
 
-    private static void parseAndAddExampleRomajiToView(Node exampleRomajiNode, ListEntry entry, boolean canEdit, Context context, TextView exView) {
-            String romajiResult = XMLUtils.getStringFromNode(exampleRomajiNode);
-            String xpathPointer = "/" + XMLUtils.getFullXPath(exampleRomajiNode);
-            xpathPointer = XMLUtils.replaceXpathstring(xpathPointer, entry.getVolume().getNewOldTagMap());
-            xpathPointer = XMLUtils.removeXpathBeforeVolumeTag(xpathPointer, entry.getVolume());
+    private static void parseAndAddExampleRomajiToView(Node exampleRomajiNode, ListEntry entry, Context context,
+                                                       TextView exView, boolean clickable) {
+        String romajiResult = XMLUtils.getStringFromNode(exampleRomajiNode);
+        String xpathPointer = "/" + XMLUtils.getFullXPath(exampleRomajiNode);
+        xpathPointer = XMLUtils.replaceXpathstring(xpathPointer, entry.getVolume().getNewOldTagMap());
+        xpathPointer = XMLUtils.removeXpathBeforeVolumeTag(xpathPointer, entry.getVolume());
 
-            appendClickSpannable("<font color=" + colorRomaji + ">(" + romajiResult + ")</font>", canEdit,
-                    context, entry, "exemple romaji", xpathPointer, exView);
+        appendClickSpannable("<font color=" + colorRomaji + ">(" + romajiResult + ")</font>",
+                context, entry, "exemple romaji", xpathPointer, exView, clickable);
 
     }
 
-    private static void parseAndAddExampleFrenchToView(Node exampleFrenchNode, ListEntry entry, boolean canEdit, Context context, TextView exView) {
+    private static void parseAndAddExampleFrenchToView(Node exampleFrenchNode, ListEntry entry,
+                                                       Context context, TextView exView,
+                                                       boolean clickable) {
         String frenchResult = XMLUtils.getStringFromNode(exampleFrenchNode);
         if (!TextUtils.isEmpty(frenchResult)) {
 
@@ -303,8 +308,8 @@ public final class ViewUtil {
             xpathPointer = XMLUtils.replaceXpathstring(xpathPointer, entry.getVolume().getNewOldTagMap());
             xpathPointer = XMLUtils.removeXpathBeforeVolumeTag(xpathPointer, entry.getVolume());
 
-            appendClickSpannable(frenchResult, canEdit, context, entry,
-                    "exemple français", xpathPointer, exView);
+            appendClickSpannable(frenchResult, context, entry,
+                    "exemple français", xpathPointer, exView, clickable);
         }
     }
 
@@ -327,22 +332,22 @@ public final class ViewUtil {
             TextViewCompat.setTextAppearance(exView, android.R.style.TextAppearance_Medium);
 
             String xpath = XMLUtils.getTransformedNumberedXpath(entry.getVolume(), "cdm-example-jpn", "exemple", i);
-            appendClickSpannable(ex.getKanji(), canEdit, context, entry,
-                    "example kanji", xpath, exView);
+            appendClickSpannable(ex.getKanji(), context, entry,
+                    "example kanji", xpath, exView, canEdit);
             xpath = XMLUtils.getTransformedNumberedXpath(entry.getVolume(), "cesselin-example-romaji", "exemple", i);
-            appendClickSpannable("<font color=" + colorRomaji + ">(" + ex.getRomaji() + ")</font>", canEdit,
-                    context, entry, "example romaji", xpath, exView);
+            appendClickSpannable("<font color=" + colorRomaji + ">(" + ex.getRomaji() + ")</font>",
+                    context, entry, "example romaji", xpath, exView, canEdit);
             exView.append("  ");
             xpath = XMLUtils.getTransformedNumberedXpath(entry.getVolume(), "cdm-example-fra", "exemple", i);
-            appendClickSpannable(ex.getFrench(), canEdit, context, entry, "example français",
-                    xpath, exView);
+            appendClickSpannable(ex.getFrench(), context, entry, "example français",
+                    xpath, exView, canEdit);
             exView.setTextColor(Color.parseColor(colorFrench));
             ((LinearLayout) v).addView(exView);
             i++;
         }
     }
 
-    public static void addVedette(TextView v, ListEntry entry, boolean loggedIn, Context context) {
+    public static void addVedette(TextView v, ListEntry entry, Context context, boolean clickable) {
         String romaji = entry.getRomajiDisplay();
         if (TextUtils.isEmpty(romaji)) {
             romaji = entry.getRomajiSearch();
@@ -357,7 +362,7 @@ public final class ViewUtil {
             String xpathPointer = "/" + XMLUtils.getFullXPath(kanjiNode);
             xpathPointer = XMLUtils.replaceXpathstring(xpathPointer, entry.getVolume().getNewOldTagMap());
             xpathPointer = XMLUtils.removeXpathBeforeVolumeTag(xpathPointer, entry.getVolume());
-            appendClickSpannable(kanji, loggedIn, context, entry, "vedette Kanji", xpathPointer, v);
+            appendClickSpannable(kanji, context, entry, "vedette Kanji", xpathPointer, v, clickable);
         }
         String hiraganaString = XMLUtils.getStringFromNode(entry.getHiraganaNode());
         String vText = "   <font color=" + colorJapanese + ">【" + hiraganaString + "】</font>   " +
@@ -381,42 +386,42 @@ public final class ViewUtil {
     }
 
     public static String normalizeQueryString(String string) {
-        string = string.replace(" ","");
+        string = string.replace(" ", "");
         return string;
     }
 
     public static String replace_macron(String string) {
-        string = string.replace("â","ā");
-        string = string.replace("ê","ē");
-        string = string.replace("î","ī");
-        string = string.replace("ô","ō");
-        string = string.replace("û","ū");
-        string = string.replace("a"+"̄","ā");
-        string = string.replace("e"+"̄","ē");
-        string = string.replace("i"+"̄","ī");
-        string = string.replace("o"+"̄","ō");
-        string = string.replace("u"+"̄","ū");
+        string = string.replace("â", "ā");
+        string = string.replace("ê", "ē");
+        string = string.replace("î", "ī");
+        string = string.replace("ô", "ō");
+        string = string.replace("û", "ū");
+        string = string.replace("a" + "̄", "ā");
+        string = string.replace("e" + "̄", "ē");
+        string = string.replace("i" + "̄", "ī");
+        string = string.replace("o" + "̄", "ō");
+        string = string.replace("u" + "̄", "ū");
         return string;
     }
 
     public static String to_hepburn(String string) {
-        string = string.replace("si","shi");
-        string = string.replace("ti","chi");
-        string = string.replace("tu","tsu");
-        string = string.replaceAll("([^s])hu","$1fu");
-        string = string.replaceFirst("^hu","fu");
-        string = string.replace("zi","ji");
-        string = string.replace("di","ji");
-        string = string.replace("du","zu");
-        string = string.replace("sya","sha");
-        string = string.replace("tya","cha");
-        string = string.replace("zya","ja");
-        string = string.replace("syu","shu");
-        string = string.replace("tyu","chu");
-        string = string.replace("zyu","ju");
-        string = string.replace("syo","sho");
-        string = string.replace("tyo","cho");
-        string = string.replace("zyo","jo");
+        string = string.replace("si", "shi");
+        string = string.replace("ti", "chi");
+        string = string.replace("tu", "tsu");
+        string = string.replaceAll("([^s])hu", "$1fu");
+        string = string.replaceFirst("^hu", "fu");
+        string = string.replace("zi", "ji");
+        string = string.replace("di", "ji");
+        string = string.replace("du", "zu");
+        string = string.replace("sya", "sha");
+        string = string.replace("tya", "cha");
+        string = string.replace("zya", "ja");
+        string = string.replace("syu", "shu");
+        string = string.replace("tyu", "chu");
+        string = string.replace("zyu", "ju");
+        string = string.replace("syo", "sho");
+        string = string.replace("tyo", "cho");
+        string = string.replace("zyo", "jo");
         return string;
     }
 }

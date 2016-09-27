@@ -4,6 +4,7 @@ import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -11,6 +12,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import jibiki.fr.shishito.Interfaces.IsLoggedIn;
 import jibiki.fr.shishito.Models.ListEntry;
 import jibiki.fr.shishito.Util.ViewUtil;
 
@@ -28,14 +30,9 @@ public class DisplayEntryFragment extends Fragment {
     @SuppressWarnings("unused")
     private static final String TAG = DisplayEntryFragment.class.getSimpleName();
     private static final String ENTRY = "entry";
-
-    private static final int EDIT_MENU_ID = 10;
-
-    private transient ListEntry entry;
+    private ListEntry entry;
 
     private OnEditClickListener mListener;
-
-    private boolean loggedIn = false;
 
     private TextView vedette;
     private View v;
@@ -70,13 +67,14 @@ public class DisplayEntryFragment extends Fragment {
             entry = (ListEntry) getArguments().getSerializable(ENTRY);
         }
         setHasOptionsMenu(true);
+        setRetainInstance(true);
     }
 
     private void updateText(){
-        ViewUtil.addVedette(vedette, entry, loggedIn, getContext());
+        ViewUtil.addVedette(vedette, entry, getContext(), true);
         ViewUtil.addVerified(v, entry);
-        ViewUtil.parseAndAddGramBlocksToView(v, entry, getContext(), loggedIn);
-        ViewUtil.parseAndAddExamplesToView(v, entry, getContext(), loggedIn);
+        ViewUtil.parseAndAddGramBlocksToView(v, entry, getContext(), true);
+        ViewUtil.parseAndAddExamplesToView(v, entry, getContext(), true);
     }
 
     @Override
@@ -86,9 +84,6 @@ public class DisplayEntryFragment extends Fragment {
         View relative = inflater.inflate(R.layout.activity_display_entry, container, false);
         v = relative.findViewById(R.id.linearlayout);
         vedette = (TextView) v.findViewById(R.id.vedette);
-        if (!TextUtils.isEmpty(((SearchActivity)getActivity()).getUsername())) {
-            loggedIn = true;
-        }
         updateText();
         return relative;
     }
@@ -107,17 +102,20 @@ public class DisplayEntryFragment extends Fragment {
 
     @Override
     public void onPrepareOptionsMenu(Menu menu) {
-        MenuItem login = menu.findItem(R.id.action_sign_in);
-        if(!login.getTitle().equals(getString(R.string.action_sign_in_short)) && menu.findItem(EDIT_MENU_ID) == null) {
-            MenuItem item = menu.add(Menu.NONE, EDIT_MENU_ID, Menu.NONE, R.string.edit_menu_item);
-            item.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
+        Context ctx = getContext();
+        if (ctx instanceof IsLoggedIn) {
+            IsLoggedIn ili = (IsLoggedIn) ctx;
+            if (ili.isLoggedIn()) {
+                MenuItem item = menu.findItem(R.id.edit_menu);
+                item.setVisible(true);
+            }
         }
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         super.onOptionsItemSelected(item);
-        if(item.getItemId() == EDIT_MENU_ID){
+        if(item.getItemId() == R.id.edit_menu){
             mListener.onEditClick(entry);
         }
         return true;

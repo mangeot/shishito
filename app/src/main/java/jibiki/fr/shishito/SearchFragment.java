@@ -59,7 +59,7 @@ public class SearchFragment extends Fragment {
 
     private String query;
     private ListView listView;
-    private transient ArrayList<ListEntry> curList;
+    private ArrayList<ListEntry> curList;
     private TextView noResult;
     private OnWordSelectedListener mListener;
 
@@ -188,16 +188,7 @@ public class SearchFragment extends Fragment {
                 EntryListAdapter adapter = (EntryListAdapter) listView.getAdapter();
                 adapter.clear();
             }
-            FragmentTransaction ft = getFragmentManager().beginTransaction();
-            Fragment prev = getFragmentManager().findFragmentByTag("dialog");
-            if (prev != null) {
-                ft.remove(prev);
-            }
-            ft.addToBackStack(null);
-
-            // Create and show the dialog.
-            DialogFragment newFragment = new ShishitoProgressDialog();
-            newFragment.show(ft, "dialog");
+            ShishitoProgressDialog.display(getFragmentManager());
             new SearchTask().execute(query);
         } else {
             Toast.makeText(getActivity().getApplicationContext(), R.string.no_network,
@@ -256,8 +247,13 @@ public class SearchFragment extends Fragment {
                 result = XMLUtils.parseEntryList(stream, ((SearchActivity) getActivity()).getVolume());
 
             } catch (ParserConfigurationException | SAXException | XPathExpressionException | IOException e) {
-                Toast.makeText(SearchFragment.this.getActivity().getApplicationContext(), R.string.error,
-                        Toast.LENGTH_SHORT).show();
+                getActivity().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(SearchFragment.this.getActivity().getApplicationContext(), R.string.error,
+                                Toast.LENGTH_SHORT).show();
+                    }
+                });
             }
             curList = result;
             return result;
@@ -265,14 +261,16 @@ public class SearchFragment extends Fragment {
 
         @Override
         protected void onPostExecute(ArrayList<ListEntry> result) {
-            Fragment prev = getFragmentManager().findFragmentByTag("dialog");
-            if (prev != null && prev instanceof ShishitoProgressDialog) {
-                ShishitoProgressDialog pd = (ShishitoProgressDialog) prev;
-                pd.dismiss();
-            }
+            ShishitoProgressDialog.remove(getFragmentManager());
             if (result == null) {
-                Toast.makeText(getActivity().getApplicationContext(), "There was an error!",
-                        Toast.LENGTH_SHORT).show();
+                getActivity().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(getActivity().getApplicationContext(), R.string.error,
+                                Toast.LENGTH_SHORT).show();
+                    }
+                });
+
             } else {
                 ListView listView = (ListView) getActivity().findViewById(R.id.listView);
                 if (result.size() == 0) {

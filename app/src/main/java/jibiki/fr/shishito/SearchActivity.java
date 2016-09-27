@@ -7,6 +7,9 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
@@ -27,6 +30,7 @@ import java.net.CookiePolicy;
 import javax.xml.parsers.ParserConfigurationException;
 
 import jibiki.fr.shishito.Interfaces.FastEditListener;
+import jibiki.fr.shishito.Interfaces.IsLoggedIn;
 import jibiki.fr.shishito.Interfaces.OnEntryUpdatedListener;
 import jibiki.fr.shishito.Models.ListEntry;
 import jibiki.fr.shishito.Models.Volume;
@@ -138,10 +142,7 @@ public class SearchActivity extends AppCompatActivity implements SearchFragment.
         if (requestCode == USERNAME_RESULT) {
             if (resultCode == RESULT_OK && data != null) {
                 username = data.getStringExtra(USERNAME);
-                if (username != null && !username.isEmpty()) {
-                    MenuItem item = menu.findItem(R.id.action_sign_in);
-                    item.setTitle(username);
-                }
+                setLoggedIn();
             }
         }
     }
@@ -211,6 +212,11 @@ public class SearchActivity extends AppCompatActivity implements SearchFragment.
             item.setTitle(username);
             item = menu.findItem(R.id.action_sign_out);
             item.setVisible(true);
+            Fragment f = getSupportFragmentManager().findFragmentByTag("display");
+            if (f != null && f.isVisible()) {
+                item = menu.findItem(R.id.edit_menu);
+                item.setVisible(true);
+            }
         }
     }
 
@@ -222,6 +228,13 @@ public class SearchActivity extends AppCompatActivity implements SearchFragment.
         item.setTitle(R.string.action_sign_in_short);
         item = menu.findItem(R.id.action_sign_out);
         item.setVisible(false);
+        item = menu.findItem(R.id.edit_menu);
+        item.setVisible(false);
+    }
+
+    @Override
+    public boolean isLoggedIn() {
+        return !TextUtils.isEmpty(username);
     }
 
     public Volume getVolume() {
@@ -299,8 +312,13 @@ public class SearchActivity extends AppCompatActivity implements SearchFragment.
             try {
                 username = checkLoggedIn();
             } catch (IOException | ParserConfigurationException | SAXException e) {
-                Toast.makeText(getApplicationContext(), R.string.error,
-                        Toast.LENGTH_SHORT).show();
+                SearchActivity.this.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(getApplicationContext(), R.string.error,
+                                Toast.LENGTH_SHORT).show();
+                    }
+                });
             }
 
             return username;

@@ -5,6 +5,9 @@ import android.app.ProgressDialog;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 
 /**
  * Created by tibo on 28/06/16.
@@ -12,11 +15,30 @@ import android.support.v4.app.DialogFragment;
  */
 public class ShishitoProgressDialog extends DialogFragment {
 
-    public ShishitoProgressDialog() {}
+    public ShishitoProgressDialog() {
+    }
+
+    public static void display(FragmentManager fm) {
+        FragmentTransaction ft = fm.beginTransaction();
+        Fragment prev = fm.findFragmentByTag("dialog");
+        if (prev != null) {
+            ft.remove(prev);
+        }
+        ft.addToBackStack(null);
+        DialogFragment newFragment = new ShishitoProgressDialog();
+        newFragment.show(ft, "dialog");
+    }
+
+    public static void remove(FragmentManager fm) {
+        Fragment prev = fm.findFragmentByTag("dialog");
+        if (prev != null && prev instanceof ShishitoProgressDialog) {
+            ShishitoProgressDialog pd = (ShishitoProgressDialog) prev;
+            pd.dismiss();
+        }
+    }
 
     @Override
-    public void onCreate(Bundle savedInstanceState)
-    {
+    public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setCancelable(false);
     }

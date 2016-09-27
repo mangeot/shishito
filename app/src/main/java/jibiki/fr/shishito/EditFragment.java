@@ -112,7 +112,6 @@ public class EditFragment extends Fragment implements UpdateContribution.Contrib
     }
 
 
-
     private void addTitleView(String title, LinearLayout ll) {
         LinearLayout.LayoutParams titleParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         TextView titleView = new TextView(getContext());
@@ -139,17 +138,17 @@ public class EditFragment extends Fragment implements UpdateContribution.Contrib
         LinearLayout ll = (LinearLayout) v.findViewById(R.id.editlinear);
         addFieldVerif(ll, entry.isVerified(), XMLUtils.getStringFromNode(entry.getKanjiNode()), getString(R.string.kanji), KANJI);
         //Setting to true ensure that they are not editable... little hack
-        addFieldVerif(ll, true, XMLUtils.getStringFromNode(entry.getHiraganaNode()), getString(R.string.hiragana),  HIRAGANA);
-        addFieldVerif(ll, true, entry.getRomajiDisplay(), getString(R.string.romaji),  ROMAJI_DISPLAY);
-        addFieldVerif(ll, true, entry.getRomajiSearch(), getString(R.string.romaji_search),  ROMAJI_SEARCH);
+        addFieldVerif(ll, true, XMLUtils.getStringFromNode(entry.getHiraganaNode()), getString(R.string.hiragana), HIRAGANA);
+        addFieldVerif(ll, true, entry.getRomajiDisplay(), getString(R.string.romaji), ROMAJI_DISPLAY);
+        addFieldVerif(ll, true, entry.getRomajiSearch(), getString(R.string.romaji_search), ROMAJI_SEARCH);
 
         int cnt = 1;
-        for (GramBlock gram: entry.getGramBlocks()) {
+        for (GramBlock gram : entry.getGramBlocks()) {
             addTitleView("[" + gram.getGram() + "]", ll);
             int i = 1;
-            for (String sense: gram.getSens()) {
+            for (String sense : gram.getSens()) {
                 addTitleView("Sens " + i + ":", ll);
-                addEditView(sense, ll,  SENS + cnt);
+                addEditView(sense, ll, SENS + cnt);
                 i++;
                 cnt++;
             }
@@ -159,13 +158,13 @@ public class EditFragment extends Fragment implements UpdateContribution.Contrib
         for (Example ex : entry.getExamples()) {
             addTitleView(getString(R.string.edit_example, cnt), ll);
             addTitleView(getString(R.string.edit_example_kanji), ll);
-            addEditView(ex.getKanji(), ll,  EXAMPLE_KANJI + cnt);
+            addEditView(ex.getKanji(), ll, EXAMPLE_KANJI + cnt);
             addTitleView(getString(R.string.edit_example_hiragana), ll);
-            addEditView(ex.getHiragana(), ll,  EXAMPLE_HIRAGANA + cnt);
+            addEditView(ex.getHiragana(), ll, EXAMPLE_HIRAGANA + cnt);
             addTitleView(getString(R.string.edit_example_romaji), ll);
-            addEditView(ex.getRomaji(), ll,  EXAMPLE_ROMAJI + cnt);
+            addEditView(ex.getRomaji(), ll, EXAMPLE_ROMAJI + cnt);
             addTitleView(getString(R.string.edit_example_french), ll);
-            addEditView(ex.getFrench(), ll,  EXAMPLE_FRENCH + cnt);
+            addEditView(ex.getFrench(), ll, EXAMPLE_FRENCH + cnt);
             cnt++;
         }
 
@@ -207,7 +206,7 @@ public class EditFragment extends Fragment implements UpdateContribution.Contrib
 
                 if (xpaths.size() == 0) {
                     makeToast("Pas de changement détecté.");
-                } else{ //if (xpaths.size() == 1) {
+                } else { //if (xpaths.size() == 1) {
                     EditFragment.this.modifWaitList = xpaths;
                     EditFragment.this.doNextModif();
                 }
@@ -248,7 +247,7 @@ public class EditFragment extends Fragment implements UpdateContribution.Contrib
     }
 
     private void handleListEntry(ListEntry entry) {
-            EditFragment.this.onEntryModified(entry);
+        EditFragment.this.onEntryModified(entry);
     }
 
     private void saveError() {
@@ -270,8 +269,13 @@ public class EditFragment extends Fragment implements UpdateContribution.Contrib
                 EditFragment.this.entry = entry;
                 EditFragment.this.doNextModif();
             }
-        }else {
-            saveError();
+        } else {
+            getActivity().runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    saveError();
+                }
+            });
         }
     }
 

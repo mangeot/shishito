@@ -1,6 +1,7 @@
 package jibiki.fr.shishito.Util;
 
 import android.net.Uri;
+import android.util.Log;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -97,18 +98,24 @@ public final class HTTPUtils {
     }
 
     public static String checkLoggedIn() throws ParserConfigurationException, SAXException, IOException {
-        HttpURLConnection urlConnection;
+        HttpURLConnection urlConnection = null;
         InputStream stream;
-        String username;
-        URL url = new URL(SearchActivity.SERVER_URL + "UserProfile.po");
-        urlConnection = (HttpURLConnection) url.openConnection();
-        urlConnection.setRequestMethod("GET");
-        stream = urlConnection.getInputStream();
-        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-        DocumentBuilder db = dbf.newDocumentBuilder();
-        Document doc = db.parse(stream);
-        Element el = doc.getElementById("CPLogin");
-        username = el.getTextContent();
+        String username = null;
+        try {
+            URL url = new URL(SearchActivity.SERVER_URL + "UserProfile.po");
+            urlConnection = (HttpURLConnection) url.openConnection();
+            urlConnection.setRequestMethod("GET");
+            stream = urlConnection.getInputStream();
+            DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+            DocumentBuilder db = dbf.newDocumentBuilder();
+            Document doc = db.parse(stream);
+            Element el = doc.getElementById("CPLogin");
+            username = el.getTextContent();
+        } catch (IOException e) {
+            if (urlConnection != null && urlConnection.getResponseCode() == 400) {
+                return null;
+            }
+        }
 
         return username;
     }

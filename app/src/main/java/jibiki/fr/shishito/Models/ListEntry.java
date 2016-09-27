@@ -2,6 +2,8 @@ package jibiki.fr.shishito.Models;
 
 import org.w3c.dom.Node;
 
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
 
@@ -12,9 +14,9 @@ import java.util.ArrayList;
 public class ListEntry implements Serializable {
 
     private Volume volume;
-    private Node entryNode;
-    private Node kanjiNode;
-    private Node hiraganaNode;
+    private transient Node entryNode;
+    private transient Node kanjiNode;
+    private transient Node hiraganaNode;
     private String romajiDisplay;
     private String romajiSearch;
 
@@ -27,6 +29,10 @@ public class ListEntry implements Serializable {
     private ArrayList<GramBlock> gramBlocks;
 
     private boolean verified;
+
+//    private void writeObject(ObjectOutputStream out) throws IOException{
+//        out.defaultWriteObject();
+//    }
 
     public ListEntry(Node theEntryNode, Volume theVolume) {
         gramBlocks = new ArrayList<>();
