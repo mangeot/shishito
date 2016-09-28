@@ -228,7 +228,7 @@ public final class XMLUtils {
         return db.parse(source);
     }
 
-    public static XPath getNewXPath() {
+    static XPath getNewXPath() {
         XPath xPath = myXPathFactory.newXPath();
         xPath.setNamespaceContext(myNamespaceContext);
         return xPath;
