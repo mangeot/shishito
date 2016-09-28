@@ -225,7 +225,7 @@ public final class ViewUtil {
             romajiPath = "." + romajiPath.replace("/text()", "");
             NodeList romajiNodes = (NodeList) xPath.evaluate(romajiPath, exampleNode, XPathConstants.NODESET);
             Node romajiNode = romajiNodes.item(0);
-            exView.append(Html.fromHtml("<font color=" + colorRomaji + ">(</font>"));
+            exView.append(Html.fromHtml("\u00A0<font color=" + colorRomaji + ">(</font>"));
             parseAndAddExampleRomajiToView(romajiNode, entry, context, exView, clickable);
             exView.append(Html.fromHtml("<font color=" + colorRomaji + ">)</font> "));
 
@@ -262,7 +262,7 @@ public final class ViewUtil {
             // on pourrait mettre les vedettes en gras, comme sur le site Web...
             kanjiResult = kanjiResult.replaceAll("<" + entry.getVolume().getOldNewTagMap().get("vj") + ">", "<b>");
             kanjiResult = kanjiResult.replaceAll("</" + entry.getVolume().getOldNewTagMap().get("vj") + ">", "</b>");
-            kanjiResult = "<font color=" + ViewUtil.colorJapanese + ">" + kanjiResult + " </font>";
+            kanjiResult = "<font color=" + ViewUtil.colorJapanese + ">" + kanjiResult + "</font>";
 
             String xpathPointer = "/" + XMLUtils.getFullXPath(exampleJpnNode);
             xpathPointer = XMLUtils.replaceXpathstring(xpathPointer, entry.getVolume().getNewOldTagMap());
