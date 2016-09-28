@@ -1,7 +1,6 @@
 package jibiki.fr.shishito.Util;
 
 import android.net.Uri;
-import android.util.Log;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;

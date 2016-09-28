@@ -14,11 +14,11 @@
                     android:visible="false" />
             </menu>
         </item>
-        <item
-            android:id="@+id/edit_menu"
-            android:title="@string/edit_menu_item"
-            android:visible="false"
-            app:showAsAction="ifRoom" />
+        <!--<item-->
+            <!--android:id="@+id/edit_menu"-->
+            <!--android:title="@string/edit_menu_item"-->
+            <!--android:visible="false"-->
+            <!--app:showAsAction="ifRoom" />-->
         <item
             android:id="@+id/action_about"
             android:title="@string/menu_help"

@@ -15,7 +15,7 @@ class Dictionary {
     private String legal;
     private String access;
 
-    private Map elements = new HashMap<String, String>();
+    private Map elements = new HashMap<>();
 
     public String getContents() {
         return contents;

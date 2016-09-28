@@ -2,8 +2,6 @@ package jibiki.fr.shishito.Models;
 
 import org.w3c.dom.Node;
 
-import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
 

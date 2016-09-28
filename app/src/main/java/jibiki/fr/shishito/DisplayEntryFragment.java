@@ -3,24 +3,16 @@ package jibiki.fr.shishito;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.text.TextUtils;
-import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import jibiki.fr.shishito.Interfaces.IsLoggedIn;
 import jibiki.fr.shishito.Models.ListEntry;
 import jibiki.fr.shishito.Util.ViewUtil;
 
 /**
  * A {@link Fragment} subclass that enables display of a word.
- * Activities that contain this fragment must implement the
- * {@link OnEditClickListener} interface
- * to handle interaction events.
  * Use the {@link DisplayEntryFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
@@ -32,7 +24,7 @@ public class DisplayEntryFragment extends Fragment {
     private static final String ENTRY = "entry";
     private ListEntry entry;
 
-    private OnEditClickListener mListener;
+//    private OnEditClickListener mListener;
 
     private TextView vedette;
     private View v;
@@ -66,7 +58,7 @@ public class DisplayEntryFragment extends Fragment {
         if (getArguments() != null) {
             entry = (ListEntry) getArguments().getSerializable(ENTRY);
         }
-        setHasOptionsMenu(true);
+//        setHasOptionsMenu(true);
         setRetainInstance(true);
     }
 
@@ -92,37 +84,37 @@ public class DisplayEntryFragment extends Fragment {
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        if (context instanceof OnEditClickListener) {
-            mListener = (OnEditClickListener) context;
-        } else {
-            throw new RuntimeException(context.toString()
-                    + " must implement OnFragmentInteractionListener");
-        }
+//        if (context instanceof OnEditClickListener) {
+//            mListener = (OnEditClickListener) context;
+//        } else {
+//            throw new RuntimeException(context.toString()
+//                    + " must implement OnFragmentInteractionListener");
+//        }
     }
 
-    @Override
-    public void onPrepareOptionsMenu(Menu menu) {
-        Context ctx = getContext();
-        if (ctx instanceof IsLoggedIn) {
-            IsLoggedIn ili = (IsLoggedIn) ctx;
-            if (ili.isLoggedIn()) {
-                MenuItem item = menu.findItem(R.id.edit_menu);
-                item.setVisible(true);
-            }
-        }
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        super.onOptionsItemSelected(item);
-        if(item.getItemId() == R.id.edit_menu){
-            mListener.onEditClick(entry);
-        }
-        return true;
-    }
-
-    public interface OnEditClickListener {
-        void onEditClick(ListEntry entry);
-    }
+//    @Override
+//    public void onPrepareOptionsMenu(Menu menu) {
+//        Context ctx = getContext();
+//        if (ctx instanceof IsLoggedIn) {
+//            IsLoggedIn ili = (IsLoggedIn) ctx;
+//            if (ili.isLoggedIn()) {
+//                MenuItem item = menu.findItem(R.id.edit_menu);
+//                item.setVisible(true);
+//            }
+//        }
+//    }
+//
+//    @Override
+//    public boolean onOptionsItemSelected(MenuItem item) {
+//        super.onOptionsItemSelected(item);
+//        if(item.getItemId() == R.id.edit_menu){
+//            mListener.onEditClick(entry);
+//        }
+//        return true;
+//    }
+//
+//    public interface OnEditClickListener {
+//        void onEditClick(ListEntry entry);
+//    }
 
 }
