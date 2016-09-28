@@ -20,6 +20,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import java.util.ArrayList;
+import java.util.regex.Pattern;
 
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
@@ -58,6 +59,8 @@ public final class ViewUtil {
 
     @SuppressWarnings("unused")
     private static final String TAG = ViewUtil.class.getSimpleName();
+
+    private static final String nonEmptyXml = "<{1}.*>{1}.+(<\\/){1}.*>{1}";
 
 
     public static void parseAndAddGramBlocksToView(View v, ListEntry entry, Context context, boolean clickable) {
@@ -246,21 +249,16 @@ public final class ViewUtil {
     private static void parseAndAddExampleJpnToView(Node exampleJpnNode, ListEntry entry,
                                                     Context context, TextView exView, boolean clickable) {
         String kanjiResult = XMLUtils.getStringFromNode(exampleJpnNode);
-        if (!TextUtils.isEmpty(kanjiResult) && kanjiResult.matches("\\*.>+.*<+.*")) {
+        if (!TextUtils.isEmpty(kanjiResult) && kanjiResult.matches(nonEmptyXml)) {
 
             kanjiResult = kanjiResult.replaceFirst("^<[^>]+>", "");
             kanjiResult = kanjiResult.replaceFirst("</[^>]+>$", "");
-            //Log.d(TAG, "Kanji string 2:" + kanjiResult);
-
             //  en attendant de trouver un moyen d'afficher le furigana, on le vire...
             String rtRegexp = "<" + entry.getVolume().getOldNewTagMap().get("rt") + ">" + "[^<]+" + "</" + entry.getVolume().getOldNewTagMap().get("rt") + ">";
             kanjiResult = kanjiResult.replaceAll(rtRegexp, "");
-            //Log.d(TAG, "Kanji string 4:" + kanjiResult);
-            //Log.d(TAG, "pb tag:" + entry.getVolume().getOldNewTagMap().get("pb"));
             //  on remplace la balise pb par une couleur de font spéciale
             kanjiResult = kanjiResult.replaceAll("<" + entry.getVolume().getOldNewTagMap().get("pb") + ">", "</font><font color=" + ViewUtil.colorPbJapanese + "><b>");
             kanjiResult = kanjiResult.replaceAll("</" + entry.getVolume().getOldNewTagMap().get("pb") + ">", "</b></font><font color=" + ViewUtil.colorJapanese + ">");
-            // Log.d(TAG, "Kanji string 6:" + kanjiResult);
             // on pourrait mettre les vedettes en gras, comme sur le site Web...
             kanjiResult = kanjiResult.replaceAll("<" + entry.getVolume().getOldNewTagMap().get("vj") + ">", "<b>");
             kanjiResult = kanjiResult.replaceAll("</" + entry.getVolume().getOldNewTagMap().get("vj") + ">", "</b>");
@@ -269,7 +267,6 @@ public final class ViewUtil {
             String xpathPointer = "/" + XMLUtils.getFullXPath(exampleJpnNode);
             xpathPointer = XMLUtils.replaceXpathstring(xpathPointer, entry.getVolume().getNewOldTagMap());
             xpathPointer = XMLUtils.removeXpathBeforeVolumeTag(xpathPointer, entry.getVolume());
-
             appendClickSpannable(kanjiResult, context, entry,
                     "exemple kanji", xpathPointer, exView, clickable);
         }
@@ -279,7 +276,7 @@ public final class ViewUtil {
     private static void parseAndAddExampleRomajiToView(Node exampleRomajiNode, ListEntry entry, Context context,
                                                        TextView exView, boolean clickable) {
         String romajiResult = XMLUtils.getStringFromNode(exampleRomajiNode);
-        if (!TextUtils.isEmpty(romajiResult) && romajiResult.matches("\\*.>+.*<+.*")) {
+        if (!TextUtils.isEmpty(romajiResult) && romajiResult.matches(nonEmptyXml)) {
             String xpathPointer = "/" + XMLUtils.getFullXPath(exampleRomajiNode);
             xpathPointer = XMLUtils.replaceXpathstring(xpathPointer, entry.getVolume().getNewOldTagMap());
             xpathPointer = XMLUtils.removeXpathBeforeVolumeTag(xpathPointer, entry.getVolume());
@@ -294,7 +291,7 @@ public final class ViewUtil {
                                                        Context context, TextView exView,
                                                        boolean clickable) {
         String frenchResult = XMLUtils.getStringFromNode(exampleFrenchNode);
-        if (!TextUtils.isEmpty(frenchResult) && frenchResult.matches("\\*.>+.*<+.*")) {
+        if (!TextUtils.isEmpty(frenchResult) && frenchResult.matches(nonEmptyXml)) {
 
             frenchResult = frenchResult.replaceFirst("^<[^>]+>", "");
             frenchResult = frenchResult.replaceFirst("</[^>]+>$", "");
