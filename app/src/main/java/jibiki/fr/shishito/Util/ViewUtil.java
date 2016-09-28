@@ -124,7 +124,6 @@ public final class ViewUtil {
             defResult = defResult.replaceFirst("^<[^>]+>", "");
             defResult = defResult.replaceFirst("</[^>]+>$", "");
             //  on remplace la balise pb par une couleur de font spéciale
-//            Log.d(TAG, "Pb tag: " + "<" + volume.getOldNewTagMap().get("pb") + ">");
             defResult = defResult.replaceAll("<" + entry.getVolume().getOldNewTagMap().get("pb") + ">", "</font><b><font color=" + ViewUtil.colorPbFrench + ">");
             defResult = defResult.replaceAll("</" + entry.getVolume().getOldNewTagMap().get("pb") + ">", "</font></b><font color=" + ViewUtil.colorFrench + ">");
 
@@ -136,7 +135,6 @@ public final class ViewUtil {
             String xpathPointer = "/" + XMLUtils.getFullXPath(senseNode);
             xpathPointer = XMLUtils.replaceXpathstring(xpathPointer, entry.getVolume().getNewOldTagMap());
             xpathPointer = XMLUtils.removeXpathBeforeVolumeTag(xpathPointer, entry.getVolume());
-            //Log.d(TAG, "Here XpathPointer: " + xpathPointer);
             appendClickSpannable(defResult,
                     context, entry, "sense", xpathPointer, senseView, clickable);
         }
@@ -248,7 +246,7 @@ public final class ViewUtil {
     private static void parseAndAddExampleJpnToView(Node exampleJpnNode, ListEntry entry,
                                                     Context context, TextView exView, boolean clickable) {
         String kanjiResult = XMLUtils.getStringFromNode(exampleJpnNode);
-        if (!TextUtils.isEmpty(kanjiResult)) {
+        if (!TextUtils.isEmpty(kanjiResult) && kanjiResult.matches("\\*.>+.*<+.*")) {
 
             kanjiResult = kanjiResult.replaceFirst("^<[^>]+>", "");
             kanjiResult = kanjiResult.replaceFirst("</[^>]+>$", "");
@@ -271,7 +269,6 @@ public final class ViewUtil {
             String xpathPointer = "/" + XMLUtils.getFullXPath(exampleJpnNode);
             xpathPointer = XMLUtils.replaceXpathstring(xpathPointer, entry.getVolume().getNewOldTagMap());
             xpathPointer = XMLUtils.removeXpathBeforeVolumeTag(xpathPointer, entry.getVolume());
-            //Log.d(TAG, "Kanji string 10:" + kanjiResult);
 
             appendClickSpannable(kanjiResult, context, entry,
                     "exemple kanji", xpathPointer, exView, clickable);
@@ -282,12 +279,14 @@ public final class ViewUtil {
     private static void parseAndAddExampleRomajiToView(Node exampleRomajiNode, ListEntry entry, Context context,
                                                        TextView exView, boolean clickable) {
         String romajiResult = XMLUtils.getStringFromNode(exampleRomajiNode);
-        String xpathPointer = "/" + XMLUtils.getFullXPath(exampleRomajiNode);
-        xpathPointer = XMLUtils.replaceXpathstring(xpathPointer, entry.getVolume().getNewOldTagMap());
-        xpathPointer = XMLUtils.removeXpathBeforeVolumeTag(xpathPointer, entry.getVolume());
+        if (!TextUtils.isEmpty(romajiResult) && romajiResult.matches("\\*.>+.*<+.*")) {
+            String xpathPointer = "/" + XMLUtils.getFullXPath(exampleRomajiNode);
+            xpathPointer = XMLUtils.replaceXpathstring(xpathPointer, entry.getVolume().getNewOldTagMap());
+            xpathPointer = XMLUtils.removeXpathBeforeVolumeTag(xpathPointer, entry.getVolume());
 
-        appendClickSpannable("<font color=" + colorRomaji + ">(" + romajiResult + ")</font>",
-                context, entry, "exemple romaji", xpathPointer, exView, clickable);
+            appendClickSpannable("<font color=" + colorRomaji + ">(" + romajiResult + ")</font>",
+                    context, entry, "exemple romaji", xpathPointer, exView, clickable);
+        }
 
     }
 
@@ -295,7 +294,7 @@ public final class ViewUtil {
                                                        Context context, TextView exView,
                                                        boolean clickable) {
         String frenchResult = XMLUtils.getStringFromNode(exampleFrenchNode);
-        if (!TextUtils.isEmpty(frenchResult)) {
+        if (!TextUtils.isEmpty(frenchResult) && frenchResult.matches("\\*.>+.*<+.*")) {
 
             frenchResult = frenchResult.replaceFirst("^<[^>]+>", "");
             frenchResult = frenchResult.replaceFirst("</[^>]+>$", "");
