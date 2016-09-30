@@ -17,6 +17,7 @@ import jibiki.fr.shishito.Interfaces.OnEntryUpdatedListener;
 import jibiki.fr.shishito.Models.ListEntry;
 import jibiki.fr.shishito.Models.Volume;
 import jibiki.fr.shishito.Tasks.UpdateContribution;
+import jibiki.fr.shishito.Util.ViewUtil;
 import jibiki.fr.shishito.Util.XMLUtils;
 
 
@@ -102,13 +103,17 @@ public class FastEditFragment extends Fragment implements UpdateContribution.Con
         saveButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                ShishitoProgressDialog.display(getFragmentManager());
-                // On sauvegarde même s'il n'y a pas de modifications car des fois, ce sont des fausses erreurs détectées
-                // if (!et.getText().toString().equals(fieldContent)) {
-                String[] params = {contribId, et.getText().toString(), xpath};
-                new UpdateContribution(FastEditFragment.this, volume).execute(params);
-                if (params[2].contains("vedette-jpn")) {
-                    FastEditFragment.this.updateEntryValidation = true;
+                if (((SearchActivity)getActivity()).isOnline()) {
+                    ShishitoProgressDialog.display(getFragmentManager());
+                    // On sauvegarde même s'il n'y a pas de modifications car des fois, ce sont des fausses erreurs détectées
+                    // if (!et.getText().toString().equals(fieldContent)) {
+                    String[] params = {contribId, et.getText().toString(), xpath};
+                    new UpdateContribution(FastEditFragment.this, volume).execute(params);
+                    if (params[2].contains("vedette-jpn")) {
+                        FastEditFragment.this.updateEntryValidation = true;
+                    }
+                } else {
+                    ViewUtil.displayErrorToastOnUI(getActivity(), R.string.no_network);
                 }
                 // }
             }
@@ -147,13 +152,7 @@ public class FastEditFragment extends Fragment implements UpdateContribution.Con
             }
         } else {
             ShishitoProgressDialog.remove(getFragmentManager());
-            getActivity().runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    Toast.makeText(getActivity().getApplicationContext(), R.string.error,
-                            Toast.LENGTH_SHORT).show();
-                }
-            });
+            ViewUtil.displayErrorToastOnUI(getActivity(), R.string.error);
         }
     }
 

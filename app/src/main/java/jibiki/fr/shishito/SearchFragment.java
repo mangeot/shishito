@@ -15,27 +15,15 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.SearchView;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import org.xml.sax.SAXException;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URLEncoder;
 import java.util.ArrayList;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.xpath.XPathExpressionException;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import jibiki.fr.shishito.Models.ListEntry;
-import jibiki.fr.shishito.Models.Volume;
 import jibiki.fr.shishito.Util.ViewUtil;
-import jibiki.fr.shishito.Util.XMLUtils;
 
-import static jibiki.fr.shishito.Util.HTTPUtils.doGet;
-
+import static jibiki.fr.shishito.Util.HTTPUtils.getEntryList;
 
 /**
  * A {@link Fragment} subclass that enables search and display of
@@ -53,15 +41,12 @@ public class SearchFragment extends Fragment {
 
     // the fragment initialization parameters
     private static final String QUERY = "query";
-    private static final String VOLUME = "volume";
 
     private String query;
     private ListView listView;
     private ArrayList<ListEntry> curList;
     private TextView noResult;
     private OnWordSelectedListener mListener;
-
-    private static final Pattern hiraganaPattern = Pattern.compile("[\\p{InHiragana}]+");
 
     public SearchFragment() {
         // Required empty public constructor
@@ -72,14 +57,12 @@ public class SearchFragment extends Fragment {
      * this fragment using the provided parameters.
      *
      * @param query The search query to perform.
-     * @param volume the volume object obtain by the main activity
      * @return A new instance of fragment SearchFragment.
      */
-    public static SearchFragment newInstance(String query, Volume volume) {
+    public static SearchFragment newInstance(String query) {
         SearchFragment fragment = new SearchFragment();
         Bundle args = new Bundle();
         args.putString(QUERY, query);
-        args.putSerializable(VOLUME, volume);
         fragment.setArguments(args);
         return fragment;
     }
@@ -177,20 +160,29 @@ public class SearchFragment extends Fragment {
         }
     }
 
-    public void search(String query) {
+    public void search(final String query) {
         ConnectivityManager connMgr = (ConnectivityManager)
                 getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
         if (networkInfo != null && networkInfo.isConnected()) {
-            if (listView.getAdapter() != null) {
-                EntryListAdapter adapter = (EntryListAdapter) listView.getAdapter();
-                adapter.clear();
+            if (((SearchActivity)getActivity()).getVolume() == null) {
+                Timer timer = new Timer();
+                timer.schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+                        search(query);
+                    }
+                }, 2000);
+            } else {
+                if (listView.getAdapter() != null) {
+                    EntryListAdapter adapter = (EntryListAdapter) listView.getAdapter();
+                    adapter.clear();
+                }
+                ShishitoProgressDialog.display(getFragmentManager());
+                new SearchTask().execute(query);
             }
-            ShishitoProgressDialog.display(getFragmentManager());
-            new SearchTask().execute(query);
         } else {
-            Toast.makeText(getActivity().getApplicationContext(), R.string.no_network,
-                    Toast.LENGTH_SHORT).show();
+            ViewUtil.displayErrorToast(getActivity(), R.string.no_network);
         }
     }
 
@@ -217,59 +209,17 @@ public class SearchFragment extends Fragment {
 
         @Override
         protected ArrayList<ListEntry> doInBackground(String... params) {
-            InputStream stream;
-            ArrayList<ListEntry> result = null;
-            try {
-                String word = ViewUtil.normalizeQueryString(params[0]);
-                int firstCharCode = Character.codePointAt(word,1);
-                // Si le mot est en romaji (attention, il peut y avoir des macrons (ā = 257 à ū = 360)
-                if (firstCharCode < 0x3042) {
-                    word = ViewUtil.replace_macron(word);
-                    word = ViewUtil.to_hepburn(word);
-                    word = URLEncoder.encode(word, "UTF-8");
-                    stream = doGet(SearchActivity.VOLUME_API_URL + "cdm-writing/" + word + "/entries/?strategy=CASE_INSENSITIVE_EQUAL");
-                }
-                // Si le mot est en hiragana
-                else {
-                    Matcher hiraganaMatcher = hiraganaPattern.matcher(word);
-                    word = URLEncoder.encode(word, "UTF-8");
-                    if (hiraganaMatcher.matches()) {
-                        stream = doGet(SearchActivity.VOLUME_API_URL + "cdm-reading/" + word + "/entries/?strategy=EQUAL");
-                    }
-                    // Sinon, mot en japonais (katakana, kanji, ...)
-                    else {
-                        stream = doGet(SearchActivity.VOLUME_API_URL + "cdm-headword/" + word + "/entries/?strategy=EQUAL");
-                    }
-                }
-
-                result = XMLUtils.parseEntryList(stream, ((SearchActivity) getActivity()).getVolume());
-
-            } catch (ParserConfigurationException | SAXException | XPathExpressionException | IOException e) {
-                getActivity().runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        Toast.makeText(SearchFragment.this.getActivity().getApplicationContext(), R.string.error,
-                                Toast.LENGTH_SHORT).show();
-                    }
-                });
-            }
-            curList = result;
-            return result;
+            return getEntryList(params[0], ((SearchActivity)getActivity()).getVolume());
         }
 
         @Override
         protected void onPostExecute(ArrayList<ListEntry> result) {
             ShishitoProgressDialog.remove(getFragmentManager());
             if (result == null) {
-                getActivity().runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        Toast.makeText(getActivity().getApplicationContext(), R.string.error,
-                                Toast.LENGTH_SHORT).show();
-                    }
-                });
+                ViewUtil.displayErrorToastOnUI(getActivity(), R.string.error);
 
             } else {
+                curList = result;
                 ListView listView = (ListView) getActivity().findViewById(R.id.listView);
                 if (result.size() == 0) {
                     noResult.setVisibility(View.VISIBLE);

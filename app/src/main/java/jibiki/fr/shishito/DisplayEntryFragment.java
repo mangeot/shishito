@@ -63,7 +63,7 @@ public class DisplayEntryFragment extends Fragment {
     }
 
     private void updateText(){
-        ViewUtil.addVedette(vedette, entry, getContext(), true);
+        ViewUtil.addVedette(vedette, entry, getActivity(), true);
         ViewUtil.addVerified(v, entry);
         ViewUtil.parseAndAddGramBlocksToView(v, entry, getContext(), true);
         ViewUtil.parseAndAddExamplesToView(v, entry, getContext(), true);

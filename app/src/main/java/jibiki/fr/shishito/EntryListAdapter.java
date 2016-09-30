@@ -1,6 +1,7 @@
 package jibiki.fr.shishito;
 
 
+import android.app.Activity;
 import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
@@ -16,22 +17,22 @@ import jibiki.fr.shishito.Models.ListEntry;
 import jibiki.fr.shishito.Util.ViewUtil;
 
 class EntryListAdapter extends ArrayAdapter<ListEntry> {
-    private final Context context;
+    private final Activity activity;
     private transient final ArrayList<ListEntry> values;
 
     @SuppressWarnings("unused")
     private static final String TAG = EntryListAdapter.class.getSimpleName();
 
-    public EntryListAdapter(Context context, ArrayList<ListEntry> values) {
-        super(context, R.layout.word_list_element, values);
-        this.context = context;
+    public EntryListAdapter(Activity activity, ArrayList<ListEntry> values) {
+        super(activity, R.layout.word_list_element, values);
+        this.activity = activity;
         this.values = values;
     }
 
     @NonNull
     @Override
     public View getView(int position, View convertView, @NonNull ViewGroup parent) {
-        LayoutInflater inflater = (LayoutInflater) context
+        LayoutInflater inflater = (LayoutInflater) activity
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View rowView = convertView;
         ListEntry entry = values.get(position);
@@ -39,14 +40,14 @@ class EntryListAdapter extends ArrayAdapter<ListEntry> {
             rowView = inflater.inflate(R.layout.word_list_element, parent, false);
 
             TextView vedette = (TextView) rowView.findViewById(R.id.vedette);
-            ViewUtil.addVedette(vedette, entry, context, false);
+            ViewUtil.addVedette(vedette, entry, activity, false);
             ViewUtil.addVerified(rowView, entry);
-            ViewUtil.parseAndAddGramBlocksToView(rowView, entry, context, false);
+            ViewUtil.parseAndAddGramBlocksToView(rowView, entry, activity, false);
         }
         if (position % 2 == 1) {
-            rowView.setBackgroundColor(ContextCompat.getColor(context, R.color.green));
+            rowView.setBackgroundColor(ContextCompat.getColor(activity, R.color.green));
         } else {
-            rowView.setBackgroundColor(ContextCompat.getColor(context, R.color.light_green));
+            rowView.setBackgroundColor(ContextCompat.getColor(activity, R.color.light_green));
         }
 
         return rowView;

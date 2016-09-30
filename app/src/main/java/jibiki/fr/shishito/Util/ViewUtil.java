@@ -1,7 +1,9 @@
 package jibiki.fr.shishito.Util;
 
+import android.app.Activity;
 import android.content.Context;
 import android.graphics.Color;
+import android.os.AsyncTask;
 import android.support.v4.widget.TextViewCompat;
 import android.text.Html;
 import android.text.SpannableString;
@@ -9,11 +11,12 @@ import android.text.TextPaint;
 import android.text.TextUtils;
 import android.text.method.LinkMovementMethod;
 import android.text.style.ClickableSpan;
-import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -59,7 +62,7 @@ public final class ViewUtil {
     @SuppressWarnings("unused")
     private static final String TAG = ViewUtil.class.getSimpleName();
 
-    private static final String nonEmptyXml = "<{1}.*>{1}.+(<\\/){1}.*>{1}";
+    private static final String nonEmptyXml = "<.*>.+(</).*>";
 
 
     public static void parseAndAddGramBlocksToView(View v, ListEntry entry, Context context, boolean clickable) {
@@ -74,7 +77,7 @@ public final class ViewUtil {
                 parseAndAddGramBlockToView(block, v, entry, context, params, clickable);
             }
         } catch (XPathExpressionException ex) {
-            Log.e(TAG, "Error xPath: " + ex.getMessage());
+//            Log.e(TAG, "Error xPath: " + ex.getMessage());
         }
     }
 
@@ -116,11 +119,12 @@ public final class ViewUtil {
                 ((LinearLayout) v).addView(senseView);
             }
         } catch (XPathExpressionException ex) {
-            Log.e(TAG, "Error xPath: " + ex.getMessage());
+//            Log.e(TAG, "Error xPath: " + ex.getMessage());
         }
     }
 
-    private static void parseAndAddSenseToView(Node senseNode, ListEntry entry, Context context, TextView senseView, boolean clickable) {
+    private static void parseAndAddSenseToView(Node senseNode, ListEntry entry, Context context,
+                                               TextView senseView, boolean clickable) {
         String defResult = XMLUtils.getStringFromNode(senseNode);
         if (defResult != null) {
             defResult = defResult.replaceFirst("^<[^>]+>", "");
@@ -198,7 +202,7 @@ public final class ViewUtil {
                 ((LinearLayout) v).addView(exampleView);
             }
         } catch (XPathExpressionException ex) {
-            Log.e(TAG, "Error xPath: " + ex.getMessage());
+//            Log.e(TAG, "Error xPath: " + ex.getMessage());
         }
     }
 
@@ -239,7 +243,7 @@ public final class ViewUtil {
                 parseAndAddExampleFrenchToView(frenchNode, entry, context, exView, clickable);
             }
         } catch (XPathExpressionException ex) {
-            Log.e(TAG, "Error xPath: " + ex.getMessage());
+//            Log.e(TAG, "Error xPath: " + ex.getMessage());
         }
         exView.setTextColor(Color.parseColor(colorFrench));
         return exView;
@@ -343,27 +347,9 @@ public final class ViewUtil {
         }
     }
 
-    public static void addVedette(TextView v, ListEntry entry, Context context, boolean clickable) {
-        String romaji = entry.getRomajiDisplay();
-        if (TextUtils.isEmpty(romaji)) {
-            romaji = entry.getRomajiSearch();
-        }
-        Node kanjiNode = entry.getKanjiNode();
-        String kanji = XMLUtils.getStringFromNode(kanjiNode);
-        if (entry.isVerified()) {
-            kanji = "<font color=" + colorJapanese + ">" + kanji + "</font>";
-            v.append(Html.fromHtml(kanji));
-        } else {
-            kanji = "<font color=" + colorPbJapanese + ">" + kanji + "</font>";
-            String xpathPointer = "/" + XMLUtils.getFullXPath(kanjiNode);
-            xpathPointer = XMLUtils.replaceXpathstring(xpathPointer, entry.getVolume().getNewOldTagMap());
-            xpathPointer = XMLUtils.removeXpathBeforeVolumeTag(xpathPointer, entry.getVolume());
-            appendClickSpannable(kanji, context, entry, "vedette Kanji", xpathPointer, v, clickable);
-        }
-        String hiraganaString = XMLUtils.getStringFromNode(entry.getHiraganaNode());
-        String vText = "   <font color=" + colorJapanese + ">【" + hiraganaString + "】</font>   " +
-                "   <font color=" + colorRomaji + ">(" + romaji + ")</font>";
-        v.append(Html.fromHtml(vText));
+    public static void addVedette(TextView v, ListEntry entry, Activity activity, boolean clickable) {
+        Object[] params = {v, entry, activity, clickable};
+        new AddVedetteTask().execute(params);
     }
 
     public static void addVerified(View v, ListEntry entry) {
@@ -379,11 +365,6 @@ public final class ViewUtil {
             return input.replaceAll("<(.*?)>", "");
         }
         return input;
-    }
-
-    public static String normalizeQueryString(String string) {
-        string = string.replace(" ", "");
-        return string;
     }
 
     public static String replace_macron(String string) {
@@ -419,5 +400,79 @@ public final class ViewUtil {
         string = string.replace("tyo", "cho");
         string = string.replace("zyo", "jo");
         return string;
+    }
+
+    public static void displayErrorToastOnUI(final Activity activity, final int resId) {
+        activity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                displayErrorToast(activity, resId);
+            }
+        });
+    }
+
+    public static void displayErrorToast(Activity activity, int resId) {
+        Toast toast = Toast.makeText(activity.getApplicationContext(), resId,
+                Toast.LENGTH_SHORT);
+        toast.setGravity(Gravity.CENTER_VERTICAL | Gravity.CENTER_HORIZONTAL, 0, 0);
+        toast.show();
+    }
+
+    private static class AddVedetteTask extends AsyncTask<Object, Void, String[]> {
+
+        TextView v;
+        ListEntry entry;
+        Activity activity;
+        boolean clickable;
+
+        @Override
+        protected String[] doInBackground(Object... objects) {
+            v = (TextView) objects[0];
+            entry = (ListEntry) objects[1];
+            activity = (Activity) objects[2];
+            clickable = (Boolean) objects[3];
+            String romaji = entry.getRomajiDisplay();
+            if (TextUtils.isEmpty(romaji)) {
+                romaji = entry.getRomajiSearch();
+            }
+            Node kanjiNode = entry.getKanjiNode();
+            String kanji = XMLUtils.getStringFromNode(kanjiNode);
+            String xpathPointer = null;
+            if (entry.isVerified()) {
+                kanji = "<font color=" + colorJapanese + ">" + kanji + "</font>";
+            } else {
+                kanji = "<font color=" + colorPbJapanese + ">" + kanji + "</font>";
+                 xpathPointer = "/" + XMLUtils.getFullXPath(kanjiNode);
+                xpathPointer = XMLUtils.replaceXpathstring(xpathPointer, entry.getVolume().getNewOldTagMap());
+                xpathPointer = XMLUtils.removeXpathBeforeVolumeTag(xpathPointer, entry.getVolume());
+            }
+            String hiraganaString = XMLUtils.getStringFromNode(entry.getHiraganaNode());
+            String vText = "   <font color=" + colorJapanese + ">【" + hiraganaString + "】</font>   " +
+                    "   <font color=" + colorRomaji + ">(" + romaji + ")</font>";
+            return new String[]{kanji, vText, xpathPointer};
+        }
+
+        @Override
+        protected void onPostExecute(final String[] res) {
+            activity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    if (entry.isVerified()) {
+                        v.append(Html.fromHtml(res[0]));
+                    } else {
+                        appendClickSpannable(res[0], activity, entry, "vedette Kanji", res[2], v, clickable);
+                    }
+                    v.append(Html.fromHtml(res[1]));
+                }
+            });
+        }
+    }
+
+    private static class AddSenseTask extends AsyncTask<Object, Void, String> {
+
+        @Override
+        protected String doInBackground(Object... objects) {
+            return null;
+        }
     }
 }

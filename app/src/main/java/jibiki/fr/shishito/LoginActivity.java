@@ -3,7 +3,10 @@ package jibiki.fr.shishito;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
+import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -16,6 +19,8 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import jibiki.fr.shishito.Util.ViewUtil;
+
 import static jibiki.fr.shishito.Util.HTTPUtils.doLogin;
 
 
@@ -23,6 +28,9 @@ import static jibiki.fr.shishito.Util.HTTPUtils.doLogin;
  * A login screen that offers login via username/password.
  */
 public class LoginActivity extends AppCompatActivity {
+
+    @SuppressWarnings("unused")
+    private static final String TAG = LoginActivity.class.getSimpleName();
 
     /**
      * Keep track of the login task to ensure we can cancel it if requested.
@@ -58,7 +66,14 @@ public class LoginActivity extends AppCompatActivity {
             mEmailSignInButton.setOnClickListener(new OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    attemptLogin();
+                    ConnectivityManager connMgr = (ConnectivityManager)
+                            getSystemService(Context.CONNECTIVITY_SERVICE);
+                    NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
+                    if (networkInfo != null && networkInfo.isConnected()) {
+                        attemptLogin();
+                    } else {
+                        ViewUtil.displayErrorToastOnUI(LoginActivity.this, R.string.no_network);
+                    }
                 }
             });
         }
@@ -197,7 +212,6 @@ public class LoginActivity extends AppCompatActivity {
         protected void onPostExecute(final Integer code) {
             mAuthTask = null;
             showProgress(false);
-
             if (code == 200) {
                 Intent intent = new Intent();
                 intent.putExtra(SearchActivity.USERNAME, mEmail);

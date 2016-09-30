@@ -11,6 +11,8 @@ import jibiki.fr.shishito.SearchActivity;
 import jibiki.fr.shishito.Util.HTTPUtils;
 import jibiki.fr.shishito.Util.XMLUtils;
 
+import static jibiki.fr.shishito.Util.HTTPUtils.updateContribution;
+
 public class UpdateContribution extends AsyncTask<String, Void, ListEntry> {
 
     private ContributionUpdatedListener cul;
@@ -26,19 +28,7 @@ public class UpdateContribution extends AsyncTask<String, Void, ListEntry> {
 
     @Override
     protected ListEntry doInBackground(String... params) {
-        String param0 = params[0];
-        String param1 = params[1];
-        InputStream is;
-        try {
-            param0 = java.net.URLEncoder.encode(param0,"UTF-8");
-            param1 = java.net.URLEncoder.encode(param1,"UTF-8");
-            String url = SearchActivity.VOLUME_API_URL + param0 + "/" + param1;
-            is = HTTPUtils.doPut(url, params[2]);
-        } catch (IOException e) {
-            return null;
-        }
-
-        return XMLUtils.handleListEntryStream(is, volume);
+        return updateContribution(params[0], params[1], params[2], volume);
     }
 
     @Override

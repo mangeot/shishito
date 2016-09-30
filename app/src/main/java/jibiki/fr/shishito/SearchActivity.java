@@ -1,25 +1,25 @@
 package jibiki.fr.shishito;
 
 import android.app.SearchManager;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.StrictMode;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.Toast;
 
 import org.xml.sax.SAXException;
-import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.CookieHandler;
 import java.net.CookieManager;
 import java.net.CookiePolicy;
@@ -31,10 +31,10 @@ import jibiki.fr.shishito.Interfaces.OnEntryUpdatedListener;
 import jibiki.fr.shishito.Models.ListEntry;
 import jibiki.fr.shishito.Models.Volume;
 import jibiki.fr.shishito.Util.PersistentCookieStore;
-import jibiki.fr.shishito.Util.XMLUtils;
+import jibiki.fr.shishito.Util.ViewUtil;
 
 import static jibiki.fr.shishito.Util.HTTPUtils.checkLoggedIn;
-import static jibiki.fr.shishito.Util.HTTPUtils.doGet;
+import static jibiki.fr.shishito.Util.HTTPUtils.getRemoteVolume;
 
 
 public class SearchActivity extends AppCompatActivity implements SearchFragment.OnWordSelectedListener,
@@ -42,14 +42,6 @@ public class SearchActivity extends AppCompatActivity implements SearchFragment.
 
     @SuppressWarnings("unused")
     private static final String TAG = SearchActivity.class.getSimpleName();
-    //public final static String SERVER_URL = "http://jibiki.fr/jibiki/";
-    // Il y a une version sécurisée. On l'active par défaut ? => oui
-    public final static String SERVER_URL = "https://jibiki.imag.fr/jibiki/";
-    public final static String SERVER_API_URL = SERVER_URL + "api/";
-    public final static String DICT_NAME = "Cesselin";
-    public final static String SRC_LANG = "jpn";
-    public final static String VOLUME_API_URL = SERVER_API_URL + DICT_NAME + "/" + SRC_LANG + "/";
-
 
     public final static String USERNAME = "jibiki.fr.shishito.USERNAME";
     public final static String VOLUME = "jibiki.fr.shishito.VOLUME";
@@ -60,28 +52,36 @@ public class SearchActivity extends AppCompatActivity implements SearchFragment.
     private String username = "";
 
     private Volume volume;
+    private boolean loggedChecked = false;
+
+    private NetworkReceiver receiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder()
+                .detectAll()  // or .detectAll() for all detectable problems
+                .penaltyLog()
+                .build());
+        StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder()
+                .detectAll()
+                .penaltyLog()
+                .penaltyDeath()
+                .build());
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_search);
         if (savedInstanceState == null) {
-
-            ConnectivityManager connMgr = (ConnectivityManager)
-                    getSystemService(Context.CONNECTIVITY_SERVICE);
-            NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
-            if (networkInfo != null && networkInfo.isConnected()) {
-                PersistentCookieStore pcs = new PersistentCookieStore(this);
-                CookieManager cm = new CookieManager(pcs, CookiePolicy.ACCEPT_ALL);
-                CookieHandler.setDefault(cm);
-                new InitVolumeTask().execute();
-                new CheckLoggedIn().execute();
-            } else {
-                Toast.makeText(getApplicationContext(), R.string.no_network,
-                        Toast.LENGTH_SHORT).show();
-            }
-
+            IntentFilter filter = new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
+            receiver = new NetworkReceiver();
+            this.registerReceiver(receiver, filter);
             putSearchFragment(null);
+        }
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        if (receiver != null) {
+            this.unregisterReceiver(receiver);
         }
     }
 
@@ -107,7 +107,10 @@ public class SearchActivity extends AppCompatActivity implements SearchFragment.
         // Inflate the menu; this adds items to the action bar if it is present.
         this.menu = menu;
         getMenuInflater().inflate(R.menu.menu_bar, menu);
-
+        if (!loggedChecked) {
+            MenuItem item = menu.findItem(R.id.action_sign_in);
+            item.setVisible(false);
+        }
         setLoggedIn();
         return true;
     }
@@ -165,7 +168,7 @@ public class SearchActivity extends AppCompatActivity implements SearchFragment.
     }
 
     private void putSearchFragment(String query) {
-        SearchFragment sf = SearchFragment.newInstance(query, volume);
+        SearchFragment sf = SearchFragment.newInstance(query);
         makeTransaction(sf, "search", false);
     }
 
@@ -191,10 +194,10 @@ public class SearchActivity extends AppCompatActivity implements SearchFragment.
         makeTransaction(def, "display", true);
     }
 
-    private void putEditFragment(ListEntry entry) {
-        EditFragment ef = EditFragment.newInstance(entry);
-        makeTransaction(ef, "edit", true);
-    }
+//    private void putEditFragment(ListEntry entry) {
+//        EditFragment ef = EditFragment.newInstance(entry);
+//        makeTransaction(ef, "edit", true);
+//    }
 
     @Override
     public void putFastEdit(String contribId, String xPath, String content, String title) {
@@ -237,8 +240,8 @@ public class SearchActivity extends AppCompatActivity implements SearchFragment.
         return this.volume;
     }
 
-    public String getUsername() {
-        return this.username;
+    public boolean isOnline() {
+        return receiver.isOnline();
     }
 
     @Override
@@ -276,20 +279,14 @@ public class SearchActivity extends AppCompatActivity implements SearchFragment.
 
         @Override
         protected Volume doInBackground(String... params) {
-            InputStream stream;
-            Volume volume = null;
-            try {
-                stream = doGet(VOLUME_API_URL);
-                volume = XMLUtils.createVolume(stream);
-            } catch (XmlPullParserException | IOException e) {
-                Toast.makeText(getApplicationContext(), R.string.error,
-                        Toast.LENGTH_SHORT).show();
-            }
-            return volume;
+            return getRemoteVolume();
         }
 
         @Override
         protected void onPostExecute(Volume volume) {
+            if (volume == null) {
+                ViewUtil.displayErrorToastOnUI(SearchActivity.this, R.string.error);
+            }
             SearchActivity.this.volume = volume;
         }
     }
@@ -304,17 +301,13 @@ public class SearchActivity extends AppCompatActivity implements SearchFragment.
         @Override
         protected String doInBackground(Void... params) {
             String username = "";
-
+            PersistentCookieStore pcs = new PersistentCookieStore(SearchActivity.this);
+            CookieManager cm = new CookieManager(pcs, CookiePolicy.ACCEPT_ALL);
+            CookieHandler.setDefault(cm);
             try {
                 username = checkLoggedIn();
             } catch (IOException | ParserConfigurationException | SAXException e) {
-                SearchActivity.this.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        Toast.makeText(getApplicationContext(), R.string.error,
-                                Toast.LENGTH_SHORT).show();
-                    }
-                });
+                ViewUtil.displayErrorToastOnUI(SearchActivity.this, R.string.error);
             }
 
             return username;
@@ -323,7 +316,39 @@ public class SearchActivity extends AppCompatActivity implements SearchFragment.
         @Override
         protected void onPostExecute(String userName) {
             username = userName;
+            SearchActivity.this.loggedChecked = true;
+            MenuItem item = menu.findItem(R.id.action_sign_in);
+            item.setVisible(true);
             setLoggedIn();
+        }
+    }
+
+    private class NetworkReceiver extends BroadcastReceiver {
+
+        ConnectivityManager connMgr;
+
+        public NetworkReceiver() {
+            connMgr = (ConnectivityManager)
+                    getSystemService(Context.CONNECTIVITY_SERVICE);
+        }
+
+        public boolean isOnline() {
+            NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
+            return (networkInfo != null && networkInfo.isConnected());
+        }
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (isOnline()) {
+                if (SearchActivity.this.getVolume() == null) {
+                    new InitVolumeTask().execute();
+                }
+                if (TextUtils.isEmpty(SearchActivity.this.username)) {
+                    new CheckLoggedIn().execute();
+                }
+            } else {
+                ViewUtil.displayErrorToast(SearchActivity.this, R.string.no_network);
+            }
         }
     }
 }
