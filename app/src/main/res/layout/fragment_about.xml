@@ -10,7 +10,8 @@
         android:layout_width="match_parent"
         android:layout_height="126dp"
         app:srcCompat="@drawable/logo"
-        android:id="@+id/imageView2" />
+        android:id="@+id/imageView2"
+        android:contentDescription="@string/logo_contentdesc"/>
 
     <TextView
         android:layout_width="match_parent"

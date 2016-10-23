@@ -18,8 +18,6 @@
 package jibiki.fr.shishito.Util;
 
 
-import android.util.Log;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -58,7 +56,7 @@ class SerializableHttpCookie implements Serializable {
             ObjectOutputStream outputStream = new ObjectOutputStream(os);
             outputStream.writeObject(this);
         } catch (IOException e) {
-            Log.d(TAG, "IOException in encodeCookie", e);
+//            Log.d(TAG, "IOException in encodeCookie", e);
             return null;
         }
 
@@ -75,9 +73,9 @@ class SerializableHttpCookie implements Serializable {
                     byteArrayInputStream);
             cookie = ((SerializableHttpCookie) objectInputStream.readObject()).cookie;
         } catch (IOException e) {
-            Log.d(TAG, "IOException in decodeCookie", e);
+//            Log.d(TAG, "IOException in decodeCookie", e);
         } catch (ClassNotFoundException e) {
-            Log.d(TAG, "ClassNotFoundException in decodeCookie", e);
+//            Log.d(TAG, "ClassNotFoundException in decodeCookie", e);
         }
 
         return cookie;
@@ -91,7 +89,7 @@ class SerializableHttpCookie implements Serializable {
         } catch (Exception e) {
             // NoSuchFieldException || IllegalAccessException ||
             // IllegalArgumentException
-            Log.w(TAG, e);
+//            Log.w(TAG, e);
         }
         return false;
     }
@@ -104,7 +102,7 @@ class SerializableHttpCookie implements Serializable {
         } catch (Exception e) {
             // NoSuchFieldException || IllegalAccessException ||
             // IllegalArgumentException
-            Log.w(TAG, e);
+//            Log.w(TAG, e);
         }
     }
 

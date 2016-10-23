@@ -1,0 +1,4 @@
+Lists of dependencies:
+  (The Apache Software License, Version 2.0) SerializableHTTPCookie (modified by the authors)
+  (The Apache Software License, Version 2.0) PersistentCookieStore  (modified by the authors)
+  

@@ -74,7 +74,7 @@ public class PersistentCookieStore implements CookieStore {
                 // targetCookies.remove(cookie)
                 targetCookies.add(cookie);
             } catch (URISyntaxException e) {
-                Log.w(TAG, e);
+//                Log.w(TAG, e);
             }
         }
     }
@@ -115,7 +115,7 @@ public class PersistentCookieStore implements CookieStore {
                         : uri.getScheme(), domain,
                         cookie.getPath() == null ? "/" : cookie.getPath(), null);
             } catch (URISyntaxException e) {
-                Log.w(TAG, e);
+//                Log.w(TAG, e);
             }
         }
         return cookieUri;

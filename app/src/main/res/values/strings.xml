@@ -52,4 +52,5 @@
     </string>
     <string name="menu_help">"Aide"</string>
     <string name="load_message">Chargement en cours…</string>
+    <string name="logo_contentdesc">Logo</string>
 </resources>
