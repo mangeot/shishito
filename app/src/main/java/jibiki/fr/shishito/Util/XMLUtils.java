@@ -24,7 +24,6 @@ package jibiki.fr.shishito.Util;
 import android.text.TextUtils;
 import android.util.Log;
 
-import org.apache.commons.io.IOUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -34,8 +33,10 @@ import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Stack;
@@ -236,10 +237,8 @@ public final class XMLUtils {
         return entry;
     }
 
-    private static Document prepareDocumentFromStream(InputStream stream, Volume volume) throws IOException, ParserConfigurationException, SAXException {
-        StringWriter writer = new StringWriter();
-        IOUtils.copy(stream, writer);
-        String string = writer.toString();
+    private static Document prepareDocumentFromStream(InputStream stream, Volume volume) throws IOException, ParserConfigurationException, SAXException { ;
+        String string = convertStreamToString(stream);
         string = replaceTags(string, volume.getOldNewTagMap(), volume.getNewOldTagMap());
         org.xml.sax.InputSource source = new org.xml.sax.InputSource(new java.io.StringReader(string));
 
@@ -247,6 +246,27 @@ public final class XMLUtils {
         dbf.setNamespaceAware(true);
         DocumentBuilder db = dbf.newDocumentBuilder();
         return db.parse(source);
+    }
+
+    private static String convertStreamToString(InputStream is) {
+        BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+        StringBuilder sb = new StringBuilder();
+
+        String line = null;
+        try {
+            while ((line = reader.readLine()) != null) {
+                sb.append(line).append('\n');
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                is.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return sb.toString();
     }
 
     static XPath getNewXPath() {
