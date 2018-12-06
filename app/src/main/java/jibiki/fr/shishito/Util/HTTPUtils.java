@@ -93,7 +93,7 @@ public final class HTTPUtils {
         ArrayList<ListEntry> result;
         try {
             word = normalizeQueryString(word);
-            int firstCharCode = Character.codePointAt(word,1);
+            int firstCharCode = word.codePointAt(0);
             // Si le mot est en romaji (attention, il peut y avoir des macrons (ā = 257 à ū = 360)
             if (firstCharCode < 0x3042) {
                 word = ViewUtil.replace_macron(word);
